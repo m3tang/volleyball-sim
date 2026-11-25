@@ -22,6 +22,8 @@
   --s1: #257de0;
   --s2: #f47230;
   --s3: #00b894;
+  --s4: #f2a600;
+  --s5: #ee7fac;
   --seq: #1b64be;
   --on-seq: #ffffff;
   --display: "Big Shoulders Display", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
@@ -32,14 +34,14 @@
   :root:not([data-theme="light"]) {
     --bg: #0d131f; --surface: #141c2a; --ink: #e9eef6; --ink-2: #9aa6ba; --line: #243049;
     --grid: #222c3e; --axis: #3d4a62; --court: #7ea6ff; --court-soft: #1a2741; --gold: #f2b630;
-    --gold-soft: #3a2e0f; --s1: #338ced; --s2: #e76624; --s3: #00a888; --seq: #4f95f0; --on-seq: #07101f;
+    --gold-soft: #3a2e0f; --s1: #338ced; --s2: #e76624; --s3: #00a888; --s4: #d28e05; --s5: #e24d8b; --seq: #4f95f0; --on-seq: #07101f;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
   --bg: #0d131f; --surface: #141c2a; --ink: #e9eef6; --ink-2: #9aa6ba; --line: #243049;
   --grid: #222c3e; --axis: #3d4a62; --court: #7ea6ff; --court-soft: #1a2741; --gold: #f2b630;
-  --gold-soft: #3a2e0f; --s1: #338ced; --s2: #e76624; --s3: #00a888; --seq: #4f95f0; --on-seq: #07101f;
+  --gold-soft: #3a2e0f; --s1: #338ced; --s2: #e76624; --s3: #00a888; --s4: #d28e05; --s5: #e24d8b; --seq: #4f95f0; --on-seq: #07101f;
   color-scheme: dark;
 }
 
@@ -220,6 +222,16 @@ svg .axisl { stroke: var(--axis); stroke-width: 1; }
 details summary { cursor: pointer; color: var(--court); font-size: 0.9rem; }
 details[open] summary { margin-bottom: 8px; }
 #tip { position: fixed; z-index: 20; pointer-events: none; background: var(--ink); color: var(--bg); font-size: 0.82rem; line-height: 1.4; padding: 8px 10px; border-radius: 4px; max-width: 260px; }
+
+/* Findings */
+.verdict { display: inline-block; vertical-align: middle; font-size: 0.5em; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; padding: 4px 10px; border-radius: 4px; background: var(--gold-soft); color: var(--ink); border: 1px solid var(--gold); margin-left: 6px; }
+.toc { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 620px) { .toc { grid-template-columns: minmax(0, 1fr); } }
+.toc button { all: unset; box-sizing: border-box; cursor: pointer; width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+.toc button:hover, .toc button:focus-visible { border-color: var(--court); }
+.toc .q { font-weight: 600; }
+.toc .v { font-family: var(--display); font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; color: var(--gold); white-space: nowrap; }
+.mini.one { grid-template-columns: minmax(0, 1fr); }
 
 /* Wide comparison bars (long labels) */
 .vs.wide .line { grid-template-columns: minmax(0, 16rem) minmax(0, 1fr) 4rem; }
@@ -435,31 +447,35 @@ footer { border-top: 2px solid var(--line); padding-block: 24px 40px; font-size:
   <section>
     <div class="intro">
       <div class="eyebrow">Findings</div>
-      <h2>Aces don't make champions</h2>
-      <p>We asked where each season's ten best teams get their edge over an average team. Aces, and avoiding missed serves, explain almost none of it. Elite teams win after the pass: on the first attack, and in the scramble that follows a dig.</p>
+      <h2>Fan debates, checked against the data</h2>
+      <p>Coaches, players and fans argue about these every season, on forums, in coaching blogs and in the stands. We tested each one against 4.45 million rallies of Division I play-by-play.</p>
     </div>
-    <div class="panel">
-      <h3>Share of an elite team's edge, by part of the game</h3>
-      <div class="vs wide" id="elite"></div>
-      <p class="small muted">Top 10 teams by end-of-season rating in each season, <span id="el-seasons"></span>, against a league-average opponent. The data records whether a serve was an ace or an error, not how tough it was. A serve that lands in play but forces a weak attack shows up under stopping the opponent's first attack.</p>
+    <ol class="toc" id="toc"></ol>
+  </section>
+  <section id="f-timeouts">
+    <div class="intro">
+      <div class="eyebrow">Fan debate</div>
+      <h2>Do timeouts stop runs? <span class="verdict">No</span></h2>
+      <p>Coaches call timeouts to cut off the other team's run. We took every timeout the scorers logged that was called by the team being scored on, and compared the next rally with the same moments when nobody called one. Both are measured against how often that team won rallies on serve receive in that match, so team strength cancels out.</p>
+    </div>
+    <div class="cols">
+      <div class="panel">
+        <h3>Next rally vs the team's usual sideout rate, in percentage points</h3>
+        <div class="legend" id="to-legend"></div>
+        <div id="to-chart"></div>
+        <details><summary>Show the numbers</summary><div class="scroll"><table id="to-table"></table></div></details>
+      </div>
+      <div class="panel">
+        <div class="mini one"><div><span class="big" id="to-effect"></span><span class="small muted">percentage-point change in the receiving team's chance of winning the next rally after its own timeout</span></div></div>
+        <p id="to-text"></p>
+        <p class="small muted" id="to-note"></p>
+      </div>
     </div>
   </section>
-  <section>
+  <section id="f-momentum">
     <div class="intro">
-      <div class="eyebrow">Findings</div>
-      <h2>Home court turns a coin flip into <span id="home-pct"></span></h2>
-      <p>Put two evenly matched teams on the floor. At a neutral site, each wins half the time. Move the match to one team's gym and the home team wins <span id="home-pct2"></span> of the time. The edge is small on any single rally and adds up over a match.</p>
-    </div>
-    <div class="mini">
-      <div><span class="big" id="home-match"></span><span class="small muted">home team's chance to win the match</span></div>
-      <div><span class="big" id="home-so"></span><span class="small muted">home team wins when receiving serve</span></div>
-      <div><span class="big" id="away-so"></span><span class="small muted">visitors win when receiving serve</span></div>
-    </div>
-  </section>
-  <section>
-    <div class="intro">
-      <div class="eyebrow">Findings</div>
-      <h2>Runs happen. They mostly don't cause each other.</h2>
+      <div class="eyebrow">Fan debate</div>
+      <h2>Is momentum real? <span class="verdict">Mostly no</span></h2>
       <p>When a team reels off points on its serve, the other team does win less often. The question is why. We replayed every 2024 and 2025 set thousands of times with no momentum at all, where each rally is independent, and compared the streaks.</p>
     </div>
     <div class="cols">
@@ -477,20 +493,65 @@ footer { border-top: 2px solid var(--line); padding-block: 24px 40px; font-size:
       </div>
     </div>
     <div class="panel">
-      <h3>No hangover between sets either</h3>
+      <h3>Between sets: comebacks and fifth sets</h3>
       <p class="small muted">2024 and 2025 matches. "Expected" uses each team's strength before the match and assumes sets don't affect each other.</p>
       <div class="scroll"><table id="sets-table"></table></div>
     </div>
   </section>
-  <section>
+  <section id="f-serving">
     <div class="intro">
-      <div class="eyebrow">Findings</div>
-      <h2>The best team won <span id="best-count"></span> of the last <span id="best-total"></span> titles</h2>
+      <div class="eyebrow">Fan debate</div>
+      <h2>Serve tough or serve it in? <span class="verdict">Neither decides it</span></h2>
+      <p>The usual coaching target is one ace for every missed serve. Top teams don't come close, and they don't serve any differently from everyone else. Their edge comes after the pass.</p>
+    </div>
+    <div class="mini" id="srv-tiles"></div>
+    <div class="panel">
+      <h3>Where elite teams get their edge, by part of the game</h3>
+      <div class="vs wide" id="elite"></div>
+      <p class="small muted">Top 10 teams by end-of-season rating in each season, <span id="el-seasons"></span>, against a league-average opponent. The data records whether a serve was an ace or an error, not how tough it was. A serve that lands in play but forces a weak attack shows up under stopping the opponent's first attack.</p>
+    </div>
+  </section>
+  <section id="f-conf">
+    <div class="intro">
+      <div class="eyebrow">Fan debate</div>
+      <h2>Is the Big Ten the best conference? <span class="verdict" id="conf-verdict"></span></h2>
+      <p id="conf-text"></p>
+    </div>
+    <div class="cols">
+      <div class="panel">
+        <h3>Average team's margin over an average Division I team</h3>
+        <div class="legend" id="conf-legend"></div>
+        <div id="conf-chart"></div>
+      </div>
+      <div class="panel">
+        <h3>Teams in the model's top 25</h3>
+        <div class="scroll"><table id="conf-table"></table></div>
+        <p class="small muted">2020 is left out: that season's schedules were almost entirely within conferences, so there were too few cross-conference matches to compare conferences. The Pac-12 effectively dissolved after 2023.</p>
+      </div>
+    </div>
+  </section>
+  <section id="f-best">
+    <div class="intro">
+      <div class="eyebrow">Fan debate</div>
+      <h2>Does the best team win the title? <span class="verdict">Half the time</span></h2>
+      <p><strong>The model's top-rated team won <span id="best-count"></span> of the last <span id="best-total"></span> titles.</strong></p>
       <p>The model's top-rated team took the title in each of the first three seasons. In each of the last three, the champion was only the sixth or seventh best team by the model's ratings. One bad night in a single-elimination bracket is enough.</p>
     </div>
     <div class="panel">
       <div class="scroll"><table id="best"></table></div>
       <p class="small muted">End-of-season ratings, including the tournament. Rank is by share of rallies won against an average Division I team.</p>
+    </div>
+  </section>
+  <section id="f-home">
+    <div class="intro">
+      <div class="eyebrow">Fan debate</div>
+      <h2>How much is home court worth? <span class="verdict"><span id="home-pct"></span></span></h2>
+      <p>Put two evenly matched teams on the floor. At a neutral site, each wins half the time. Move the match to one team's gym and the home team wins <span id="home-pct2"></span> of the time. The edge is small on any single rally and adds up over a match.</p>
+    </div>
+    <div class="mini">
+      <div><span class="big" id="home-match"></span><span class="small muted">home team's chance to win the match</span></div>
+      <div><span class="big" id="home-so"></span><span class="small muted">home team wins when receiving serve</span></div>
+      <div><span class="big" id="away-so"></span><span class="small muted">visitors win when receiving serve</span></div>
     </div>
   </section>
   </div>
@@ -1209,14 +1270,102 @@ const F = D.findings;
 const eliteMax = Math.max(...F.elite.map(e => e.share));
 vsBars($("elite"), F.elite.map(e => ({ label: e.label, v: e.share, color: "var(--s1)" })), eliteMax, v => pct(v));
 $("el-seasons").textContent = T.seasons.replace("-", "–");
-$("home-pct").textContent = pct(F.home.home_match) + "/" + pct(1 - F.home.home_match).replace("%", "");
+$("home-pct").textContent = Math.round(100 * F.home.home_match) + "/" + Math.round(100 * (1 - F.home.home_match));
 $("home-pct2").textContent = pct(F.home.home_match);
 $("home-match").textContent = pct(F.home.home_match);
 $("home-so").textContent = pct(F.home.home_sideout, 1);
 $("away-so").textContent = pct(F.home.away_sideout, 1);
 $("sets-table").innerHTML = `<thead><tr><th>Situation</th><th>Matches</th><th>Actually happened</th><th>Expected</th></tr></thead><tbody>
   <tr><td>Team down 0-2 comes back to win</td><td class="num">${fmtInt(F.sets.down02)}</td><td class="num">${pct(F.sets.comeback, 1)}</td><td class="num">${pct(F.sets.comeback_exp, 1)}</td></tr>
-  <tr><td>Set 1 winner wins the match</td><td class="num">${fmtInt(F.sets.matches)}</td><td class="num">${pct(F.sets.set1_holds, 1)}</td><td class="num">${pct(F.sets.set1_holds_exp, 1)}</td></tr></tbody>`;
+  <tr><td>Set 1 winner wins the match</td><td class="num">${fmtInt(F.sets.matches)}</td><td class="num">${pct(F.sets.set1_holds, 1)}</td><td class="num">${pct(F.sets.set1_holds_exp, 1)}</td></tr>
+  <tr><td>Pre-match favorite wins the fifth set (favorites averaged ${pct(F.sets.fifth_fav_pre)} before the match)</td><td class="num">${fmtInt(F.sets.fifth_sets)}</td><td class="num">${pct(F.sets.fifth_fav, 1)}</td><td class="num">${pct(F.sets.fifth_fav_exp, 1)}</td></tr></tbody>`;
+
+// Generic line chart: categories on x, one line per series (null values break the line).
+function lineChart(el, cats, series, o) {
+  const W = 520, H = 290, L = 52, R = 96, Tp = 14, Bt = 40;
+  const x = i => L + (W - L - R) * (cats.length === 1 ? 0.5 : i / (cats.length - 1));
+  const y = v => Tp + (H - Tp - Bt) * (1 - (v - o.min) / (o.max - o.min));
+  let svg = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.label)}">`;
+  for (const v of o.ticks) svg += `<line class="${v === 0 && o.zero ? "axisl" : "gridl"}" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"/><text x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${o.fmt(v)}</text>`;
+  cats.forEach((c, i) => { svg += `<text x="${x(i)}" y="${H - Bt + 18}" text-anchor="middle">${esc(c)}</text>`; });
+  svg += `<text x="${(L + W - R) / 2}" y="${H - 4}" text-anchor="middle">${esc(o.xLabel)}</text>`;
+  const ends = [];
+  for (const se of series) {
+    let d = "", started = false;
+    se.vals.forEach((v, i) => { if (v == null) { started = false; return; } d += `${started ? "L" : "M"}${x(i)},${y(v)} `; started = true; });
+    svg += `<path d="${d}" fill="none" style="stroke:${se.color}" stroke-width="2" stroke-dasharray="${se.dash || ""}" stroke-linejoin="round"/>`;
+    se.vals.forEach((v, i) => { if (v != null) svg += `<circle cx="${x(i)}" cy="${y(v)}" r="4" style="fill:${se.color};stroke:var(--surface)" stroke-width="2"/>`; });
+    const li = se.vals.map((v, i) => v == null ? -1 : i).filter(i => i >= 0).pop();
+    if (li != null && li >= 0) ends.push({ y: y(se.vals[li]), x: x(li), name: se.short || se.name });
+  }
+  ends.sort((a, b) => a.y - b.y);
+  for (let i = 1; i < ends.length; i++) if (ends[i].y - ends[i - 1].y < 14) ends[i].y = ends[i - 1].y + 14;
+  ends.forEach(e => { svg += `<text x="${e.x + 10}" y="${e.y + 4}" class="ink">${esc(e.name)}</text>`; });
+  const half = (W - L - R) / Math.max(cats.length - 1, 1) / 2;
+  cats.forEach((c, i) => {
+    const t = `<strong>${esc(o.tipTitle(c))}</strong><br>` + series.filter(se => se.vals[i] != null).map(se => `${esc(se.name)}: ${o.fmtTip(se.vals[i])}`).join("<br>");
+    svg += `<rect x="${x(i) - half}" y="${Tp}" width="${2 * half}" height="${H - Tp - Bt}" fill="transparent" data-tip="${esc(t)}"/>`;
+  });
+  el.innerHTML = svg + "</svg>";
+}
+const legendHtml = series => series.map(se => `<span><i style="background:${se.color}"></i>${esc(se.name)}</span>`).join("");
+const signedNum = v => `${v >= 0 ? "+" : "−"}${Math.abs(100 * v).toFixed(1)}`;
+const signedPts = v => `${signedNum(v)} percentage points`;
+
+// Timeouts
+(function () {
+  const TO = F.timeouts, cats = TO.bins.map(b => b.run === 5 ? "5+" : String(b.run));
+  const series = [
+    { name: "No timeout", short: "No timeout", color: "var(--s2)", vals: TO.bins.map(b => b.none.sideout - b.none.expected) },
+    { name: "Receiving team called a timeout", short: "Timeout", color: "var(--s1)", vals: TO.bins.map(b => b.timeout.sideout - b.timeout.expected) },
+  ];
+  $("to-legend").innerHTML = legendHtml(series);
+  lineChart($("to-chart"), cats, series, { min: -0.04, max: 0.04, ticks: [-0.04, -0.02, 0, 0.02, 0.04], zero: true,
+    fmt: v => (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(100 * v).toFixed(0), fmtTip: signedPts, label: "Next-rally sideout vs usual, with and without a timeout",
+    xLabel: "Points in a row by the serving team", tipTitle: c => `After ${c} in a row` });
+  $("to-table").innerHTML = `<thead><tr><th>In a row</th><th>No timeout: rallies</th><th>Won</th><th>Usual</th><th>Timeout: rallies</th><th>Won</th><th>Usual</th></tr></thead><tbody>` +
+    TO.bins.map((b, i) => `<tr><td>${cats[i]}</td><td class="num">${fmtInt(b.none.n)}</td><td class="num">${pct(b.none.sideout, 1)}</td><td class="num">${pct(b.none.expected, 1)}</td><td class="num">${fmtInt(b.timeout.n)}</td><td class="num">${pct(b.timeout.sideout, 1)}</td><td class="num">${pct(b.timeout.expected, 1)}</td></tr>`).join("") + "</tbody>";
+  $("to-effect").textContent = signedNum(TO.effect);
+  $("to-text").textContent = `After its own timeout, the team being scored on was no more likely to win the next rally. The best estimate is ${signedPts(TO.effect)}, and the 95% range runs from ${signedPts(TO.lo)} to ${signedPts(TO.hi)}, so the true effect is very close to zero either way. Timeouts may still help with rest or adjustments, but as a way to stop a run, they make no measurable difference.`;
+  $("to-note").textContent = `${fmtInt(TO.timeouts)} timeouts in ${fmtInt(TO.matches)} matches, ${TO.seasons[0]}-${TO.seasons[1]}. Only matches whose scorers logged timeouts can be used, mostly from 2020 to 2022. Media timeouts are excluded.`;
+})();
+
+// Serving
+(function () {
+  const S = F.serving[F.serving.length - 1];
+  const ratio = g => (g.ace / g.err).toFixed(2);
+  $("srv-tiles").innerHTML = `
+    <div><span class="big">${pct(S.top.ace, 1)} / ${pct(S.top.err, 1)}</span><span class="small muted">aces / missed serves for the ${S.season} top 25</span></div>
+    <div><span class="big">${pct(S.rest.ace, 1)} / ${pct(S.rest.err, 1)}</span><span class="small muted">aces / missed serves for ${S.rest_label}</span></div>
+    <div><span class="big">${S.top_more_errors} of 25</span><span class="small muted">top-25 teams missed more serves than they aced (ace-to-error ratio ${ratio(S.top)})</span></div>`;
+})();
+
+// Conferences
+(function () {
+  const yrs = Object.keys(D.seasons).sort().filter(y => y !== "2020");
+  const confs = [["Big Ten", "var(--s1)"], ["SEC", "var(--s2)"], ["Big 12", "var(--s3)"], ["ACC", "var(--s4)"], ["Pac-12", "var(--s5)"]];
+  const series = confs.map(([c, color]) => ({ name: c, color, vals: yrs.map(y => (D.seasons[y].conf[c] || {}).pts ?? null) }));
+  $("conf-legend").innerHTML = legendHtml(series);
+  const all = series.flatMap(se => se.vals).filter(v => v != null);
+  const lo = Math.floor(Math.min(...all)), hi = Math.ceil(Math.max(...all));
+  const ticks = []; for (let v = lo; v <= hi; v++) ticks.push(v);
+  lineChart($("conf-chart"), yrs, series, { min: lo, max: hi, ticks, fmt: v => `+${v}`, fmtTip: v => `+${v.toFixed(1)} points per set`,
+    label: "Conference strength by season", xLabel: "Season", tipTitle: y => `${y} season` });
+  $("conf-table").innerHTML = `<thead><tr><th>Conference</th>${yrs.map(y => `<th>${y}</th>`).join("")}</tr></thead><tbody>` +
+    confs.map(([c]) => `<tr><td>${c}</td>${yrs.map(y => `<td class="num">${(D.seasons[y].conf[c] || {}).top25 ?? "–"}</td>`).join("")}</tr>`).join("") + "</tbody>";
+  const last = yrs[yrs.length - 1], bt = D.seasons[last].conf["Big Ten"], sec = D.seasons[last].conf["SEC"];
+  const gap = bt.pts - sec.pts;
+  $("conf-verdict").textContent = Math.abs(gap) < 0.5 ? "Dead heat" : gap > 0 ? "Yes, narrowly" : "Not anymore";
+  $("conf-text").textContent = `Strength here is how many points per set the average team in a conference would beat an average Division I team by, on a neutral floor. In ${last} the average Big Ten team was +${bt.pts.toFixed(1)} and the average SEC team +${sec.pts.toFixed(1)}, ${bt.top25 === sec.top25 ? `with ${bt.top25} teams each` : `with ${bt.top25} and ${sec.top25} teams respectively`} in the model's top 25. A set averages about ${Math.round(F.points_per_set)} points.`;
+})();
+
+// Overview of the debates
+(function () {
+  const items = [["f-timeouts", "Do timeouts stop runs?"], ["f-momentum", "Is momentum real?"], ["f-serving", "Serve tough or serve it in?"],
+                 ["f-conf", "Is the Big Ten the best conference?"], ["f-best", "Does the best team win the title?"], ["f-home", "How much is home court worth?"]];
+  $("toc").innerHTML = items.map(([id, q]) => `<li><button type="button" data-go="${id}"><span class="q">${q}</span><span class="v">${esc(document.querySelector("#" + id + " .verdict").textContent)}</span></button></li>`).join("");
+  $("toc").addEventListener("click", e => { const b = e.target.closest("button"); if (b) document.getElementById(b.dataset.go).scrollIntoView({ behavior: "smooth" }); });
+})();
 
 // ---------- Under the hood: data ----------
 $("d-matches").textContent = fmtInt(T.matches);

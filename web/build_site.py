@@ -27,7 +27,9 @@ HERE = Path(__file__).resolve().parent
 SEASONS = list(range(2020, 2026))
 TABLES = ("sideout", "serve", "fb", "tr")
 MIN_MATCHES = 10
-TOP_EARLIER = 64  # earlier seasons keep their top teams only (for dream matchups)
+TOP_EARLIER = 64
+CONFERENCES = ("Big Ten", "SEC", "Big 12", "ACC", "Pac-12")
+POINTS_PER_SET = 45.0  # replaced at build time by the measured average for sets 1-4  # earlier seasons keep their top teams only (for dream matchups)
 
 
 def r4(x):
@@ -103,9 +105,17 @@ def season_ratings(d, idx, con):
         teams.sort(key=lambda t: -t["r"])
         for rank, t in enumerate(teams, 1):
             t["rank"] = rank
+        conf_of = dict(con.execute('SELECT "Team", "Conference" FROM team_season WHERE season_year = ?', [s]).fetchall())
+        conf_stats = {}
+        for c in CONFERENCES:
+            mem = [t for t in teams if conf_of.get(t["n"]) == c]
+            if len(mem) >= 6:
+                share = float(np.mean([t["r"] for t in mem]))
+                conf_stats[c] = {"pts": round((2 * share - 1) * POINTS_PER_SET, 2),
+                                 "top25": sum(t["rank"] <= 25 for t in mem), "teams": len(mem)}
         if s != SEASONS[-1]:
             teams = teams[:TOP_EARLIER]
-        out[s] = {"teams": teams,
+        out[s] = {"teams": teams, "conf": conf_stats,
                   "b": {k: r4(p.intercept) for k, p in model.parts.items()},
                   "h": {k: r4(p.home) for k, p in model.parts.items()}}
         print(f"  {s}: {len(teams)} teams, top: {teams[0]['n']}")
@@ -312,7 +322,8 @@ def set_momentum(d, idx, con):
         p = f if set_no == 5 else s
         return p * win_from(h + 1, a, set_no + 1, s, f) + (1 - p) * win_from(h, a + 1, set_no + 1, s, f)
 
-    t = dict(down=0, back=0, down_exp=0.0, back_exp=0.0, n=0, hold=0, hold_exp=0.0)
+    t = dict(down=0, back=0, down_exp=0.0, back_exp=0.0, n=0, hold=0, hold_exp=0.0,
+             five=0, five_fav=0, five_fav_exp=0.0, five_pre=0.0)
     for season in (2024, 2025):
         r = run_season(d, idx, M.TouchModel, season, lam, rho)
         keep = np.array([(int(m), 1) in sets and (int(m), 2) in sets for m in r["match_id"]])
@@ -334,8 +345,21 @@ def set_momentum(d, idx, con):
         down = s1 == s2
         t["down"] += int(down.sum())
         t["back"] += int(((s1 == "home") != hw)[down].sum())
+        # Fifth sets: did the pre-match favorite win them as often as expected, given they got there?
+        has5 = np.array([(int(m), 5) in sets for m in mids])
+        reach = (S ** 2 * (1 - S) ** 2) * w
+        f_home = (reach * F).sum(1) / reach.sum(1)
+        pre = match_win_prob(1 - so_a, so_h, sd)
+        fav_home = pre >= 0.5
+        won5 = np.array([sets.get((int(m), 5)) == "home" for m in mids])
+        t["five"] += int(has5.sum())
+        t["five_fav"] += int(np.where(fav_home, won5, ~won5)[has5].sum())
+        t["five_fav_exp"] += float(np.where(fav_home, f_home, 1 - f_home)[has5].sum())
+        t["five_pre"] += float(np.where(fav_home, pre, 1 - pre)[has5].sum())
     return {"down02": t["down"], "comeback": t["back"] / t["down"], "comeback_exp": t["back_exp"] / t["down_exp"],
-            "matches": t["n"], "set1_holds": t["hold"] / t["n"], "set1_holds_exp": t["hold_exp"] / t["n"]}
+            "matches": t["n"], "set1_holds": t["hold"] / t["n"], "set1_holds_exp": t["hold_exp"] / t["n"],
+            "fifth_sets": t["five"], "fifth_fav": t["five_fav"] / t["five"], "fifth_fav_exp": t["five_fav_exp"] / t["five"],
+            "fifth_fav_pre": t["five_pre"] / t["five"]}
 
 
 def home_court(d, idx):
@@ -354,9 +378,100 @@ def home_court(d, idx):
             "home_sideout": float(so_home), "away_sideout": float(so_away), "neutral_sideout": float(so_neutral)}
 
 
+def timeouts(con):
+    """Does a timeout by the receiving team, called during the serving team's run, change the
+    next rally? Only matches whose scorers logged timeouts (mostly 2020-2022) can be used.
+    Each rally is compared with the receiving team's own sideout rate in that match (leaving
+    the rally out), and timeout rallies are compared with no-timeout rallies at the same run length."""
+    import re
+    rows = con.execute("""SELECT e.match_id, e.set_no, e.rally_no, e.event_raw, m.away_team, m.home_team
+        FROM events e JOIN matches m USING (match_id) WHERE e.row_type = 'timeout'""").fetchall()
+
+    def norm(x):
+        x = x.lower().replace("state", "st").replace("(", " ").replace(")", " ")
+        return set(re.findall(r"[a-z]+", x)) - {"st", "of", "the", "university"}
+
+    called = {}
+    for mid, st, rn, txt, away, home in rows:
+        name = re.sub(r"^timeout\s*", "", txt.strip(), flags=re.I).rstrip(".")
+        if not name or "media" in name.lower():
+            continue
+        a, h, n = norm(away), norm(home), norm(name)
+        sa, sh = len(a & n) / max(len(a), 1), len(h & n) / max(len(h), 1)
+        if sa != sh:
+            called[(mid, st, rn)] = away if sa > sh else home
+    mids = sorted({k[0] for k in called})
+    con.execute("CREATE OR REPLACE TEMP TABLE tm AS SELECT unnest(?::BIGINT[]) AS match_id", [mids])
+    seasons = con.execute("SELECT min(season), max(season) FROM matches JOIN tm USING (match_id)").fetchone()
+    rallies = con.execute("""
+      WITH r AS (SELECT ra.match_id, ra.set_no, ra.rally_no, ra.serve_team, ra.receive_team, ra.sideout, ra.point_team, ra.usable
+                 FROM rallies ra JOIN tm USING (match_id)),
+      s AS (SELECT *, sum(chg) OVER (PARTITION BY match_id, set_no ORDER BY rally_no ROWS UNBOUNDED PRECEDING) streak
+            FROM (SELECT *, (lag(point_team) OVER (PARTITION BY match_id, set_no ORDER BY rally_no)
+                             IS DISTINCT FROM point_team)::INT chg FROM r)),
+      t AS (SELECT *, row_number() OVER (PARTITION BY match_id, set_no, streak ORDER BY rally_no) pos FROM s)
+      SELECT match_id, set_no, rally_no, serve_team, receive_team, sideout::INT,
+             lag(pos) OVER w, lag(point_team) OVER w, usable
+      FROM t WINDOW w AS (PARTITION BY match_id, set_no ORDER BY rally_no)""").fetchall()
+    tot = {}
+    for mid, st, rn, srv, rcv, so, run, pw, ok in rallies:
+        if ok and srv is not None:
+            k, n = tot.get((mid, rcv), (0, 0))
+            tot[(mid, rcv)] = (k + so, n + 1)
+    groups = {}
+    for mid, st, rn, srv, rcv, so, run, pw, ok in rallies:
+        if not ok or srv is None or run is None or pw != srv or run < 2 or tot[(mid, rcv)][1] < 10:
+            continue
+        k, n = tot[(mid, rcv)]
+        kind = "timeout" if called.get((mid, st, rn)) == rcv else "none"
+        if called.get((mid, st, rn)) == srv:
+            continue
+        groups.setdefault(kind, []).append((min(run, 5), so, (k - so) / (n - 1), mid))
+    out = {"bins": [], "seasons": list(seasons), "matches": len(mids)}
+    for b in (2, 3, 4, 5):
+        row = {"run": b}
+        for kind in ("none", "timeout"):
+            v = np.array([(x[1], x[2]) for x in groups[kind] if x[0] == b])
+            row[kind] = {"n": len(v), "sideout": round(float(v[:, 0].mean()), 4), "expected": round(float(v[:, 1].mean()), 4)}
+        out["bins"].append(row)
+    res = {k: (np.array([x[1] - x[2] for x in v]), np.array([x[3] for x in v])) for k, v in groups.items()}
+    diff = res["timeout"][0].mean() - res["none"][0].mean()
+    rng = np.random.default_rng(0)
+    by = {k: {m: r[mm == m] for m in np.unique(mm)} for k, (r, mm) in res.items()}
+    um = np.array(sorted(set(by["timeout"]) | set(by["none"])))
+    boots = []
+    for _ in range(1000):
+        pick = rng.choice(um, len(um))
+        t_ = np.concatenate([by["timeout"].get(m, np.empty(0)) for m in pick])
+        n_ = np.concatenate([by["none"].get(m, np.empty(0)) for m in pick])
+        boots.append(t_.mean() - n_.mean())
+    out.update({"effect": round(float(diff), 4), "lo": round(float(np.percentile(boots, 2.5)), 4),
+                "hi": round(float(np.percentile(boots, 97.5)), 4), "timeouts": len(groups["timeout"])})
+    return out
+
+
+def serving(d_json_seasons):
+    """Do top-25 teams serve differently? Raw ace and error rates by rank group, per season."""
+    out = []
+    for s in sorted(d_json_seasons):
+        if s == SEASONS[0]:
+            continue
+        teams = [t for t in d_json_seasons[s]["teams"] if t.get("raw")]
+        top = [t for t in teams if t["rank"] <= 25]
+        rest = [t for t in teams if t["rank"] > 25]
+        if len(rest) < 25:  # earlier seasons keep only their top 64
+            rest = [t for t in teams if t["rank"] > 25]
+        g = lambda ts, i: round(float(np.mean([t["raw"]["rate"][i] for t in ts])), 4)
+        out.append({"season": s, "top": {"ace": g(top, 0), "err": g(top, 1)}, "rest": {"ace": g(rest, 0), "err": g(rest, 1)},
+                    "rest_label": "all other teams" if s == SEASONS[-1] else "teams ranked 26-64",
+                    "top_more_errors": sum(t["raw"]["rate"][1] > t["raw"]["rate"][0] for t in top)})
+    return out
+
+
 def findings(d, idx):
     con = duckdb.connect(str(D.DB), read_only=True)
-    return {"elite": elite_edge(d, idx), "sets": set_momentum(d, idx, con), "home": home_court(d, idx)}
+    return {"elite": elite_edge(d, idx), "sets": set_momentum(d, idx, con), "home": home_court(d, idx),
+            "timeouts": timeouts(con)}
 
 
 def sample_rally(con):
@@ -429,6 +544,10 @@ def main():
     for t in TABLES:
         idx(d[t]["t"]), idx(d[t]["o"])
     x, w = np.polynomial.hermite_e.hermegauss(21)
+    global POINTS_PER_SET
+    POINTS_PER_SET = float(con.execute("""SELECT avg(away_final + home_final) FROM sets JOIN matches USING (match_id)
+        WHERE set_no <= 4 AND legal_final AND clean""").fetchone()[0])
+    print(f"points per set (sets 1-4): {POINTS_PER_SET:.1f}")
     print("season ratings...")
     data = {
         "built": str(dt.date.today()),
@@ -450,6 +569,8 @@ def main():
     data["bracket"] = data["brackets"][SEASONS[-1]]
     print("findings...")
     data["findings"] = findings(d, idx)
+    data["findings"]["serving"] = serving(data["seasons"])
+    data["findings"]["points_per_set"] = round(POINTS_PER_SET, 1)
     print("calibration...")
     data["calibration"] = calibration_export(d, idx)
     print("momentum...")

@@ -46,17 +46,25 @@ Predictions are calibrated: when the model gives a team 70%, it wins about 70% o
 | 2024 | 1070 | 880 | 81% | Penn St. |
 | 2025 | 980 | 800 | 83% | Texas A&M |
 
-## Findings
+## Findings: fan debates, tested
 
-- **Aces don't make champions.** For each season's top 10 teams, aces and service errors
-  explain 2.5% of their edge over an average team. The first attack after the pass (29%),
-  stopping the opponent's first attack (19%) and the scramble after a dig (42%) explain the rest.
-- **Home court turns an even match into about 59/41.**
-- **Momentum is mostly an illusion.** Scoring runs are reproduced by replaying every set with
+- **Do timeouts stop runs? No.** After the serving team scores two or more in a row, a timeout
+  by the receiving team changes its chance of winning the next rally by −0.6 percentage points
+  (95% range −1.9 to +0.5), from 7,956 timeouts in matches whose scorers logged them.
+- **Is momentum real? Mostly no.** Scoring runs are reproduced by replaying every set with
   independent rallies plus a small match-day form swing. Teams down 0-2 come back 5.8% of the
-  time, against 5.7% expected from team strength alone.
-- **The best team won 3 of the last 6 titles.** The last three champions were rated 6th, 7th
-  and 6th by the model.
+  time (5.7% expected); set-1 winners win 78.8% (78.5% expected); favorites win 62.5% of fifth
+  sets (59.8% expected), down from 72% before the match.
+- **Serve tough or serve it in? Neither decides it.** Top-25 teams serve like everyone else
+  (about 6.5% aces, 10% errors), and 24 of the 2025 top 25 missed more serves than they aced.
+  Aces and service errors explain 2.5% of elite teams' edge; the first attack, stopping the
+  opponent's first attack and the scramble after a dig explain the rest.
+- **Is the Big Ten the best conference? Dead heat.** In 2025 the average SEC team would beat an
+  average Division I team by 7.5 points per set and the average Big Ten team by 7.2, with seven
+  top-25 teams each. In 2023 the Pac-12 rated highest.
+- **Does the best team win the title? Half the time.** The model's top team won 3 of the last
+  6 titles; the last three champions were rated 6th, 7th and 6th.
+- **How much is home court worth? 59/41** between otherwise equal teams.
 
 ## How it works
 
