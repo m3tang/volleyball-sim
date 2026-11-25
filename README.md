@@ -13,7 +13,7 @@ matches.
 
 - **Brackets:** every NCAA tournament from 2021 to 2025, predicted using only matches played
   before the first round, with each team's odds of reaching every round.
-- **Matchups:** pick any two teams from any season and venue. Win probability, likely final
+- **Match simulator:** pick any two teams from any season and venue. Win probability, likely final
   scores, and the part of the game that decides it.
 - **Findings:** what separates elite teams, how much home court is worth, whether momentum
   is real, and how often the best team wins the title.
@@ -59,12 +59,12 @@ Predictions are calibrated: when the model gives a team 70%, it wins about 70% o
   (about 6.5% aces, 10% errors), and 24 of the 2025 top 25 missed more serves than they aced.
   Aces and service errors explain 2.5% of elite teams' edge; the first attack, stopping the
   opponent's first attack and the scramble after a dig explain the rest.
-- **Is the Big Ten the best conference? Dead heat.** In 2025 the average SEC team would beat an
-  average Division I team by 7.5 points per set and the average Big Ten team by 7.2, with seven
-  top-25 teams each. In 2023 the Pac-12 rated highest.
-- **Does the best team win the title? Half the time.** The model's top team won 3 of the last
-  6 titles; the last three champions were rated 6th, 7th and 6th.
-- **How much is home court worth? 59/41** between otherwise equal teams.
+- **Bet on the favorite or the field? The field.** Pre-tournament favorites (24% to 64% title
+  odds) won 1 of the 5 titles from 2021 to 2025, about half what their odds predicted. The last
+  three champions each started below 2%.
+- **Where does home court help? On attack.** Home teams win about 1 extra rally per 100, which
+  turns an even match into 59/41. 85% of that edge comes from hitting (the first attack and the
+  scramble), not serving.
 
 ## How it works
 

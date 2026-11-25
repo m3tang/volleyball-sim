@@ -179,6 +179,23 @@ tr.champ-row td:first-child { font-weight: 700; }
 .bk .mark { fill: var(--court); }
 .bk .rnd { fill: var(--ink-2); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; }
 .bk .champ-name { fill: var(--gold); font-family: var(--display); font-weight: 800; font-size: 22px; }
+/* Worked example: outcome tree and paths */
+.tree { display: grid; gap: 10px; }
+.trow { display: grid; grid-template-columns: 11rem minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr); gap: 8px; align-items: center; }
+@media (max-width: 760px) { .trow { grid-template-columns: minmax(0, 1fr); } }
+.tlab { font-weight: 600; font-size: 0.92rem; }
+.pill { display: block; padding: 6px 10px; border-radius: 6px; font-size: 0.88rem; border: 1px solid var(--line); text-align: center; }
+.pill.a { background: color-mix(in oklab, var(--s1) 16%, var(--surface)); border-color: var(--s1); }
+.pill.b { background: color-mix(in oklab, var(--s2) 16%, var(--surface)); border-color: var(--s2); }
+.pill.pn { color: var(--ink-2); }
+.sbar.tall { height: 30px; }
+table.paths td { padding: 5px 8px; white-space: normal; }
+table.paths td:last-child { white-space: nowrap; }
+table.paths td:nth-child(2) { text-align: left; }
+#best th:nth-child(2), #best td:nth-child(2), #best th:nth-child(4), #best td:nth-child(4) { text-align: left; }
+@media (max-width: 560px) { table.paths td:nth-child(3) { display: none; } }
+table.paths tr.tot td { border-top: 2px solid var(--axis); font-weight: 700; }
+
 /* Match breakdown */
 #bd h3 { font-size: 1.4rem; }
 .bd-odds { display: grid; gap: 6px; }
@@ -297,7 +314,7 @@ footer { border-top: 2px solid var(--line); padding-block: 24px 40px; font-size:
   <header class="top">
     <a class="mark" href="#home">RALLY <span>ODDS</span></a>
     <nav aria-label="Pages" id="nav">
-      <a href="#home">Home</a><a href="#bracket">Brackets</a><a href="#matchups">Matchups</a>
+      <a href="#home">Home</a><a href="#bracket">Brackets</a><a href="#matchups">Match simulator</a>
       <a href="#findings">Findings</a><a href="#model">Under the hood</a>
     </nav>
   </header>
@@ -305,38 +322,38 @@ footer { border-top: 2px solid var(--line); padding-block: 24px 40px; font-size:
   <div class="view" data-view="home">
   <div class="hero">
     <div class="eyebrow">NCAA Division I women's volleyball · <span id="h-seasons"></span></div>
-    <h1>We modeled <em id="h-rallies"></em> college volleyball rallies.</h1>
-    <p class="lede">Then we used them to predict the 2025 NCAA tournament before the first serve. The model called <span id="h-called"></span> of 63 matches. The model still missed the champion. Explore the bracket, pit any two teams against each other, or see what the data says about momentum.</p>
+    <h1><em id="h-rallies"></em> rallies. One model.</h1>
+    <p class="lede">Every touch of every match since 2020, turned into odds. The model called <span id="h-called"></span> of 63 matches in the 2025 NCAA tournament before the first serve. The champion was a <span id="h-champ"></span> long shot.</p>
     <div class="board" role="list">
       <div role="listitem"><span class="big" id="b-matches"></span><span class="lbl">matches, every touch recorded</span></div>
-      <div role="listitem"><span class="big" id="b-season-acc"></span><span class="lbl">of 2025 matches called right, a week ahead</span></div>
-      <div role="listitem"><span class="big" id="b-tourney"></span><span class="lbl">NCAA tournament matches called right</span></div>
+      <div role="listitem"><span class="big" id="b-season-acc"></span><span class="lbl">of 2025 matches called a week ahead</span></div>
+      <div role="listitem"><span class="big" id="b-tourney"></span><span class="lbl">2025 tournament matches called</span></div>
       <div role="listitem"><span class="big" id="b-points"></span><span class="lbl">bracket points, vs <span id="b-points-base"></span> for picking the better record</span></div>
     </div>
   </div>
     <div class="cards">
       <a class="card" href="#bracket">
-        <span class="eyebrow">NCAA brackets</span>
+        <span class="eyebrow">Brackets</span>
         <span class="big" id="c-bracket"></span>
-        <span>2025 tournament matches called before the first serve. Every bracket from 2021 to 2025, with each team's odds of reaching each round.</span>
-        <span class="go">See the bracket</span>
+        <span>2025 tournament matches called before the first serve. Every bracket back to 2021.</span>
+        <span class="go">See the brackets</span>
       </a>
       <a class="card" href="#matchups">
-        <span class="eyebrow">Matchup simulator</span>
+        <span class="eyebrow">Match simulator</span>
         <span class="big" id="c-teams"></span>
-        <span>team-seasons to pit against each other, from the 2025 final to champions from different years.</span>
-        <span class="go">Run a matchup</span>
+        <span>team-seasons to play against each other, across any years.</span>
+        <span class="go">Simulate a match</span>
       </a>
       <a class="card" href="#findings">
         <span class="eyebrow">Findings</span>
         <span class="big" id="c-best"></span>
-        <span>seasons where the best team won the title. Plus: what really separates elite teams, and whether momentum is real.</span>
+        <span>titles won by the pre-tournament favorite. Plus timeouts, momentum and serving, tested.</span>
         <span class="go">Read the findings</span>
       </a>
       <a class="card" href="#model">
         <span class="eyebrow">Under the hood</span>
         <span class="big" id="c-acc"></span>
-        <span>of 2025 matches called right. See exactly how the model turns touches into odds.</span>
+        <span>of 2025 matches called a week ahead. See how the odds are made.</span>
         <span class="go">Look under the hood</span>
       </a>
     </div>
@@ -344,8 +361,8 @@ footer { border-top: 2px solid var(--line); padding-block: 24px 40px; font-size:
   <div class="view" data-view="bracket" hidden>
   <section>
     <div class="intro">
-      <div class="eyebrow">NCAA tournament brackets</div>
-      <h2>The <span id="b-year"></span> bracket, called before the first serve</h2>
+      <div class="eyebrow">NCAA tournament</div>
+      <h2>The <span id="b-year"></span> bracket, called in advance</h2>
       <p id="b-intro"></p>
     </div>
     <div class="seg" role="group" aria-label="Tournament year" id="b-years"></div>
@@ -358,7 +375,7 @@ footer { border-top: 2px solid var(--line); padding-block: 24px 40px; font-size:
       <div class="panel">
         <h3>Bracket score</h3>
         <div class="vs" id="vs-points"></div>
-        <p class="small muted">Standard scoring: 10, 20, 40, 80, 160 and 320 points per correct pick by round. <span id="b-picks"></span></p>
+        <p class="small muted">10, 20, 40, 80, 160 and 320 points per correct pick by round. <span id="b-picks"></span></p>
       </div>
     </div>
     <div class="panel">
@@ -366,7 +383,7 @@ footer { border-top: 2px solid var(--line); padding-block: 24px 40px; font-size:
         <h3>The bracket as it was played</h3>
         <div class="seg" role="group" aria-label="Part of the bracket" id="reg-tabs"></div>
       </div>
-      <p class="small muted">Each box is one match. The percentages are the model's chances for each team going into that match. <span class="gold-key">Gold boxes</span> are upsets. Hover or tap a match to see what decided it.</p>
+      <p class="small muted">Each box shows the model's pre-match odds. <span class="gold-key">Gold</span> marks an upset. Tap a match to see what decided it.</p>
       <div class="up-row"><span class="small muted">Jump to an upset:</span><div class="chips" id="up-chips"></div></div>
       <div class="scroll" id="bracket-svg"></div>
     </div>
@@ -377,16 +394,16 @@ footer { border-top: 2px solid var(--line); padding-block: 24px 40px; font-size:
         <button class="btn" id="b-all" type="button" aria-expanded="false">Show all 64 teams</button>
       </div>
       <div class="scroll"><table id="odds"></table></div>
-      <p class="small muted">Each team's chance, before the tournament started, of reaching each round. Shading darkens with probability. Records are before the tournament.</p>
+      <p class="small muted">Each team's chance of reaching each round, before the tournament began. Records are pre-tournament.</p>
     </div>
   </section>
   </div>
   <div class="view" data-view="matchups" hidden>
   <section>
     <div class="intro">
-      <div class="eyebrow">Matchup machine</div>
-      <h2>Pick any two teams, from any season</h2>
-      <p>Each team has strengths for every step of a rally: serving, passing, the first attack, and the scramble after a dig. The model works out the exact odds of every possible rally between them, then every possible score, and allows for a little match-day form, because teams have good and bad nights.</p>
+      <div class="eyebrow">Match simulator</div>
+      <h2>Any two teams, any season</h2>
+      <p>Pick two teams and a venue. The model works out every possible rally and score between them.</p>
     </div>
     <div class="chips" id="presets"></div>
     <div class="panel">
@@ -413,7 +430,7 @@ footer { border-top: 2px solid var(--line); padding-block: 24px 40px; font-size:
       </div>
       <div class="winbar" id="winbar" aria-hidden="true"><div style="background:var(--s1)"></div><div style="background:var(--s2)"></div></div>
       <p class="why" id="why"></p>
-      <p class="note" id="cross" hidden>These teams are from different seasons. Each season's ratings are measured against that season's teams, so treat this as a fun estimate.</p>
+      <p class="note" id="cross" hidden>Different seasons: each team is rated against its own season, so treat this as a fun estimate.</p>
     </div>
     <div class="cols">
       <div class="panel">
@@ -422,7 +439,7 @@ footer { border-top: 2px solid var(--line); padding-block: 24px 40px; font-size:
       </div>
       <div class="panel">
         <h3>How their rallies play out</h3>
-        <p class="small muted">When each team is receiving serve in this matchup.</p>
+        <p class="small muted">Each team when receiving serve.</p>
         <div class="scroll"><table id="steps"></table></div>
       </div>
     </div>
@@ -432,8 +449,8 @@ footer { border-top: 2px solid var(--line); padding-block: 24px 40px; font-size:
   <section>
     <div class="intro">
       <div class="eyebrow">Findings</div>
-      <h2>Fan debates, checked against the data</h2>
-      <p>Coaches, players and fans argue about these every season, on forums, in coaching blogs and in the stands. We tested each one against 4.45 million rallies of Division I play-by-play.</p>
+      <h2>Fan debates, settled</h2>
+      <p>Questions coaches and fans argue about every season, tested on 4.45 million rallies.</p>
     </div>
     <ol class="toc" id="toc"></ol>
   </section>
@@ -441,17 +458,17 @@ footer { border-top: 2px solid var(--line); padding-block: 24px 40px; font-size:
     <div class="intro">
       <div class="eyebrow">Fan debate</div>
       <h2>Do timeouts stop runs? <span class="verdict">No</span></h2>
-      <p>Coaches call timeouts to cut off the other team's run. We took every timeout the scorers logged that was called by the team being scored on, and compared the next rally with the same moments when nobody called one. Both are measured against how often that team won rallies on serve receive in that match, so team strength cancels out.</p>
+      <p>Timeouts called mid-run, compared with the same moments when nobody called one.</p>
     </div>
     <div class="cols">
       <div class="panel">
-        <h3>Next rally vs the team's usual sideout rate, in percentage points</h3>
+        <h3>Next rally vs the team's usual, in percentage points</h3>
         <div class="legend" id="to-legend"></div>
         <div id="to-chart"></div>
         <details><summary>Show the numbers</summary><div class="scroll"><table id="to-table"></table></div></details>
       </div>
       <div class="panel">
-        <div class="mini one"><div><span class="big" id="to-effect"></span><span class="small muted">percentage-point change in the receiving team's chance of winning the next rally after its own timeout</span></div></div>
+        <div class="mini one"><div><span class="big" id="to-effect"></span><span class="small muted">percentage-point change in the next rally after a timeout</span></div></div>
         <p id="to-text"></p>
         <p class="small muted" id="to-note"></p>
       </div>
@@ -461,7 +478,7 @@ footer { border-top: 2px solid var(--line); padding-block: 24px 40px; font-size:
     <div class="intro">
       <div class="eyebrow">Fan debate</div>
       <h2>Is momentum real? <span class="verdict">Mostly no</span></h2>
-      <p>When a team reels off points on its serve, the other team does win less often. The question is why. We replayed every 2024 and 2025 set thousands of times with no momentum at all, where each rally is independent, and compared the streaks.</p>
+      <p>Runs happen. But replaying every set with no momentum at all produces nearly the same runs.</p>
     </div>
     <div class="cols">
       <div class="panel">
@@ -472,14 +489,14 @@ footer { border-top: 2px solid var(--line); padding-block: 24px 40px; font-size:
       </div>
       <div class="panel">
         <h3>What the replay shows</h3>
-        <p>With no momentum and no day-to-day form, long runs barely change the odds. Add match-day form (good teams having good nights) and the simulated decline matches the real one within a fraction of a point for runs of one to five.</p>
-        <p>So most streaks come from a team playing well that night, not from the streak itself. After six or more straight points, real teams do slightly worse than the replay. That could be a small late-run momentum effect, or form that varies more than the replay assumes.</p>
-        <p class="small muted"><span id="mo-n"></span> rallies. Comparing against replays of the same sets avoids the counting bias that makes streak data misleading.</p>
+        <p>Allow for good and bad nights, and a momentum-free replay matches real matches within a fraction of a point.</p>
+        <p>Streaks mostly mean a team is playing well that night. Only after 6+ straight points do real teams fall slightly below the replay.</p>
+        <p class="small muted"><span id="mo-n"></span> rallies, 2024–2025.</p>
       </div>
     </div>
     <div class="panel">
-      <h3>Between sets: comebacks and fifth sets</h3>
-      <p class="small muted">2024 and 2025 matches. "Expected" uses each team's strength before the match and assumes sets don't affect each other.</p>
+      <h3>Between sets</h3>
+      <p class="small muted">2024–2025 matches. Expected uses each team's pre-match strength, with sets independent.</p>
       <div class="scroll"><table id="sets-table"></table></div>
     </div>
   </section>
@@ -487,56 +504,38 @@ footer { border-top: 2px solid var(--line); padding-block: 24px 40px; font-size:
     <div class="intro">
       <div class="eyebrow">Fan debate</div>
       <h2>Serve tough or serve it in? <span class="verdict">Neither decides it</span></h2>
-      <p>The usual coaching target is one ace for every missed serve. Top teams don't come close, and they don't serve any differently from everyone else. Their edge comes after the pass.</p>
+      <p>Top teams miss more serves than they ace, and serve like everyone else. Their edge comes after the pass.</p>
     </div>
     <div class="mini" id="srv-tiles"></div>
     <div class="panel">
-      <h3>Where elite teams get their edge, by part of the game</h3>
+      <h3>Where elite teams get their edge</h3>
       <div class="vs wide" id="elite"></div>
-      <p class="small muted">Top 10 teams by end-of-season rating in each season, <span id="el-seasons"></span>, against a league-average opponent. The data records whether a serve was an ace or an error, not how tough it was. A serve that lands in play but forces a weak attack shows up under stopping the opponent's first attack.</p>
-    </div>
-  </section>
-  <section id="f-conf">
-    <div class="intro">
-      <div class="eyebrow">Fan debate</div>
-      <h2>Is the Big Ten the best conference? <span class="verdict" id="conf-verdict"></span></h2>
-      <p id="conf-text"></p>
-    </div>
-    <div class="cols">
-      <div class="panel">
-        <h3>Average team's margin over an average Division I team</h3>
-        <div class="legend" id="conf-legend"></div>
-        <div id="conf-chart"></div>
-      </div>
-      <div class="panel">
-        <h3>Teams in the model's top 25</h3>
-        <div class="scroll"><table id="conf-table"></table></div>
-        <p class="small muted">2020 is left out: that season's schedules were almost entirely within conferences, so there were too few cross-conference matches to compare conferences. The Pac-12 effectively dissolved after 2023.</p>
-      </div>
+      <p class="small muted">Each season's top 10 vs an average opponent, <span id="el-seasons"></span>. A tough serve that lands in play counts under stopping the opponent's first attack.</p>
     </div>
   </section>
   <section id="f-best">
     <div class="intro">
       <div class="eyebrow">Fan debate</div>
-      <h2>Does the best team win the title? <span class="verdict">Half the time</span></h2>
-      <p><strong>The model's top-rated team won <span id="best-count"></span> of the last <span id="best-total"></span> titles.</strong></p>
-      <p>The model's top-rated team took the title in each of the first three seasons. In each of the last three, the champion was only the sixth or seventh best team by the model's ratings. One bad night in a single-elimination bracket is enough.</p>
+      <h2>Bet on the favorite or the field? <span class="verdict">The field</span></h2>
+      <p id="fav-text"></p>
     </div>
     <div class="panel">
       <div class="scroll"><table id="best"></table></div>
-      <p class="small muted">End-of-season ratings, including the tournament. Rank is by share of rallies won against an average Division I team.</p>
+      <p class="small muted">Title odds from the model before each tournament began.</p>
     </div>
   </section>
   <section id="f-home">
     <div class="intro">
       <div class="eyebrow">Fan debate</div>
-      <h2>How much is home court worth? <span class="verdict"><span id="home-pct"></span></span></h2>
-      <p>Put two evenly matched teams on the floor. At a neutral site, each wins half the time. Move the match to one team's gym and the home team wins <span id="home-pct2"></span> of the time. The edge is small on any single rally and adds up over a match.</p>
+      <h2>Where does home court help? <span class="verdict">On attack</span></h2>
+      <p id="home-text"></p>
     </div>
-    <div class="mini">
-      <div><span class="big" id="home-match"></span><span class="small muted">home team's chance to win the match</span></div>
-      <div><span class="big" id="home-so"></span><span class="small muted">home team wins when receiving serve</span></div>
-      <div><span class="big" id="away-so"></span><span class="small muted">visitors win when receiving serve</span></div>
+    <div class="cols">
+      <div class="mini one"><div><span class="big" id="home-match"></span><span class="small muted">home team's chance against an equal opponent</span></div></div>
+      <div class="panel">
+        <h3>Where the home edge comes from</h3>
+        <div class="vs wide" id="home-steps"></div>
+      </div>
     </div>
   </section>
   </div>
@@ -544,116 +543,93 @@ footer { border-top: 2px solid var(--line); padding-block: 24px 40px; font-size:
   <section>
     <div class="intro">
       <div class="eyebrow">Under the hood</div>
-      <h2>From <span id="d-rallies-h"></span> rallies to a win probability</h2>
-      <p>This page walks through the whole project in four steps: the data we started with, what the model learns from it, how the model turns two teams into a win probability, and how we checked that the predictions hold up.</p>
+      <h2>How the model works</h2>
+      <p>Four steps from raw play-by-play to a win probability.</p>
     </div>
     <ol class="steps">
       <li><h3>The data</h3><p>Every touch of every Division I match since 2020.</p></li>
-      <li><h3>What the model learns</h3><p>Twelve numbers per team, one season at a time.</p></li>
-      <li><h3>Calculating a match</h3><p>Exact odds built up from the rally, with no dice rolls.</p></li>
-      <li><h3>Testing</h3><p>Predicting unseen matches, then comparing with what happened.</p></li>
+      <li><h3>Twelve numbers</h3><p>What each team does at every step of a rally.</p></li>
+      <li><h3>The math</h3><p>Exact odds for every rally, set and match.</p></li>
+      <li><h3>The test</h3><p>Predictions made before the matches, then checked.</p></li>
     </ol>
   </section>
 
   <section>
     <div class="intro">
       <div class="eyebrow">Step 1 · The data</div>
-      <h2>Every touch of every match</h2>
-      <p>We started with the official play-by-play from stats.ncaa.org for every Division I women's match, <span id="m-seasons"></span>, collected by the open-source ncaavolleyballr project. Each row is one touch: who touched the ball, for which team, what kind of touch it was, and the score after it.</p>
+      <h2>Every touch, every match</h2>
+      <p>Official NCAA play-by-play, <span id="m-seasons"></span>: every serve, pass, set, attack, dig and block, with the player and the score.</p>
     </div>
     <div class="mini">
       <div><span class="big" id="d-matches"></span><span class="small muted">matches</span></div>
       <div><span class="big" id="d-rallies"></span><span class="small muted">rallies</span></div>
-      <div><span class="big">99.94%</span><span class="small muted">of rebuilt match results agree with the official box score</span></div>
+      <div><span class="big">99.94%</span><span class="small muted">of rebuilt results match the official box score</span></div>
     </div>
     <div class="panel">
       <h3>One real rally, as recorded</h3>
       <p class="small muted" id="sample-cap"></p>
       <div class="rally" id="sample-rally"></div>
-      <p class="small muted">Each card is one possession: a new one starts every time the ball crosses the net. These are the rows the model learns from.</p>
+      <p class="small muted">Each card is one possession. A new one starts each time the ball crosses the net.</p>
     </div>
     <div class="panel">
-        <h3>What we fixed, and what's missing</h3>
+        <h3>Fixed, and missing</h3>
         <ul class="plain small twocol">
-          <li>Rallies are rebuilt from changes in the score. Rows recorded during TV timeouts have no score, and error rows credit the wrong team. Both are corrected.</li>
-          <li>About 1,700 matches listed twice in the 2025 files are removed.</li>
-          <li><strong>Not recorded:</strong> how good each touch was. A perfect pass and a shanked one look the same. Where the ball went, and block touches that stay in play, are missing too.</li>
-          <li><strong>Not recorded:</strong> lineups and injuries. The model sees teams, not players.</li>
+          <li><strong>Fixed:</strong> rallies rebuilt from score changes, team labels corrected on error rows, about 1,700 duplicate matches removed.</li>
+          <li><strong>Missing:</strong> touch quality, ball location, block touches that stay in play, and lineups. The model sees teams, not players.</li>
         </ul>
     </div>
   </section>
 
   <section>
     <div class="intro">
-      <div class="eyebrow">Step 2 · What the model learns</div>
-      <h2>Twelve numbers per team</h2>
-      <p>From those touches the model learns how good each team is at every step of a rally: serving, passing, its first attack after the pass, defending the other team's first attack, and the scramble after a dig, on offense and on defense. Each step gets two numbers, twelve in all, for every team in every season.</p>
-      <p>Turning rallies into those numbers takes three moves: count what each team did at each step, adjust for who it played, and store the result. Here is one of Kentucky's twelve, worked through.</p>
+      <div class="eyebrow">Step 2 · Twelve numbers</div>
+      <h2>What each team does, step by step</h2>
+      <p>Two numbers for each part of a rally: serving, passing, the first attack, defending the first attack, and the scramble on offense and defense. Each one is made in three moves:</p>
     </div>
     <ol class="howcount" id="how-count"></ol>
     <div class="panel">
       <h3>The 12 numbers behind <span id="pm-team"></span></h3>
       <div class="scroll"><table id="params"></table></div>
-      <p class="small muted">"Counted" is what happened in the team's own matches. "Adjusted" is the model's estimate against an average opponent, after accounting for schedule; teams with few matches also lean on the season before. Bold adjusted rates beat the league average. Showing Team A from the <a href="#matchups">Matchups</a> page.</p>
+      <p class="small muted">Counted: what happened in the team's own matches. Adjusted: the model's estimate against an average opponent. Bold beats the league average. Showing Team A from the <a href="#matchups">Match simulator</a>.</p>
     </div>
   </section>
 
   <section>
     <div class="intro">
-      <div class="eyebrow">Step 3 · Calculating a match</div>
+      <div class="eyebrow">Step 3 · The math</div>
       <h2>From two teams to a win probability</h2>
-      <p>To predict a match, the model combines the two teams' numbers one step at a time. Nothing here is simulated. Instead of rolling dice to play thousands of pretend matches, the model adds up the probability of every possible rally and every possible score. That gives the answer a simulation would settle on, without the randomness. Below is the full calculation for the matchup chosen on the <a href="#matchups">Matchups</a> page.</p>
+      <p>No dice rolls. Every possible rally and score is added up exactly. Showing the matchup from the <a href="#matchups">Match simulator</a>.</p>
     </div>
     <div class="panel worked" id="worked"></div>
     <div class="panel">
-      <h3>Good and bad nights: match-day form</h3>
-      <p>A team's twelve numbers describe its season average, but no team plays exactly to its average every night. Travel, an injury, a hot hitter or a loud gym can lift a team or flatten it for a whole match. The model can't see those causes, so it allows for a small random swing in each match: one team may be a little sharper than usual and the other a little flatter. Since nobody knows in advance which way the swing will go, the model averages the odds over every possible swing.</p>
-      <p>A typical swing moves a team's sideout rate by about <strong id="form-pp"></strong> percentage points, for example from 57% to <span id="form-ex"></span>. The size comes from the data: when one team plays above its expected level in a match, its opponent tends to play below theirs by a matching amount.</p>
+      <h3>Good nights and bad nights</h3>
+      <p>Twelve numbers describe a team's average. On any night it can play a little above or below that, so the model averages the odds over good, average and bad nights.</p>
       <div class="mini" id="form-mini"></div>
-      <p class="small muted">The swing pulls lopsided odds a little toward 50%. That matters most for long shots: a team that would almost never win if both sides played to their averages still wins now and then when it has a great night and its opponent has a flat one.</p>
-    </div>
-    <div class="panel">
-      <h3>Why small rally edges matter</h3>
-      <p class="small muted">The last step uses nothing but the scoring rules: every rally scores, the winner serves next, sets go to 25 (the fifth to 15), win by 2. Set the two rally numbers yourself to see how a small gap grows over a match. The Division I average is about 57%.</p>
-      <div class="cols">
-        <div style="display:grid;gap:16px">
-          <label for="so-a"><span>Team A wins <strong class="num" id="so-a-v"></strong> of rallies when receiving serve</span>
-            <input type="range" id="so-a" min="45" max="70" step="0.5" value="59"></label>
-          <label for="so-b"><span>Team B wins <strong class="num" id="so-b-v"></strong> of rallies when receiving serve</span>
-            <input type="range" id="so-b" min="45" max="70" step="0.5" value="55"></label>
-        </div>
-        <div class="edge-out">
-          <div><span class="big" id="e-set"></span><span class="small muted">Team A wins a set</span></div>
-          <div><span class="big" id="e-match"></span><span class="small muted">Team A wins the match</span></div>
-          <div><span class="big" id="e-sweep"></span><span class="small muted">Team A sweeps 3-0</span></div>
-        </div>
-      </div>
+      <p class="small muted" id="form-note"></p>
     </div>
   </section>
 
   <section>
     <div class="intro">
-      <div class="eyebrow">Step 4 · Testing</div>
-      <h2>Predicting matches the model hadn't seen</h2>
-      <p>A model can describe the past perfectly and still predict badly. So every prediction on this site was made using only matches played before it.</p>
+      <div class="eyebrow">Step 4 · The test</div>
+      <h2>Predictions made before the matches</h2>
+      <p>Every prediction on this site uses only matches played before it.</p>
     </div>
     <ol class="chain">
-      <li><h3>Week by week</h3><p>Through the 2025 season the model was refit every week on matches already played, then asked to predict the next week. The model's settings, such as how much to trust last season, were chosen using 2024, so 2025 is a clean test.</p></li>
-      <li><h3>Brackets</h3><p>For each NCAA tournament from 2021 to 2025, the model saw only matches before the first round, then computed every team's odds over every possible path through the bracket, with home court for the host schools.</p></li>
-      <li><h3>Good and bad nights</h3><p>Teams play better or worse on a given night. Match odds average over a small random swing in form for each match, which keeps the odds for long shots honest.</p></li>
+      <li><h3>Week by week</h3><p>Refit every week of 2025, then asked to predict the next week. Settings were tuned on 2024, so 2025 is a clean test.</p></li>
+      <li><h3>Brackets</h3><p>Each tournament from 2021 to 2025, predicted from matches before the first round.</p></li>
+      <li><h3>Honest odds</h3><p>A 70% favorite should win about 70% of the time. The chart below checks that.</p></li>
     </ol>
     <div class="cols">
       <div class="panel">
-        <h3>When the model says 70%, that team wins about 70%</h3>
+        <h3>Predicted vs actual, 2025</h3>
         <div id="cal-chart"></div>
         <details><summary>Show the numbers</summary><div class="scroll"><table id="cal-table"></table></div></details>
       </div>
       <div class="panel">
         <h3>2025 matches called right</h3>
         <div class="vs" id="acc-vs"></div>
-        <p class="small muted">Each dot groups matches by the model's win probability for the home or first-listed team. Dots on the diagonal mean the stated odds matched how often teams actually won.</p>
-        <h3>What was simulated</h3>
-        <p class="small muted">Predictions are calculated, not simulated. Simulation was used for one thing: testing momentum. We replayed every 2024 and 2025 set many times with each rally independent of the last, and compared the streaks with real ones. That result is on the <a href="#findings">Findings</a> page.</p>
+        <p class="small muted">Dots on the diagonal mean the odds matched reality.</p>
       </div>
     </div>
     <p class="small muted">Data: ncaavolleyballr by Jeffrey R. Stevens (MIT license), from stats.ncaa.org.</p>
@@ -786,6 +762,7 @@ const T = D.totals, BR = D.bracket;
 $("h-seasons").textContent = T.seasons.replace("-", "–");
 $("h-rallies").textContent = (T.rallies / 1e6).toFixed(2) + " million";
 $("h-called").textContent = Math.round(BR.acc.model * BR.acc.games);
+{ const ch = BR.teams.find(t => t.wins === 6).odds[5]; $("h-champ").textContent = ch < 0.1 ? (100 * ch).toFixed(1) + "%" : pct(ch); }
 $("b-matches").textContent = fmtInt(T.matches);
 $("b-season-acc").textContent = pct(D.calibration.accuracy);
 $("b-tourney").textContent = Math.round(BR.acc.model * BR.acc.games) + "/" + BR.acc.games;
@@ -793,16 +770,6 @@ $("b-points").textContent = BR.score.model;
 $("b-points-base").textContent = BR.score.record;
 $("m-seasons").textContent = T.seasons.replace("-", "–");
 $("f-built").textContent = D.built;
-
-// ---------- How the model thinks ----------
-function updateEdge() {
-  const a = +$("so-a").value / 100, b = +$("so-b").value / 100;
-  $("so-a-v").textContent = pct(a, 1); $("so-b-v").textContent = pct(b, 1);
-  const o = matchOutcomes(a, b, 0, D.gh);
-  $("e-set").textContent = pct(o.set); $("e-match").textContent = pct(o.win); $("e-sweep").textContent = pct(o.s30);
-}
-$("so-a").addEventListener("input", updateEdge); $("so-b").addEventListener("input", updateEdge);
-updateEdge();
 
 // ---------- Bracket ----------
 const YEARS = Object.keys(D.brackets).sort();
@@ -982,7 +949,7 @@ function drawBracket() {
   indexTree(BS.tree);
   document.querySelectorAll("#b-years button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.y === year)));
   $("b-year").textContent = year;
-  $("b-intro").textContent = `The model saw only matches played before ${longDate(BS.start)}. For every team the model computed the exact chance of reaching each round, over every possible path through the 64-team bracket, including home court for the first-weekend and regional hosts.`;
+  $("b-intro").textContent = `Odds use only matches played before ${longDate(BS.start)}, with home court for the host schools.`;
   const sc = BS.score;
   $("b-picks").textContent = sc.model_champ === sc.record_champ
     ? `Both brackets picked ${sc.model_champ} to win the title. ${BS.champion} won.`
@@ -1144,44 +1111,48 @@ function drawMatchup() {
 }
 
 // ---------- Worked example ----------
-function sbar(parts) {
-  return `<div class="sbar">${parts.map(([v, col, lab]) => `<i style="flex:${v} 0 0;background:${col}" data-tip="${esc(lab)}: ${pct(v, 1)}"></i>`).join("")}</div>
-    <div class="skey">${parts.map(([v, col, lab]) => `<span><i class="swatch" style="background:${col}"></i>${esc(lab)} <strong class="num">${pct(v, 1)}</strong></span>`).join("")}</div>`;
-}
 function drawWorked(la, lb, ra, rb, o) {
-  // Match-day form, shown with this matchup's numbers.
-  const swing = expit(logit(0.57) + D.form_sd) - 0.57;
-  $("form-pp").textContent = (100 * swing).toFixed(1);
-  $("form-ex").textContent = pct(0.57 + swing);
-  const flat = matchOutcomes(ra.p, rb.p, 0, D.gh).win;
-  const favA = o.win >= 0.5, fav = favA ? la : lb;
-  const pFlat = favA ? flat : 1 - flat, pForm = favA ? o.win : 1 - o.win;
-  $("form-mini").innerHTML = `
-    <div><span class="big">${pct(pFlat)}</span><span class="small muted">${esc(fav)}'s chance if both teams play exactly to their averages</span></div>
-    <div><span class="big">${pct(pForm)}</span><span class="small muted">${esc(fav)}'s chance allowing for good and bad nights</span></div>
-    <div><span class="big">${pct(1 - pForm)}</span><span class="small muted">the underdog's chance, the number used everywhere on this site</span></div>`;
-  const A = "var(--s1)", B = "var(--s2)", G = "var(--axis)";
-  const scr = 1 - ra.y;  // A wins once the ball has gone back to B
+  const A = "var(--s1)", B = "var(--s2)";
+  const pIn = ra.srv[2], scr = 1 - ra.y;   // scr: la wins a scramble that starts with lb on the ball
   const venue = state.home === 1 ? `at ${esc(state.a.n)}` : state.home === -1 ? `at ${esc(state.b.n)}` : "on a neutral floor";
+  const pill = (cls, text) => `<span class="pill ${cls}">${text}</span>`;
+  const tint = (c, k) => `color-mix(in oklab, ${c} ${k}%, var(--surface))`;
+  // Every rally ends one of six ways; these add up to 100%.
+  const paths = [
+    { side: "a", c: A, k: 100, label: `${esc(lb)} misses the serve`, math: pct(ra.srv[1], 1), v: ra.srv[1] },
+    { side: "a", c: A, k: 75, label: `${esc(la)} scores on its first attack`, math: `${pct(pIn, 1)} × ${pct(ra.fb[0], 1)}`, v: pIn * ra.fb[0] },
+    { side: "a", c: A, k: 50, label: `${esc(la)} wins the scramble`, math: `${pct(pIn, 1)} × ${pct(ra.fb[2], 1)} × ${pct(scr, 1)}`, v: pIn * ra.fb[2] * scr },
+    { side: "b", c: B, k: 50, label: `${esc(lb)} wins the scramble`, math: `${pct(pIn, 1)} × ${pct(ra.fb[2], 1)} × ${pct(1 - scr, 1)}`, v: pIn * ra.fb[2] * (1 - scr) },
+    { side: "b", c: B, k: 75, label: `${esc(la)}'s first attack fails`, math: `${pct(pIn, 1)} × ${pct(ra.fb[1], 1)}`, v: pIn * ra.fb[1] },
+    { side: "b", c: B, k: 100, label: `${esc(lb)} serves an ace`, math: pct(ra.srv[0], 1), v: ra.srv[0] },
+  ];
   $("worked").innerHTML = `
     <header><h3>${esc(la)} receiving ${esc(lb)}'s serve, ${venue}</h3><a href="#matchups">Change the teams</a></header>
-    <div class="wstep"><span class="n">1</span><div class="wbody"><h3>The serve</h3>
-      <p>${esc(lb)} serves. Its serving strength meets ${esc(la)}'s passing.</p>
-      <div>${sbar([[ra.srv[0], B, `Ace, point ${lb}`], [ra.srv[1], A, `Service error, point ${la}`], [ra.srv[2], G, "In play"]])}</div></div></div>
-    <div class="wstep"><span class="n">2</span><div class="wbody"><h3>${esc(la)}'s first attack</h3>
-      <p>If the serve is in play, ${esc(la)} passes, sets and attacks against ${esc(lb)}'s block and defense.</p>
-      <div>${sbar([[ra.fb[0], A, `Scores, point ${la}`], [ra.fb[1], B, `Error or blocked, point ${lb}`], [ra.fb[2], G, `Ball goes back to ${lb}`]])}</div></div></div>
-    <div class="wstep"><span class="n">3</span><div class="wbody"><h3>The scramble</h3>
-      <p>If the ball goes back, the teams trade possessions until someone scores. Each time ${esc(la)} has it, it scores ${pct(ra.tr[0], 1)}, loses the point ${pct(ra.tr[1], 1)} and sends it back ${pct(ra.tr[2], 1)}. For ${esc(lb)} the same numbers are ${pct(ra.trS[0], 1)}, ${pct(ra.trS[1], 1)} and ${pct(ra.trS[2], 1)}.</p>
-      <p>Adding up every possible back-and-forth, ${esc(la)} wins <strong class="num">${pct(scr, 1)}</strong> of the scrambles that start with ${esc(lb)} on the ball.</p></div></div>
-    <div class="wstep"><span class="n">4</span><div class="wbody"><h3>Add it up</h3>
-      <p>${esc(la)} wins the rally on a service error, or the serve is in play and it either scores on the first attack or wins the scramble.</p>
-      <div class="formula">${pct(ra.srv[1], 1)} + ${pct(ra.srv[2], 1)} × (${pct(ra.fb[0], 1)} + ${pct(ra.fb[2], 1)} × ${pct(scr, 1)}) = <b>${pct(ra.p, 1)}</b></div>
-      <p>${esc(la)} wins <strong>${pct(ra.p, 1)}</strong> of rallies when receiving ${esc(lb)}'s serve.</p></div></div>
-    <div class="wstep"><span class="n">5</span><div class="wbody"><h3>Flip it around</h3>
-      <p>The same steps with ${esc(lb)} receiving give ${esc(lb)} <strong>${pct(rb.p, 1)}</strong> of rallies when receiving ${esc(la)}'s serve.</p></div></div>
-    <div class="wstep"><span class="n">6</span><div class="wbody"><h3>From rallies to a match</h3>
-      <p>Every rally scores and the winner serves next, so those two numbers decide everything. Working through every possible score, and allowing for good and bad nights, ${esc(la)} wins a set <strong>${pct(o.set)}</strong> of the time and the match <strong>${pct(o.win)}</strong>.</p></div></div>`;
+    <div class="wstep"><span class="n">1</span><div class="wbody"><h3>Follow the ball</h3>
+      <div class="tree">
+        <div class="trow"><span class="tlab">The serve</span>
+          ${pill("b", `Ace ${pct(ra.srv[0], 1)} → point ${esc(lb)}`)}${pill("a", `Missed ${pct(ra.srv[1], 1)} → point ${esc(la)}`)}${pill("pn", `In play ${pct(pIn, 1)} ↓`)}</div>
+        <div class="trow"><span class="tlab">${esc(la)}'s first attack</span>
+          ${pill("a", `Scores ${pct(ra.fb[0], 1)} → point ${esc(la)}`)}${pill("b", `Error or blocked ${pct(ra.fb[1], 1)} → point ${esc(lb)}`)}${pill("pn", `Comes back ${pct(ra.fb[2], 1)} ↓`)}</div>
+        <div class="trow"><span class="tlab">The scramble</span>
+          ${pill("a", `${esc(la)} wins ${pct(scr, 1)}`)}${pill("b", `${esc(lb)} wins ${pct(1 - scr, 1)}`)}</div>
+      </div>
+      <p class="small muted">The scramble is every back-and-forth after a dig, added up exactly.</p></div></div>
+    <div class="wstep"><span class="n">2</span><div class="wbody"><h3>Where every rally ends</h3>
+      <div class="sbar tall">${paths.map(p => `<i style="flex:${p.v} 0 0;background:${tint(p.c, p.k)}" data-tip="${p.label}: ${pct(p.v, 1)}"></i>`).join("")}</div>
+      <table class="paths"><tbody>${paths.map(p => `<tr class="${p.side}"><td><i class="swatch" style="background:${tint(p.c, p.k)}"></i></td><td>${p.label}</td><td class="num muted">${p.math}</td><td class="num">${pct(p.v, 1)}</td></tr>`).join("")}
+        <tr class="tot"><td></td><td>${esc(la)} wins the rally</td><td></td><td class="num">${pct(ra.p, 1)}</td></tr></tbody></table></div></div>
+    <div class="wstep"><span class="n">3</span><div class="wbody"><h3>Flip it, then play the match</h3>
+      <p>With ${esc(lb)} receiving, ${esc(lb)} wins <strong>${pct(rb.p, 1)}</strong> of rallies. Run those two numbers through every possible score: ${esc(la)} wins a set <strong>${pct(o.set)}</strong> of the time and the match <strong>${pct(o.win)}</strong>.</p></div></div>`;
+
+  // Good and bad nights for the favorite: one typical swing up, none, one down.
+  const favA = o.win >= 0.5, fav = favA ? la : lb;
+  const soF = favA ? ra.p : rb.p, soU = favA ? rb.p : ra.p;
+  const night = z => matchOutcomes(expit(logit(soF) + D.form_sd * z), expit(logit(soU) - D.form_sd * z), 0, D.gh).win;
+  $("form-mini").innerHTML = [[night(1), "good night"], [night(0), "average night"], [night(-1), "bad night"]]
+    .map(([v, l]) => `<div><span class="big">${pct(v)}</span><span class="small muted">${esc(fav)} on a ${l}</span></div>`).join("");
+  const swing = expit(logit(0.57) + D.form_sd) - 0.57;
+  $("form-note").textContent = `Averaged over all nights: ${fav} ${pct(favA ? o.win : 1 - o.win)}, the number shown everywhere on this site. A typical swing moves a team's sideout rate about ${(100 * swing).toFixed(1)} points, a size measured from real matches.`;
 }
 
 // ---------- The 12 numbers ----------
@@ -1218,11 +1189,11 @@ function drawParams(team, season) {
     const tougher = adj5 > raw.rate[4];
     $("how-count").innerHTML = `
       <li><span class="eyebrow">1 · Count</span><span class="big">${pct(raw.rate[4], 1)}</span>
-        <p>In its ${season} matches, ${esc(team.n)} made ${fmtInt(raw.n[2])} first attacks after a pass and scored on ${pct(raw.rate[4], 1)} of them.</p></li>
+        <p>${esc(team.n)} scored on ${pct(raw.rate[4], 1)} of its ${fmtInt(raw.n[2])} first attacks in ${season}.</p></li>
       <li><span class="eyebrow">2 · Adjust for opponents</span><span class="big">${pct(adj5, 1)}</span>
-        <p>The model rates every team at once, so each rate is judged against who it came against. ${esc(team.n)}'s opponents defended ${tougher ? "better" : "worse"} than average, so against an average team it would score on ${pct(adj5, 1)}.</p></li>
+        <p>Its opponents defended ${tougher ? "better" : "worse"} than average. Against an average team: ${pct(adj5, 1)}.</p></li>
       <li><span class="eyebrow">3 · Store</span><span class="big">${team.p[4] >= 0 ? "+" : "−"}${Math.abs(team.p[4]).toFixed(3)}</span>
-        <p>That becomes number 5 below, on the model's log-odds scale, where 0 is league average. The other eleven numbers are made the same way.</p></li>`;
+        <p>Stored as number 5 below, where 0 is league average.</p></li>`;
   }
   let html = `<thead><tr><th class="l">Number</th><th class="l">What it measures</th><th>Counted</th><th>Adjusted</th><th>League avg</th><th>Model value</th></tr></thead><tbody>`;
   for (const [group, part, rows] of PARAM_ROWS) {
@@ -1245,20 +1216,25 @@ $("c-bracket").textContent = Math.round(BR.acc.model * BR.acc.games) + "/" + BR.
 $("c-teams").textContent = fmtInt(Object.values(D.seasons).reduce((n, s) => n + s.teams.length, 0));
 $("c-acc").textContent = pct(D.calibration.accuracy);
 
-// ---------- Best team vs champion ----------
+// ---------- Favorite or the field ----------
+const oddsTxt = x => x < 0.1 ? (100 * x).toFixed(1) + "%" : pct(x);
 (function () {
-  const rows = Object.keys(D.seasons).sort().map(s => {
-    const teams = D.seasons[s].teams, top = teams[0], ch = D.champions[s].champ;
-    const c = teams.find(t => t.n === ch);
-    return { s, top, c, won: top.n === ch };
+  const rows = Object.keys(D.brackets).sort().map(y => {
+    const b = D.brackets[y], byOdds = b.teams.slice().sort((p, q) => q.odds[5] - p.odds[5]);
+    const champ = b.teams.find(t => t.wins === 6);
+    return { y, fav: byOdds[0], champ, rank: byOdds.indexOf(champ) + 1 };
   });
-  const wins = rows.filter(r => r.won).length;
-  $("best-count").textContent = wins; $("best-total").textContent = rows.length;
-  $("c-best").textContent = wins + " of " + rows.length;
-  $("best").innerHTML = `<thead><tr><th>Season</th><th>Model's top team</th><th>Record</th><th>Champion</th><th>Record</th><th>Champion's rank</th></tr></thead><tbody>` +
-    rows.reverse().map(r => `<tr><td class="num">${r.s}${r.s === "2020" ? " (spring 2021)" : ""}</td><td>${esc(r.top.n)}</td><td class="num">${r.top.w}-${r.top.l}</td>
-      <td>${r.won ? `<span class="finish champ">${esc(r.c.n)}</span>` : esc(r.c ? r.c.n : D.champions[r.s].champ)}</td>
-      <td class="num">${r.c ? r.c.w + "-" + r.c.l : ""}</td><td class="num">${r.c ? "#" + r.c.rank : "outside top 64"}</td></tr>`).join("") + "</tbody>";
+  const won = rows.filter(r => r.fav === r.champ).length;
+  const expected = rows.reduce((s, r) => s + r.fav.odds[5], 0);
+  let streak = 0;
+  for (let i = rows.length - 1; i >= 0 && rows[i].champ.odds[5] < 0.02; i--) streak++;
+  $("c-best").textContent = `${won} of ${rows.length}`;
+  $("fav-text").textContent = `Favorites won ${won} of the last ${rows.length} titles, about half what their odds predicted.` +
+    (streak >= 2 ? ` The last ${streak} champions each started below 2%. That's more chaos than the model expects, a hint that teams change late in the season in ways the model misses.` : "");
+  $("best").innerHTML = `<thead><tr><th>Year</th><th>Favorite</th><th>Title odds</th><th>Champion</th><th>Title odds</th><th>Odds rank</th></tr></thead><tbody>` +
+    rows.slice().reverse().map(r => `<tr><td class="num">${r.y}</td><td>${esc(r.fav.n)}</td><td class="num">${oddsTxt(r.fav.odds[5])}</td>
+      <td>${r.fav === r.champ ? `<span class="finish champ">${esc(r.champ.n)}</span>` : esc(r.champ.n)}</td>
+      <td class="num">${oddsTxt(r.champ.odds[5])}</td><td class="num">#${r.rank}</td></tr>`).join("") + "</tbody>";
 })();
 
 // ---------- Findings ----------
@@ -1266,11 +1242,12 @@ const F = D.findings;
 const eliteMax = Math.max(...F.elite.map(e => e.share));
 vsBars($("elite"), F.elite.map(e => ({ label: e.label, v: e.share, color: "var(--s1)" })), eliteMax, v => pct(v));
 $("el-seasons").textContent = T.seasons.replace("-", "–");
-$("home-pct").textContent = Math.round(100 * F.home.home_match) + "/" + Math.round(100 * (1 - F.home.home_match));
-$("home-pct2").textContent = pct(F.home.home_match);
 $("home-match").textContent = pct(F.home.home_match);
-$("home-so").textContent = pct(F.home.home_sideout, 1);
-$("away-so").textContent = pct(F.home.away_sideout, 1);
+vsBars($("home-steps"), F.home.steps.map(s => ({ label: s.label, v: s.share, color: "var(--s1)" })), Math.max(...F.home.steps.map(s => s.share)), v => pct(v));
+(function () {
+  const attack = F.home.steps.filter(s => !s.label.startsWith("Serving")).reduce((a, s) => a + s.share, 0);
+  $("home-text").textContent = `Home teams win about ${(100 * F.home.rally_edge).toFixed(1)} extra rallies per 100. Small, but it turns an even match into ${Math.round(100 * F.home.home_match)}/${Math.round(100 * (1 - F.home.home_match))}. And ${pct(attack)} of it comes from hitting, not serving.`;
+})();
 $("sets-table").innerHTML = `<thead><tr><th>Situation</th><th>Matches</th><th>Actually happened</th><th>Expected</th></tr></thead><tbody>
   <tr><td>Team down 0-2 comes back to win</td><td class="num">${fmtInt(F.sets.down02)}</td><td class="num">${pct(F.sets.comeback, 1)}</td><td class="num">${pct(F.sets.comeback_exp, 1)}</td></tr>
   <tr><td>Set 1 winner wins the match</td><td class="num">${fmtInt(F.sets.matches)}</td><td class="num">${pct(F.sets.set1_holds, 1)}</td><td class="num">${pct(F.sets.set1_holds_exp, 1)}</td></tr>
@@ -1322,7 +1299,7 @@ const signedPts = v => `${signedNum(v)} percentage points`;
   $("to-table").innerHTML = `<thead><tr><th>In a row</th><th>No timeout: rallies</th><th>Won</th><th>Usual</th><th>Timeout: rallies</th><th>Won</th><th>Usual</th></tr></thead><tbody>` +
     TO.bins.map((b, i) => `<tr><td>${cats[i]}</td><td class="num">${fmtInt(b.none.n)}</td><td class="num">${pct(b.none.sideout, 1)}</td><td class="num">${pct(b.none.expected, 1)}</td><td class="num">${fmtInt(b.timeout.n)}</td><td class="num">${pct(b.timeout.sideout, 1)}</td><td class="num">${pct(b.timeout.expected, 1)}</td></tr>`).join("") + "</tbody>";
   $("to-effect").textContent = signedNum(TO.effect);
-  $("to-text").textContent = `After its own timeout, the team being scored on was no more likely to win the next rally. The best estimate is ${signedPts(TO.effect)}, and the 95% range runs from ${signedPts(TO.lo)} to ${signedPts(TO.hi)}, so the true effect is very close to zero either way. Timeouts may still help with rest or adjustments, but as a way to stop a run, they make no measurable difference.`;
+  $("to-text").textContent = `The team being scored on is no more likely to win the next rally after its own timeout. 95% range: ${signedPts(TO.lo)} to ${signedPts(TO.hi)}. Timeouts may help with rest or tactics, but they don't stop runs.`;
   $("to-note").textContent = `${fmtInt(TO.timeouts)} timeouts in ${fmtInt(TO.matches)} matches, ${TO.seasons[0]}-${TO.seasons[1]}. Only matches whose scorers logged timeouts can be used, mostly from 2020 to 2022. Media timeouts are excluded.`;
 })();
 
@@ -1336,29 +1313,10 @@ const signedPts = v => `${signedNum(v)} percentage points`;
     <div><span class="big">${S.top_more_errors} of 25</span><span class="small muted">top-25 teams missed more serves than they aced (ace-to-error ratio ${ratio(S.top)})</span></div>`;
 })();
 
-// Conferences
-(function () {
-  const yrs = Object.keys(D.seasons).sort().filter(y => y !== "2020");
-  const confs = [["Big Ten", "var(--s1)"], ["SEC", "var(--s2)"], ["Big 12", "var(--s3)"], ["ACC", "var(--s4)"], ["Pac-12", "var(--s5)"]];
-  const series = confs.map(([c, color]) => ({ name: c, color, vals: yrs.map(y => (D.seasons[y].conf[c] || {}).pts ?? null) }));
-  $("conf-legend").innerHTML = legendHtml(series);
-  const all = series.flatMap(se => se.vals).filter(v => v != null);
-  const lo = Math.floor(Math.min(...all)), hi = Math.ceil(Math.max(...all));
-  const ticks = []; for (let v = lo; v <= hi; v++) ticks.push(v);
-  lineChart($("conf-chart"), yrs, series, { min: lo, max: hi, ticks, fmt: v => `+${v}`, fmtTip: v => `+${v.toFixed(1)} points per set`,
-    label: "Conference strength by season", xLabel: "Season", tipTitle: y => `${y} season` });
-  $("conf-table").innerHTML = `<thead><tr><th>Conference</th>${yrs.map(y => `<th>${y}</th>`).join("")}</tr></thead><tbody>` +
-    confs.map(([c]) => `<tr><td>${c}</td>${yrs.map(y => `<td class="num">${(D.seasons[y].conf[c] || {}).top25 ?? "–"}</td>`).join("")}</tr>`).join("") + "</tbody>";
-  const last = yrs[yrs.length - 1], bt = D.seasons[last].conf["Big Ten"], sec = D.seasons[last].conf["SEC"];
-  const gap = bt.pts - sec.pts;
-  $("conf-verdict").textContent = Math.abs(gap) < 0.5 ? "Dead heat" : gap > 0 ? "Yes, narrowly" : "Not anymore";
-  $("conf-text").textContent = `Strength here is how many points per set the average team in a conference would beat an average Division I team by, on a neutral floor. In ${last} the average Big Ten team was +${bt.pts.toFixed(1)} and the average SEC team +${sec.pts.toFixed(1)}, ${bt.top25 === sec.top25 ? `with ${bt.top25} teams each` : `with ${bt.top25} and ${sec.top25} teams respectively`} in the model's top 25. A set averages about ${Math.round(F.points_per_set)} points.`;
-})();
-
 // Overview of the debates
 (function () {
   const items = [["f-timeouts", "Do timeouts stop runs?"], ["f-momentum", "Is momentum real?"], ["f-serving", "Serve tough or serve it in?"],
-                 ["f-conf", "Is the Big Ten the best conference?"], ["f-best", "Does the best team win the title?"], ["f-home", "How much is home court worth?"]];
+                 ["f-best", "Bet on the favorite or the field?"], ["f-home", "Where does home court help?"]];
   $("toc").innerHTML = items.map(([id, q]) => `<li><button type="button" data-go="${id}"><span class="q">${q}</span><span class="v">${esc(document.querySelector("#" + id + " .verdict").textContent)}</span></button></li>`).join("");
   $("toc").addEventListener("click", e => { const b = e.target.closest("button"); if (b) document.getElementById(b.dataset.go).scrollIntoView({ behavior: "smooth" }); });
 })();
@@ -1366,7 +1324,6 @@ const signedPts = v => `${signedNum(v)} percentage points`;
 // ---------- Under the hood: data ----------
 $("d-matches").textContent = fmtInt(T.matches);
 $("d-rallies").textContent = (T.rallies / 1e6).toFixed(2) + "M";
-$("d-rallies-h").textContent = (T.rallies / 1e6).toFixed(2) + " million";
 (function () {
   const R = D.sample_rally; if (!R) return;
   $("sample-cap").textContent = `${R.away} vs ${R.home}, national final, ${longDate(R.date)}. Set ${R.set}, tied ${R.score[0]}-${R.score[1]}.`;
@@ -1403,8 +1360,8 @@ route();
 const MO = D.momentum;
 const series = [
   { key: "actual", name: "Real matches", color: "var(--s1)", dash: "" },
-  { key: "form", name: "Replay: no momentum, with match-day form", color: "var(--s2)", dash: "" },
-  { key: "no_form", name: "Replay: no momentum, no form", color: "var(--s3)", dash: "5 4" },
+  { key: "form", name: "Replay: no momentum, good and bad nights", color: "var(--s2)", dash: "" },
+  { key: "no_form", name: "Replay: no momentum, every night average", color: "var(--s3)", dash: "5 4" },
 ];
 $("mo-legend").innerHTML = series.map(s => `<span><i style="background:${s.color}"></i>${s.name}</span>`).join("");
 (function () {
@@ -1420,7 +1377,7 @@ $("mo-legend").innerHTML = series.map(s => `<span><i style="background:${s.color
     const pts = MO[se.key].map((v, i) => `${x(i)},${y(v)}`).join(" ");
     s += `<polyline points="${pts}" fill="none" style="stroke:${se.color}" stroke-width="2" stroke-dasharray="${se.dash}" stroke-linejoin="round"/>`;
     MO[se.key].forEach((v, i) => { s += `<circle cx="${x(i)}" cy="${y(v)}" r="4" style="fill:${se.color};stroke:var(--surface)" stroke-width="2"/>`; });
-    ends.push({ y: y(MO[se.key][ks.length - 1]), name: se.key === "actual" ? "Real" : se.key === "form" ? "With form" : "No form" });
+    ends.push({ y: y(MO[se.key][ks.length - 1]), name: se.key === "actual" ? "Real" : se.key === "form" ? "Replay" : "Flat replay" });
   }
   ends.sort((a, b) => a.y - b.y);
   for (let i = 1; i < ends.length; i++) if (ends[i].y - ends[i - 1].y < 14) ends[i].y = ends[i - 1].y + 14;

@@ -374,8 +374,20 @@ def home_court(d, idx):
     so_home = model.sideout(z, z, np.ones(1))[0]
     so_away = model.sideout(z, z, -np.ones(1))[0]
     so_neutral = model.sideout(z, z, np.zeros(1))[0]
+
+    # Where the home edge comes from: switch the home effect on for one part of the rally at a time.
+    def edge(parts_on):
+        m = M.TouchModel(1, lam)
+        m.parts = {k: type(p)(p.intercept, p.home if k in parts_on else p.home * 0, p.off, p.def_)
+                   for k, p in model.parts.items()}
+        return 0.5 * (m.sideout(z, z, np.ones(1))[0] + 1 - m.sideout(z, z, -np.ones(1))[0]) - 0.5
+    full = edge({"serve", "fb", "tr"})
+    steps = [{"label": "Serving and passing", "share": round(float(edge({"serve"}) / full), 4)},
+             {"label": "The first attack", "share": round(float(edge({"fb"}) / full), 4)},
+             {"label": "The scramble after a dig", "share": round(float(edge({"tr"}) / full), 4)}]
     return {"home_match": float(match_win_prob(np.array([1 - so_away]), np.array([so_home]), sd)[0]),
-            "home_sideout": float(so_home), "away_sideout": float(so_away), "neutral_sideout": float(so_neutral)}
+            "home_sideout": float(so_home), "away_sideout": float(so_away), "neutral_sideout": float(so_neutral),
+            "rally_edge": round(float(full), 4), "steps": steps}
 
 
 def timeouts(con):
