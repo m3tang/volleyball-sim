@@ -125,7 +125,7 @@ input[type="range"] { width: 100%; accent-color: var(--court); }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .chip { font: inherit; font-size: 0.85rem; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 6px 12px; cursor: pointer; }
 .chip:hover { border-color: var(--court); color: var(--court); }
-.seg { display: inline-flex; border: 1px solid var(--axis); border-radius: 4px; overflow: hidden; flex-wrap: wrap; }
+.seg { display: inline-flex; justify-self: start; width: fit-content; max-width: 100%; border: 1px solid var(--axis); border-radius: 4px; overflow: hidden; flex-wrap: wrap; }
 .seg button { font: inherit; font-size: 0.85rem; border: 0; background: var(--surface); color: var(--ink-2); padding: 8px 12px; cursor: pointer; }
 .seg button + button { border-left: 1px solid var(--axis); }
 .seg button[aria-pressed="true"] { background: var(--court); color: var(--surface); }

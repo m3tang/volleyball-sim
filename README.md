@@ -1,116 +1,118 @@
-# volleyball-sim
+# Rally Odds
 
-A rally-level model of NCAA Division 1 women's volleyball, built to simulate matches
-and the NCAA tournament bracket.
+A rally-by-rally model of NCAA Division I women's volleyball, built from 4.45 million
+rallies of play-by-play data. It predicts matches and NCAA tournament brackets, simulates
+matchups between any two teams from 2020 to 2025, and tests what actually wins volleyball
+matches.
 
-## Setup
+**Live site: [m3tang.github.io/volleyball-sim](https://m3tang.github.io/volleyball-sim/)**
+
+![Rally Odds home page](docs/images/home.jpg)
+
+## What's on the site
+
+- **Brackets:** every NCAA tournament from 2021 to 2025, predicted using only matches played
+  before the first round, with each team's odds of reaching every round.
+- **Matchups:** pick any two teams from any season and venue. Win probability, likely final
+  scores, and the part of the game that decides it.
+- **Findings:** what separates elite teams, how much home court is worth, whether momentum
+  is real, and how often the best team wins the title.
+- **Under the hood:** the data, the twelve numbers the model learns per team, a step-by-step
+  calculation of one rally, and how the model was tested.
+
+![Matchup simulator](docs/images/matchups.jpg)
+
+## Results
+
+Every prediction uses only matches played before it. Model settings were tuned on the
+2024 season; 2025 is a held-out test.
+
+**2025 season, predicted a week ahead (4,786 matches)**
+
+| | accuracy | log loss |
+|---|---|---|
+| coin flip | 50.0% | 0.693 |
+| rally model | 77.4% | 0.467 |
+
+Predictions are calibrated: when the model gives a team 70%, it wins about 70% of the time.
+
+**NCAA tournament brackets, predicted before the first round** (standard scoring, max 1920)
+
+| year | rally model | pick the better record | matches called (model) | champion |
+|---|---|---|---|---|
+| 2021 | 990 | 680 | 84% | Wisconsin |
+| 2022 | 1310 | 650 | 83% | Texas |
+| 2023 | 1190 | 720 | 84% | Texas |
+| 2024 | 1070 | 880 | 81% | Penn St. |
+| 2025 | 980 | 800 | 83% | Texas A&M |
+
+## Findings
+
+- **Aces don't make champions.** For each season's top 10 teams, aces and service errors
+  explain 2.5% of their edge over an average team. The first attack after the pass (29%),
+  stopping the opponent's first attack (19%) and the scramble after a dig (42%) explain the rest.
+- **Home court turns an even match into about 59/41.**
+- **Momentum is mostly an illusion.** Scoring runs are reproduced by replaying every set with
+  independent rallies plus a small match-day form swing. Teams down 0-2 come back 5.8% of the
+  time, against 5.7% expected from team strength alone.
+- **The best team won 3 of the last 6 titles.** The last three champions were rated 6th, 7th
+  and 6th by the model.
+
+## How it works
+
+1. **Data.** Official play-by-play from stats.ncaa.org for every Division I match, 2020-2025:
+   27,702 matches and 4.45 million rallies. Each row is one touch (serve, pass, set, attack,
+   dig, block) with the player, team and score. Rallies are rebuilt from score changes, and
+   the rebuilt match results agree with the official box scores for 99.94% of matches.
+2. **Model.** Each rally is a chain of possessions: the serve (ace, error or in play), the
+   receiving team's first attack (scores, loses the point, or the ball goes back), then the
+   scramble. Each team-season gets twelve opponent-adjusted strengths, two per step, fitted
+   with a penalized multinomial regression and pulled toward the previous season when data
+   is thin.
+3. **Exact calculation, not simulation.** The chain is solved in closed form for the chance
+   of winning a rally. Exact recursions over every score give set and match odds, and an exact
+   pass over every path through the bracket gives tournament odds. Match odds average over a
+   small random swing in match-day form, which keeps long-shot odds calibrated.
+4. **Testing.** Weekly refits through the 2025 season, brackets fit only on pre-tournament
+   matches, and a comparison against a simpler model that rates each team with a single
+   serving and receiving strength. The two predict equally well; the step-by-step model is
+   used because it can explain *why* a team is favored.
+
+## Repository layout
+
+```
+pipeline/   download the data, build the DuckDB database, validate it
+vbsim/      the model: data loading, fitting, rally chain, match math, brackets
+analysis/   model comparison, overconfidence and momentum tests, bracket scoring
+web/        the site: template, build script, generated index.html and data.json
+tests/      unit tests for the match math, fitting and bracket odds
+```
+
+## Run it yourself
+
+Requires Python 3.9 or later.
 
 ```sh
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
-.venv/bin/python pipeline/download.py      # ~4.5 GB of CSVs into data/raw/ (skips files you have)
-.venv/bin/python pipeline/build_db.py      # builds data/vb.duckdb (~1.5 min, ~850 MB)
-.venv/bin/python pipeline/validate.py      # sanity checks; exits 1 on failure
-.venv/bin/python analysis/first_contact.py # first look at sideout rates
+.venv/bin/python pipeline/download.py        # ~4.5 GB of CSVs into data/raw/
+.venv/bin/python pipeline/build_db.py        # builds data/vb.duckdb (~1.5 min)
+.venv/bin/python pipeline/validate.py        # data checks; exits 1 on failure
+.venv/bin/python -m pytest -q tests
+
+.venv/bin/python -m analysis.evaluate_models # model comparison: tune on 2024, test on 2025
+.venv/bin/python -m analysis.overconfidence  # momentum test and match-day form
+.venv/bin/python -m web.build_site           # refit everything and rebuild the site (~2 min)
+open web/index.html
 ```
 
-`build_db.py --seasons 2024 --out /tmp/test.duckdb` builds a single season quickly.
+`web/index.html` is a standalone page with its data built in. Pushing to `main` deploys
+`web/` to GitHub Pages. After editing only `web/template.html`, rebuild with
+`python -m web.build_site --page-only`.
 
-```sh
-.venv/bin/python -m pytest -q tests          # match math and model fitting
-.venv/bin/python -m analysis.evaluate_models # tune on 2024, test on 2025 (~1 min)
-.venv/bin/python -m analysis.overconfidence  # momentum test, form estimate, form tuning (~3 min)
-.venv/bin/python -m analysis.bracket_2025    # 2025 tournament odds and scoring
-```
+## Working with the data
 
-## Public page (`web/`)
-
-Five views (home, brackets 2021-2025, matchup simulator, findings, how it works), switched by
-`#bracket`, `#matchups`, `#findings` and `#model` links. The build writes:
-
-- `web/index.html`: a complete standalone page with its data built in. Double-click it
-  (or `open web/index.html`), or put it on any static host such as GitHub Pages.
-- `web/artifact.html` + `web/data.json`: the same page for the Claude artifact preview.
-
-```sh
-.venv/bin/python -m web.build_site              # refit everything and rebuild (~2 min)
-.venv/bin/python -m web.build_site --page-only  # after editing web/template.html (instant)
-```
-
-The page's JavaScript reimplements the touch model's rally chain and the exact set/match
-math (between the `MATH-START` and `MATH-END` markers); it matches the Python model to within 4e-7.
-
-## Models (`vbsim/`)
-
-Both models estimate, for any two teams, how often the receiving team wins the rally.
-`vbsim/matchsim.py` turns that into exact set and match win probabilities using the
-scoring rules (rally scoring, winner serves, 25/15 win by 2, best of five).
-
-- **Sideout model:** one logistic regression; each team has a receive strength and a serve strength.
-- **Touch model:** the rally as a chain of possessions. The serve ends as an ace, a service
-  error or in play; each possession after that ends as a win, a loss, or the ball going to
-  the other team. First-ball possessions (right after the serve) and transition possessions
-  get separate team strengths. The rally win probability is solved exactly from the chain.
-
-Team strengths are opponent-adjusted, shrunk toward a prior (`lam`), and each season
-starts from last season's strengths scaled by `rho`.
-
-### Results (test season 2025, weekly refits, settings tuned on 2024)
-
-| | log loss | Brier | accuracy |
-|---|---|---|---|
-| coin flip | 0.693 | 0.250 | 50.0% |
-| sideout model | 0.472 | 0.155 | 76.6% |
-| touch model | 0.472 | 0.155 | 77.3% |
-
-The two models are statistically tied (touch minus sideout log loss −0.0005, 95% interval
-−0.0037 to +0.0028). The touch model is the main engine because it predicts as well and
-can explain *why* a team is favored.
-
-### Overconfidence: match-day form, not momentum (`analysis/overconfidence.py`)
-
-Without adjustment both models were overconfident at the extremes (teams given 3.9% won 7.2%).
-
-- **Momentum:** after the server wins k points in a row, the receiving team's rally win rate
-  falls (57.7% at k=1 to 52.3% at k≥6). Simulated sets with *no* momentum but a random
-  match-day form swing reproduce this within 0.3 points for k=1-5, so the drop comes from
-  good teams on good days producing runs, not from runs causing points. At k≥6 the real
-  rate is 0.9 points lower than simulated, which is either a small late-run momentum
-  effect or form that varies more than the simulation assumes.
-- **Match-day form:** when one team beats its predicted sideout rate, its opponent falls short
-  of theirs. The residual covariance puts the form swing at about 0.13 on the logit scale.
-- **Fix:** `match_win_prob(..., form_sd)` averages match odds over a random form swing.
-  Tuned on 2024 (`form_sd` = 0.1), on 2025 it lowers touch-model log loss from 0.4719 to
-  0.4669 (95% interval for the change −0.0076 to −0.0022), and teams given 4.5% now win
-  5.7% of the time. Tuned settings live in `vbsim.models.TUNED`.
-
-## Tournament bracket (`vbsim/bracket.py`, `analysis/bracket_2025.py`)
-
-The 2025 NCAA bracket (63 games) is rebuilt from box scores: tournament games are labeled
-in the opponent field, and walking back from the final through each team's previous match
-gives the bracket tree. Hosts come from the venue in the same field. The `#N` labels in that
-field are not consistent per team, so they are not used as seeds.
-
-Advancement odds are exact over every path through the bracket. 2025, using only data
-from before the first round:
-
-| | log loss (63 games) | games called right | bracket score (max 1920) |
-|---|---|---|---|
-| coin flip | 0.693 | 50% | |
-| better regular-season record | | 68.3% | 800 |
-| touch model (with match-day form) | 0.387 | 82.5% | 980 |
-
-The model called 43 of 48 games in the first two rounds but only 3 of 7 from the regional
-finals on. Champion Texas A&M had 0.4% title odds (0.2% before the form fix) and a 5%
-chance against Nebraska in the regional final; Nebraska (undefeated) had 64.5%.
-
-## Data
-
-Pre-scraped CSVs from the [ncaavolleyballr](https://jeffreyrstevens.github.io/ncaavolleyballr/articles/data.html)
-project by Jeffrey R. Stevens (MIT license), originally from stats.ncaa.org. Division 1
-women's, seasons 2020-2025. The 2020 season is the COVID season played into spring 2021.
-
-### Tables in `data/vb.duckdb`
+The pipeline writes these tables to `data/vb.duckdb`:
 
 | table | one row per | notes |
 |---|---|---|
@@ -118,30 +120,23 @@ women's, seasons 2020-2025. The 2020 season is the COVID season played into spri
 | `rallies` | rally | score before, `serve_team`, `point_team`, `sideout`, `usable` |
 | `sets` | set | final score, `legal_final` |
 | `matches` | match | teams, sets won, `clean` flag, data-quality counts |
-| `match_info` | match | contest ID, raw date, teams |
-| `team_match`, `team_season`, `player_match`, `player_season` | — | box scores as published |
+| `team_match`, `team_season`, `player_match`, `player_season` | | box scores as published |
 
-`match_id` is `season * 100000 + n`. Use `rallies.usable` and `matches.clean` to filter.
+Things about the source data worth knowing:
 
-### Things about the source data worth knowing
+- `score` is away-home, and it is the score *after* that row's event. A rally ends on the row
+  where the score changes. During TV timeouts the score field holds "Media timeout".
+- On attack and service error rows, the `team` column names the team that **won** the point.
+  The pipeline works out who made each touch from the player's team instead.
+- Some matches, mostly 2020-2022, use an older format with "Point X: ..." summary rows.
+- The 2025 file lists about 1,700 matches twice; the pipeline keeps one copy. Dates like
+  `09/28/2024(2)` mark a team's second match that day.
+- Touch quality, ball location, block touches that stay in play, and lineups are not recorded.
 
-- `score` is **away-home**, and it is the score *after* that row's event. A rally ends on the
-  row where the score changes.
-- During media timeouts, `score` holds the text "Media timeout" for the middle rows of a rally.
-- On error rows (`Attack error`, `Service error`) the `team` column is the team that **won the
-  point**, not the team that erred. `Set error` and `Ball handling error` are mixed. The
-  pipeline works out `actor_team` from each player's team in that match instead.
-- Some matches (mostly 2020-2022) use an older format with "Point X: ..." summary rows,
-  substitutions and timeouts in the `event` column. Their rallies are still usable; their
-  touch sequences are less complete. See `matches.n_point_summary_rows`.
-- The 2025 file includes `contestid` and lists about 1,700 matches twice; the pipeline keeps one copy.
-- Dates like `09/28/2024(2)` mark a team's second match that day.
-- About 8% of matches are not `clean` (a set stops early, or the score jumps), usually
-  because the recording was cut short.
+## Data and license
 
-### Validation (current build)
+Data comes from the [ncaavolleyballr](https://jeffreyrstevens.github.io/ncaavolleyballr/)
+project by Jeffrey R. Stevens (MIT license), which collects it from stats.ncaa.org. Raw data
+is downloaded by `pipeline/download.py` and is not stored in this repository.
 
-- Winner and set score rebuilt from play-by-play agree with the published box score for
-  **99.94%** of clean matches (23,892 of 23,907).
-- 99.5% of 4.47 million rallies are usable; the serving team is known for 99.9%.
-- The receiving team wins 56.5-57.1% of rallies in every season.
+Code is released under the [MIT License](LICENSE).
