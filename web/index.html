@@ -163,17 +163,11 @@ td.heat { font-family: var(--mono); font-variant-numeric: tabular-nums; }
 .finish { display: inline-block; font-size: 0.78rem; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--ink-2); }
 .finish.champ { background: var(--gold-soft); border-color: var(--gold); color: var(--ink); font-weight: 700; }
 tr.champ-row td:first-child { font-weight: 700; }
-.upsets { display: grid; gap: 6px; padding: 0; margin: 0; list-style: none; }
-.upsets button { all: unset; box-sizing: border-box; width: 100%; cursor: pointer; display: grid; grid-template-columns: 3.6rem minmax(0, 1fr); column-gap: 12px; row-gap: 2px; padding: 8px; border-radius: 6px; }
-.upsets button:hover, .upsets button:focus-visible { background: var(--court-soft); }
-.upsets .pct { grid-row: 1; align-self: center; }
-.upsets .t { grid-row: 1; grid-column: 2; align-self: center; }
-.upsets .why2 { grid-row: 2; grid-column: 2; font-size: 0.9rem; color: var(--ink-2); }
-.upsets .pct { font-family: var(--display); font-weight: 800; font-size: 1.6rem; color: var(--gold); line-height: 1.2; }
 
 /* Bracket drawing */
 .bk-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; }
 .gold-key { color: var(--gold); font-weight: 600; }
+.up-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
 #bracket-svg svg { display: block; min-width: 860px; width: 100%; height: auto; }
 #bracket-svg svg.ff { min-width: 640px; }
 .bk .box { fill: var(--surface); stroke: var(--line); stroke-width: 1; }
@@ -367,6 +361,7 @@ footer { border-top: 2px solid var(--line); padding-block: 24px 40px; font-size:
       <div class="panel">
         <h3>Matches called right</h3>
         <div class="vs" id="vs-games"></div>
+        <p class="small muted" id="b-rounds"></p>
       </div>
       <div class="panel">
         <h3>Bracket score</h3>
@@ -380,27 +375,17 @@ footer { border-top: 2px solid var(--line); padding-block: 24px 40px; font-size:
         <div class="seg" role="group" aria-label="Part of the bracket" id="reg-tabs"></div>
       </div>
       <p class="small muted">Each box is one match. The percentages are the model's chances for each team going into that match. <span class="gold-key">Gold boxes</span> are upsets. Hover or tap a match to see what decided it.</p>
+      <div class="up-row"><span class="small muted">Jump to an upset:</span><div class="chips" id="up-chips"></div></div>
       <div class="scroll" id="bracket-svg"></div>
     </div>
     <div class="panel" id="bd" aria-live="polite"></div>
     <div class="panel">
       <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px">
-        <h3>Pre-tournament odds of reaching each round</h3>
+        <h3>Title odds before the first serve</h3>
         <button class="btn" id="b-all" type="button" aria-expanded="false">Show all 64 teams</button>
       </div>
       <div class="scroll"><table id="odds"></table></div>
-      <p class="small muted">Shading darkens with probability. Records are before the tournament.</p>
-    </div>
-    <div class="cols">
-      <div class="panel">
-        <h3>The biggest upsets</h3>
-        <ul class="upsets" id="upsets"></ul>
-      </div>
-      <div class="panel">
-        <h3>How each round went</h3>
-        <div class="vs" id="by-round"></div>
-        <p class="small muted">Matches in each round where the model's favorite won.</p>
-      </div>
+      <p class="small muted">Each team's chance, before the tournament started, of reaching each round. Shading darkens with probability. Records are before the tournament.</p>
     </div>
   </section>
   </div>
@@ -1020,21 +1005,15 @@ function drawBracket() {
     { label: "Better record", v: sc.record, color: "var(--axis)" },
   ], sc.max, v => String(v));
   drawOdds(BS);
-  // Upsets, from the tree so each one can open its breakdown.
+  // Upset shortcuts: the biggest upsets, which may sit in different tabs of the bracket.
   const games = Object.values(NODES);
   const ups = games.filter(g => chanceOf(g, g.w) < 0.5).sort((p, q) => chanceOf(p, p.w) - chanceOf(q, q.w)).slice(0, 5);
-  $("upsets").innerHTML = ups.map(g => {
-    const top = reasons(g)[0];
-    return `<li><button type="button" data-id="${g.id}"><span class="pct">${pct(chanceOf(g, g.w))}</span>
-      <span class="t"><strong>${esc(g.w)}</strong> over ${esc(other(g, g.w))}, ${esc(g.score)}</span>
-      <span class="why2">${ROUND[g.r]}. ${top ? esc(top.text) : "No play-by-play was recorded for this match."}</span></button></li>`;
-  }).join("") || `<li class="muted">The model's favorite won every match.</li>`;
-  const byRound = [1, 2, 3, 4, 5, 6].map(r => {
-    const gs = BS.games.filter(g => g.r === r), right = gs.filter(g => g.p > 0.5).length;
-    return { label: ROUND[r], v: right / gs.length, color: "var(--s1)", tip: `${ROUND[r]}: favorite won ${right} of ${gs.length}`, n: gs.length, right };
-  });
-  vsBars($("by-round"), byRound, 1, v => pct(v));
-  $("by-round").querySelectorAll(".line").forEach((el, i) => { el.lastElementChild.textContent = byRound[i].right + "/" + byRound[i].n; });
+  $("up-chips").innerHTML = ups.map(g => `<button class="chip" type="button" data-id="${g.id}">${esc(g.w)} over ${esc(other(g, g.w))} · ${pct(chanceOf(g, g.w))}</button>`).join("")
+    || `<span class="small muted">none: the model's favorite won every match</span>`;
+  // Early rounds vs the rest, in one line.
+  const called = rs => { const gs = BS.games.filter(g => rs.includes(g.r)); return [gs.filter(g => g.p > 0.5).length, gs.length]; };
+  const [e1, e2] = called([1, 2]), [l1, l2] = called([3, 4, 5, 6]);
+  $("b-rounds").textContent = `The model's favorite won ${e1} of ${e2} matches in the first two rounds, and ${l1} of ${l2} after that, when the teams left are closer in strength.`;
   // Start on the biggest upset.
   selected = null; regionTab = null;
   const first = ups[0] || NODES[0];
@@ -1051,10 +1030,9 @@ $("bracket-svg").addEventListener("keydown", e => {
   const g = e.target.closest(".game");
   if (g && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); selectGame(+g.dataset.id, D.brackets[year]); }
 });
-$("upsets").addEventListener("click", e => {
+$("up-chips").addEventListener("click", e => {
   const b = e.target.closest("button[data-id]"); if (!b) return;
   selectGame(+b.dataset.id, D.brackets[year]);
-  $("bracket-svg").scrollIntoView({ behavior: "smooth", block: "center" });
 });
 drawBracket();
 
