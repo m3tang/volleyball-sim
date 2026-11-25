@@ -1,0 +1,1112 @@
+<title>Rally Odds</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="A rally-by-rally model of NCAA Division I women's volleyball: predicted brackets, matchups across seasons, and a test of momentum.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+<style>
+/* Layout: one reading column on a cool court-floor ground; sections divided by court lines;
+   scoreboard type for headings and figures, plain sans for reading, mono for numbers in tables. */
+:root {
+  --bg: #f3f6fa;
+  --surface: #ffffff;
+  --ink: #111a2b;
+  --ink-2: #566177;
+  --line: #d9e0ea;
+  --grid: #e7ebf1;
+  --axis: #b9c2cf;
+  --court: #1d4ea1;
+  --court-soft: #e3ebf8;
+  --gold: #c98a00;
+  --gold-soft: #fff1cc;
+  --s1: #257de0;
+  --s2: #f47230;
+  --s3: #00b894;
+  --seq: #1b64be;
+  --on-seq: #ffffff;
+  --display: "Big Shoulders Display", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --body: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d131f; --surface: #141c2a; --ink: #e9eef6; --ink-2: #9aa6ba; --line: #243049;
+    --grid: #222c3e; --axis: #3d4a62; --court: #7ea6ff; --court-soft: #1a2741; --gold: #f2b630;
+    --gold-soft: #3a2e0f; --s1: #338ced; --s2: #e76624; --s3: #00a888; --seq: #4f95f0; --on-seq: #07101f;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d131f; --surface: #141c2a; --ink: #e9eef6; --ink-2: #9aa6ba; --line: #243049;
+  --grid: #222c3e; --axis: #3d4a62; --court: #7ea6ff; --court-soft: #1a2741; --gold: #f2b630;
+  --gold-soft: #3a2e0f; --s1: #338ced; --s2: #e76624; --s3: #00a888; --seq: #4f95f0; --on-seq: #07101f;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 1040px; margin: 0 auto; }
+h1, h2, h3 { font-family: var(--display); line-height: 1.02; text-wrap: balance; margin: 0; letter-spacing: 0.005em; }
+h2 { font-size: clamp(2rem, 5vw, 3rem); font-weight: 800; }
+h3 { font-size: 1.35rem; font-weight: 600; }
+p { margin: 0; max-width: 75ch; }
+.panel p { max-width: none; }
+a { color: var(--court); text-underline-offset: 3px; }
+a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+.eyebrow { font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); }
+.muted { color: var(--ink-2); }
+.small { font-size: 0.875rem; }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+/* Views */
+.view > section:first-child, .view > .hero + .cards { border-top: 0; }
+.view > section:first-child { padding-top: 40px; }
+.top nav a[aria-current="page"] { color: var(--ink); font-weight: 700; text-decoration: underline; text-decoration-color: var(--gold); text-decoration-thickness: 3px; text-underline-offset: 6px; }
+.cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding-bottom: 56px; }
+@media (max-width: 680px) { .cards { grid-template-columns: minmax(0, 1fr); } }
+.card { display: grid; gap: 8px; align-content: start; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 20px; color: var(--ink); text-decoration: none; }
+.card:hover { border-color: var(--court); }
+.card .big { font-family: var(--display); font-weight: 800; font-size: 2.6rem; line-height: 1; color: var(--court); }
+.card .go { color: var(--court); font-weight: 600; font-size: 0.92rem; }
+.card .go::after { content: " \2192"; }
+.chain { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 760px) { .chain { grid-template-columns: minmax(0, 1fr); } }
+.chain li { background: var(--surface); border: 1px solid var(--line); border-top: 3px solid var(--court); border-radius: 6px; padding: 16px 18px; display: grid; gap: 6px; align-content: start; }
+.chain p { font-size: 0.92rem; color: var(--ink-2); }
+
+/* Header */
+.top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 24px; padding-block: 20px 0; }
+.mark { font-family: var(--display); font-weight: 800; font-size: 1.6rem; letter-spacing: 0.02em; color: var(--ink); text-decoration: none; }
+.mark span { color: var(--gold); }
+.top nav { display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: 0.9rem; }
+.top nav a { color: var(--ink-2); text-decoration: none; }
+.top nav a:hover { color: var(--ink); text-decoration: underline; }
+.top nav a:focus-visible { outline-width: 2px; outline-offset: 4px; border-radius: 2px; }
+
+/* Hero */
+.hero { display: grid; gap: 28px; padding-block: 56px 32px; }
+.hero h1 { font-size: clamp(2.8rem, 8vw, 5.6rem); font-weight: 800; max-width: 22ch; }
+.hero h1 em { font-style: normal; color: var(--court); }
+.hero .lede { font-size: clamp(1.1rem, 2.2vw, 1.3rem); color: var(--ink-2); max-width: 70ch; }
+.board { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid var(--line); border-radius: 6px; background: var(--surface); }
+.board > div { padding: 16px 18px; display: grid; gap: 2px; align-content: start; min-width: 0; }
+.board > div + div { border-left: 1px solid var(--line); }
+.board .big { font-family: var(--display); font-weight: 800; font-size: clamp(2rem, 5vw, 2.8rem); line-height: 1; }
+.board .lbl { font-size: 0.85rem; color: var(--ink-2); }
+@media (max-width: 720px) {
+  .board { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .board > div:nth-child(3) { border-left: 0; }
+  .board > div:nth-child(n+3) { border-top: 1px solid var(--line); }
+}
+
+/* Sections: a court line above each */
+section { padding-block: 56px; border-top: 2px solid var(--line); display: grid; gap: 28px; }
+.intro { display: grid; gap: 12px; }
+.intro p { color: var(--ink-2); font-size: 1.05rem; }
+.cols { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+@media (max-width: 820px) { .cols { grid-template-columns: minmax(0, 1fr); } }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 20px; display: grid; gap: 16px; min-width: 0; }
+.panel h3 + p { margin-top: -8px; }
+
+/* Controls */
+label { font-size: 0.85rem; color: var(--ink-2); display: grid; gap: 6px; }
+select, input[type="range"] { font: inherit; color: var(--ink); }
+select { background: var(--surface); border: 1px solid var(--axis); border-radius: 4px; padding: 8px 10px; width: 100%; min-width: 0; }
+input[type="range"] { width: 100%; accent-color: var(--court); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font: inherit; font-size: 0.85rem; border: 1px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+.chip:hover { border-color: var(--court); color: var(--court); }
+.seg { display: inline-flex; border: 1px solid var(--axis); border-radius: 4px; overflow: hidden; flex-wrap: wrap; }
+.seg button { font: inherit; font-size: 0.85rem; border: 0; background: var(--surface); color: var(--ink-2); padding: 8px 12px; cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--axis); }
+.seg button[aria-pressed="true"] { background: var(--court); color: var(--surface); }
+.btn { font: inherit; font-size: 0.9rem; border: 1px solid var(--axis); background: var(--surface); color: var(--ink); border-radius: 4px; padding: 8px 14px; cursor: pointer; }
+.btn:hover { border-color: var(--court); }
+
+/* Edge explainer */
+.edge-out { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.edge-out div { display: grid; gap: 2px; }
+.edge-out .big { font-family: var(--display); font-weight: 800; font-size: 2.4rem; line-height: 1; }
+.flow { display: grid; gap: 10px; }
+.flow .row { display: grid; grid-template-columns: minmax(0, 1fr) 64px 92px; gap: 10px; align-items: center; font-size: 0.92rem; }
+.flow .bar { height: 10px; background: var(--grid); border-radius: 0 4px 4px 0; overflow: hidden; grid-column: 1 / -1; }
+.flow .bar i { display: block; height: 100%; background: var(--seq); border-radius: 0 4px 4px 0; }
+.flow .hd { font-size: 0.78rem; color: var(--ink-2); }
+.flow .step { font-family: var(--display); font-weight: 600; font-size: 1.1rem; color: var(--court); padding-top: 6px; border-top: 1px solid var(--grid); }
+.flow .step:first-of-type { border-top: 0; }
+
+/* Bracket */
+.scores { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 620px) { .scores { grid-template-columns: minmax(0, 1fr); } }
+.vs { display: grid; gap: 10px; }
+.vs .line { display: grid; grid-template-columns: 9.5rem minmax(0, 1fr) 4.5rem; gap: 10px; align-items: center; font-size: 0.9rem; }
+.vs .track { height: 14px; background: var(--grid); border-radius: 0 4px 4px 0; }
+.vs .track i { display: block; height: 100%; border-radius: 0 4px 4px 0; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 0.88rem; }
+th, td { padding: 6px 8px; text-align: right; white-space: nowrap; }
+th { font-weight: 600; color: var(--ink-2); font-size: 0.78rem; border-bottom: 1px solid var(--axis); }
+th:first-child, td:first-child { text-align: left; }
+tbody tr + tr td { border-top: 1px solid var(--grid); }
+td.heat { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.finish { display: inline-block; font-size: 0.78rem; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--ink-2); }
+.finish.champ { background: var(--gold-soft); border-color: var(--gold); color: var(--ink); font-weight: 700; }
+tr.champ-row td:first-child { font-weight: 700; }
+.upsets { display: grid; gap: 10px; padding: 0; margin: 0; list-style: none; }
+.upsets li { display: grid; grid-template-columns: 3.4rem minmax(0, 1fr); gap: 12px; align-items: baseline; }
+.upsets .pct { font-family: var(--display); font-weight: 800; font-size: 1.6rem; color: var(--gold); line-height: 1; }
+
+/* Matchup */
+.pick { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+@media (max-width: 620px) { .pick { grid-template-columns: minmax(0, 1fr); } }
+.team-pick { display: grid; grid-template-columns: 6rem minmax(0, 1fr); gap: 8px; align-items: end; }
+.team-pick .who { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; font-weight: 700; }
+.swatch { width: 12px; height: 12px; border-radius: 3px; display: inline-block; flex: none; }
+.winbar { display: flex; height: 40px; border-radius: 4px; overflow: hidden; gap: 2px; background: var(--surface); }
+.winbar div { height: 100%; }
+.winlabels { display: flex; justify-content: space-between; gap: 12px; }
+.winlabels div { display: grid; }
+.winlabels .big { font-family: var(--display); font-weight: 800; font-size: 2.6rem; line-height: 1; }
+.winlabels div:last-child { text-align: right; }
+.why { font-size: 1.02rem; }
+.why strong { color: var(--court); }
+.note { font-size: 0.85rem; color: var(--ink-2); border-left: 3px solid var(--gold); padding-left: 10px; }
+
+/* Charts */
+svg text { fill: var(--ink-2); font-family: var(--body); font-size: 12px; }
+svg .ink { fill: var(--ink); }
+svg .gridl { stroke: var(--grid); stroke-width: 1; }
+svg .axisl { stroke: var(--axis); stroke-width: 1; }
+.chart { width: 100%; height: auto; display: block; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 0.85rem; color: var(--ink-2); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 18px; height: 3px; border-radius: 2px; display: inline-block; }
+details summary { cursor: pointer; color: var(--court); font-size: 0.9rem; }
+details[open] summary { margin-bottom: 8px; }
+#tip { position: fixed; z-index: 20; pointer-events: none; background: var(--ink); color: var(--bg); font-size: 0.82rem; line-height: 1.4; padding: 8px 10px; border-radius: 4px; max-width: 260px; }
+
+/* Wide comparison bars (long labels) */
+.vs.wide .line { grid-template-columns: minmax(0, 16rem) minmax(0, 1fr) 4rem; }
+.vs.wide .line > span:first-child { white-space: normal; line-height: 1.3; }
+@media (max-width: 560px) { .vs.wide .line { grid-template-columns: minmax(0, 1fr) 4rem; } .vs.wide .track { grid-column: 1 / -1; grid-row: 2; } }
+.mini { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 560px) { .mini { grid-template-columns: minmax(0, 1fr); } }
+.mini div { display: grid; gap: 2px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px; }
+.mini .big { font-family: var(--display); font-weight: 800; font-size: 2.2rem; line-height: 1; }
+
+/* Worked example */
+.worked { gap: 0; padding: 0; }
+.worked > header { padding: 18px 20px; border-bottom: 1px solid var(--line); display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 16px; align-items: baseline; }
+.wstep { display: grid; grid-template-columns: 2.5rem minmax(0, 1fr); gap: 14px; padding: 18px 20px; align-items: start; }
+.wstep + .wstep { border-top: 1px solid var(--grid); }
+.wstep .n { font-family: var(--display); font-weight: 800; font-size: 2rem; line-height: 1; color: var(--court); }
+.wstep h3 { font-size: 1.2rem; }
+.wstep p { color: var(--ink-2); }
+.sbar { display: flex; gap: 2px; height: 22px; margin-top: 6px; }
+.sbar i { display: block; height: 100%; min-width: 2px; }
+.sbar i:first-child { border-radius: 4px 0 0 4px; }
+.sbar i:last-child { border-radius: 0 4px 4px 0; }
+.skey { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 0.85rem; color: var(--ink-2); margin-top: 6px; }
+.skey span { display: inline-flex; align-items: center; gap: 6px; }
+.formula { font-family: var(--mono); font-size: 0.95rem; color: var(--ink); background: var(--court-soft); border-radius: 4px; padding: 10px 12px; overflow-x: auto; white-space: nowrap; margin-top: 6px; }
+.formula b { color: var(--court); }
+@media (max-width: 560px) { .formula { white-space: normal; line-height: 1.7; } }
+#params td.grp { font-family: var(--display); font-weight: 600; font-size: 1.05rem; color: var(--court); padding-top: 14px; border-top: 0; }
+#params td.desc { white-space: normal; min-width: 14rem; }
+.rally { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 900px) { .rally { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .rally { grid-template-columns: minmax(0, 1fr); } }
+.poss { border: 1px solid var(--line); border-top: 3px solid var(--court); border-radius: 6px; padding: 12px 14px; display: grid; gap: 8px; align-content: start; min-width: 0; }
+.poss .eyebrow { font-size: 0.7rem; }
+.poss h4 { margin: 0; font-size: 1rem; }
+.poss ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 0.9rem; }
+.poss li { display: flex; justify-content: space-between; gap: 8px; }
+.poss li span:last-child { color: var(--ink-2); text-align: right; }
+.poss .out { font-size: 0.85rem; font-weight: 600; color: var(--ink-2); border-top: 1px solid var(--grid); padding-top: 8px; }
+.poss .out.point { color: var(--gold); }
+ul.plain.twocol { columns: 2 22rem; column-gap: 32px; display: block; max-width: none; }
+.twocol li { break-inside: avoid; margin-bottom: 8px; }
+.howcount { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 760px) { .howcount { grid-template-columns: minmax(0, 1fr); } }
+.howcount li { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px 18px; display: grid; gap: 6px; align-content: start; }
+.howcount .eyebrow { color: var(--court); }
+.howcount .big { font-family: var(--display); font-weight: 800; font-size: 2.2rem; line-height: 1; }
+.howcount p { font-size: 0.92rem; color: var(--ink-2); }
+#params th.l, #params td.l { text-align: left; }
+label > span { display: block; }
+.wbody { display: grid; gap: 8px; min-width: 0; }
+.loaderr { margin: 16px auto; max-width: 1040px; padding: 12px 14px; border: 1px solid var(--gold); border-radius: 6px; background: var(--gold-soft); color: var(--ink); }
+
+/* Method */
+.steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; counter-reset: step; padding: 0; margin: 0; list-style: none; }
+@media (max-width: 820px) { .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 480px) { .steps { grid-template-columns: minmax(0, 1fr); } }
+.steps li { display: grid; gap: 6px; align-content: start; }
+.steps li::before { counter-increment: step; content: counter(step); font-family: var(--display); font-weight: 800; font-size: 2rem; color: var(--court); line-height: 1; }
+.steps p { font-size: 0.92rem; color: var(--ink-2); }
+ul.plain { margin: 0; padding-left: 1.1rem; display: grid; gap: 6px; color: var(--ink-2); max-width: 75ch; }
+footer { border-top: 2px solid var(--line); padding-block: 24px 40px; font-size: 0.85rem; color: var(--ink-2); display: grid; gap: 6px; }
+@media (prefers-reduced-motion: no-preference) {
+  .winbar div, .vs .track i, .flow .bar i { transition: width 0.35s ease; }
+}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <a class="mark" href="#home">RALLY <span>ODDS</span></a>
+    <nav aria-label="Pages" id="nav">
+      <a href="#home">Home</a><a href="#bracket">Brackets</a><a href="#matchups">Matchups</a>
+      <a href="#findings">Findings</a><a href="#model">Under the hood</a>
+    </nav>
+  </header>
+  <main>
+  <div class="view" data-view="home">
+  <div class="hero">
+    <div class="eyebrow">NCAA Division I women's volleyball · <span id="h-seasons"></span></div>
+    <h1>We modeled <em id="h-rallies"></em> college volleyball rallies.</h1>
+    <p class="lede">Then we used them to predict the 2025 NCAA tournament before the first serve. The model called <span id="h-called"></span> of 63 matches. It still missed the champion. Explore the bracket, pit any two teams against each other, or see what the data says about momentum.</p>
+    <div class="board" role="list">
+      <div role="listitem"><span class="big" id="b-matches"></span><span class="lbl">matches, every touch recorded</span></div>
+      <div role="listitem"><span class="big" id="b-season-acc"></span><span class="lbl">of 2025 matches called right, a week ahead</span></div>
+      <div role="listitem"><span class="big" id="b-tourney"></span><span class="lbl">NCAA tournament matches called right</span></div>
+      <div role="listitem"><span class="big" id="b-points"></span><span class="lbl">bracket points, vs <span id="b-points-base"></span> for picking the better record</span></div>
+    </div>
+  </div>
+    <div class="cards">
+      <a class="card" href="#bracket">
+        <span class="eyebrow">NCAA brackets</span>
+        <span class="big" id="c-bracket"></span>
+        <span>2025 tournament matches called before the first serve. Every bracket from 2021 to 2025, with each team's odds of reaching each round.</span>
+        <span class="go">See the bracket</span>
+      </a>
+      <a class="card" href="#matchups">
+        <span class="eyebrow">Matchup simulator</span>
+        <span class="big" id="c-teams"></span>
+        <span>team-seasons to pit against each other, from the 2025 final to champions from different years.</span>
+        <span class="go">Run a matchup</span>
+      </a>
+      <a class="card" href="#findings">
+        <span class="eyebrow">Findings</span>
+        <span class="big" id="c-best"></span>
+        <span>seasons where the best team won the title. Plus: what really separates elite teams, and whether momentum is real.</span>
+        <span class="go">Read the findings</span>
+      </a>
+      <a class="card" href="#model">
+        <span class="eyebrow">Under the hood</span>
+        <span class="big" id="c-acc"></span>
+        <span>of 2025 matches called right. See exactly how the model turns touches into odds.</span>
+        <span class="go">Look under the hood</span>
+      </a>
+    </div>
+  </div>
+  <div class="view" data-view="bracket" hidden>
+  <section>
+    <div class="intro">
+      <div class="eyebrow">NCAA tournament brackets</div>
+      <h2>The <span id="b-year"></span> bracket, called before the first serve</h2>
+      <p id="b-intro"></p>
+    </div>
+    <div class="seg" role="group" aria-label="Tournament year" id="b-years"></div>
+    <div class="scores">
+      <div class="panel">
+        <h3>Matches called right</h3>
+        <div class="vs" id="vs-games"></div>
+      </div>
+      <div class="panel">
+        <h3>Bracket score</h3>
+        <div class="vs" id="vs-points"></div>
+        <p class="small muted">Standard scoring: 10, 20, 40, 80, 160 and 320 points per correct pick by round. <span id="b-picks"></span></p>
+      </div>
+    </div>
+    <div class="panel">
+      <div style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px">
+        <h3>Pre-tournament odds of reaching each round</h3>
+        <button class="btn" id="b-all" type="button" aria-expanded="false">Show all 64 teams</button>
+      </div>
+      <div class="scroll"><table id="odds"></table></div>
+      <p class="small muted">Shading darkens with probability. Records are before the tournament.</p>
+    </div>
+    <div class="cols">
+      <div class="panel">
+        <h3>The upsets it didn't see coming</h3>
+        <ul class="upsets" id="upsets"></ul>
+      </div>
+      <div class="panel">
+        <h3>Where it went right and wrong</h3>
+        <div class="vs" id="by-round"></div>
+        <p class="small muted">Matches in each round where the model's favorite won.</p>
+      </div>
+    </div>
+  </section>
+  </div>
+  <div class="view" data-view="matchups" hidden>
+  <section>
+    <div class="intro">
+      <div class="eyebrow">Matchup machine</div>
+      <h2>Pick any two teams, from any season</h2>
+      <p>Each team has strengths for every step of a rally: serving, passing, the first attack, and the scramble after a dig. The model works out the exact odds of every possible rally between them, then every possible score, and allows for a little match-day form, because teams have good and bad nights.</p>
+    </div>
+    <div class="chips" id="presets"></div>
+    <div class="panel">
+      <div class="pick">
+        <div class="team-pick">
+          <div class="who"><span class="swatch" style="background:var(--s1)"></span>Team A</div>
+          <label for="a-season">Season<select id="a-season"></select></label>
+          <label for="a-team">Team<select id="a-team"></select></label>
+        </div>
+        <div class="team-pick">
+          <div class="who"><span class="swatch" style="background:var(--s2)"></span>Team B</div>
+          <label for="b-season">Season<select id="b-season"></select></label>
+          <label for="b-team">Team<select id="b-team"></select></label>
+        </div>
+      </div>
+      <div class="seg" role="group" aria-label="Venue" id="venue">
+        <button type="button" data-v="1">Team A at home</button>
+        <button type="button" data-v="0" aria-pressed="true">Neutral site</button>
+        <button type="button" data-v="-1">Team B at home</button>
+      </div>
+      <div class="winlabels">
+        <div><span class="small muted" id="w-a-name"></span><span class="big" id="w-a"></span></div>
+        <div><span class="small muted" id="w-b-name"></span><span class="big" id="w-b"></span></div>
+      </div>
+      <div class="winbar" id="winbar" aria-hidden="true"><div style="background:var(--s1)"></div><div style="background:var(--s2)"></div></div>
+      <p class="why" id="why"></p>
+      <p class="note" id="cross" hidden>These teams are from different seasons. Each season's ratings are measured against that season's teams, so treat this as a fun estimate.</p>
+    </div>
+    <div class="cols">
+      <div class="panel">
+        <h3>Most likely final scores</h3>
+        <div id="scores-chart"></div>
+      </div>
+      <div class="panel">
+        <h3>How their rallies play out</h3>
+        <p class="small muted">When each team is receiving serve in this matchup.</p>
+        <div class="scroll"><table id="steps"></table></div>
+      </div>
+    </div>
+  </section>
+  </div>
+  <div class="view" data-view="findings" hidden>
+  <section>
+    <div class="intro">
+      <div class="eyebrow">Findings</div>
+      <h2>Aces don't make champions</h2>
+      <p>We asked where each season's ten best teams get their edge over an average team. Aces, and avoiding missed serves, explain almost none of it. Elite teams win after the pass: on the first attack, and in the scramble that follows a dig.</p>
+    </div>
+    <div class="panel">
+      <h3>Share of an elite team's edge, by part of the game</h3>
+      <div class="vs wide" id="elite"></div>
+      <p class="small muted">Top 10 teams by end-of-season rating in each season, <span id="el-seasons"></span>, against a league-average opponent. The data records whether a serve was an ace or an error, not how tough it was. A serve that lands in play but forces a weak attack shows up under stopping the opponent's first attack.</p>
+    </div>
+  </section>
+  <section>
+    <div class="intro">
+      <div class="eyebrow">Findings</div>
+      <h2>Home court turns a coin flip into <span id="home-pct"></span></h2>
+      <p>Put two evenly matched teams on the floor. At a neutral site, each wins half the time. Move the match to one team's gym and the home team wins <span id="home-pct2"></span> of the time. The edge is small on any single rally and adds up over a match.</p>
+    </div>
+    <div class="mini">
+      <div><span class="big" id="home-match"></span><span class="small muted">home team's chance to win the match</span></div>
+      <div><span class="big" id="home-so"></span><span class="small muted">home team wins when receiving serve</span></div>
+      <div><span class="big" id="away-so"></span><span class="small muted">visitors win when receiving serve</span></div>
+    </div>
+  </section>
+  <section>
+    <div class="intro">
+      <div class="eyebrow">Findings</div>
+      <h2>Runs happen. They mostly don't cause each other.</h2>
+      <p>When a team reels off points on its serve, the other team does win less often. The question is why. We replayed every 2024 and 2025 set thousands of times with no momentum at all, where each rally is independent, and compared the streaks.</p>
+    </div>
+    <div class="cols">
+      <div class="panel">
+        <h3>Receiving team's rally win rate after the server scores k in a row</h3>
+        <div class="legend" id="mo-legend"></div>
+        <div id="mo-chart"></div>
+        <details><summary>Show the numbers</summary><div class="scroll"><table id="mo-table"></table></div></details>
+      </div>
+      <div class="panel">
+        <h3>What the replay shows</h3>
+        <p>With no momentum and no day-to-day form, long runs barely change the odds. Add match-day form (good teams having good nights) and the simulated decline matches the real one within a fraction of a point for runs of one to five.</p>
+        <p>So most streaks come from a team playing well that night, not from the streak itself. After six or more straight points, real teams do slightly worse than the replay. That could be a small late-run momentum effect, or form that varies more than the replay assumes.</p>
+        <p class="small muted"><span id="mo-n"></span> rallies. Comparing against replays of the same sets avoids the counting bias that makes streak data misleading.</p>
+      </div>
+    </div>
+    <div class="panel">
+      <h3>No hangover between sets either</h3>
+      <p class="small muted">2024 and 2025 matches. "Expected" uses each team's strength before the match and assumes sets don't affect each other.</p>
+      <div class="scroll"><table id="sets-table"></table></div>
+    </div>
+  </section>
+  <section>
+    <div class="intro">
+      <div class="eyebrow">Findings</div>
+      <h2>The best team won <span id="best-count"></span> of the last <span id="best-total"></span> titles</h2>
+      <p>The model's top-rated team took the title in each of the first three seasons. In each of the last three, the champion was only the sixth or seventh best team by the model's ratings. One bad night in a single-elimination bracket is enough.</p>
+    </div>
+    <div class="panel">
+      <div class="scroll"><table id="best"></table></div>
+      <p class="small muted">End-of-season ratings, including the tournament. Rank is by share of rallies won against an average Division I team.</p>
+    </div>
+  </section>
+  </div>
+  <div class="view" data-view="model" hidden>
+  <section>
+    <div class="intro">
+      <div class="eyebrow">Under the hood</div>
+      <h2>From <span id="d-rallies-h"></span> rallies to a win probability</h2>
+      <p>This page walks through the whole project in four steps: the data we started with, what the model learns from it, how it turns two teams into a win probability, and how we checked that the predictions hold up.</p>
+    </div>
+    <ol class="steps">
+      <li><h3>The data</h3><p>Every touch of every Division I match since 2020.</p></li>
+      <li><h3>What the model learns</h3><p>Twelve numbers per team, one season at a time.</p></li>
+      <li><h3>Calculating a match</h3><p>Exact odds built up from the rally, with no dice rolls.</p></li>
+      <li><h3>Testing it</h3><p>Predicting matches it hadn't seen, then comparing with what happened.</p></li>
+    </ol>
+  </section>
+
+  <section>
+    <div class="intro">
+      <div class="eyebrow">Step 1 · The data</div>
+      <h2>Every touch of every match</h2>
+      <p>We started with the official play-by-play from stats.ncaa.org for every Division I women's match, <span id="m-seasons"></span>, collected by the open-source ncaavolleyballr project. Each row is one touch: who touched the ball, for which team, what kind of touch it was, and the score after it.</p>
+    </div>
+    <div class="mini">
+      <div><span class="big" id="d-matches"></span><span class="small muted">matches</span></div>
+      <div><span class="big" id="d-rallies"></span><span class="small muted">rallies</span></div>
+      <div><span class="big">99.94%</span><span class="small muted">of rebuilt match results agree with the official box score</span></div>
+    </div>
+    <div class="panel">
+      <h3>One real rally, as recorded</h3>
+      <p class="small muted" id="sample-cap"></p>
+      <div class="rally" id="sample-rally"></div>
+      <p class="small muted">Each card is one possession: a new one starts every time the ball crosses the net. These are the rows the model learns from.</p>
+    </div>
+    <div class="panel">
+        <h3>What we fixed, and what's missing</h3>
+        <ul class="plain small twocol">
+          <li>Rallies are rebuilt from changes in the score. Rows recorded during TV timeouts have no score, and error rows credit the wrong team. Both are corrected.</li>
+          <li>About 1,700 matches listed twice in the 2025 files are removed.</li>
+          <li><strong>Not recorded:</strong> how good each touch was. A perfect pass and a shanked one look the same. Where the ball went, and block touches that stay in play, are missing too.</li>
+          <li><strong>Not recorded:</strong> lineups and injuries. The model sees teams, not players.</li>
+        </ul>
+    </div>
+  </section>
+
+  <section>
+    <div class="intro">
+      <div class="eyebrow">Step 2 · What the model learns</div>
+      <h2>Twelve numbers per team</h2>
+      <p>From those touches the model learns how good each team is at every step of a rally: serving, passing, its first attack after the pass, defending the other team's first attack, and the scramble after a dig, on offense and on defense. Each step gets two numbers, twelve in all, for every team in every season.</p>
+      <p>Turning rallies into those numbers takes three moves: count what each team did at each step, adjust for who it played, and store the result. Here is one of Kentucky's twelve, worked through.</p>
+    </div>
+    <ol class="howcount" id="how-count"></ol>
+    <div class="panel">
+      <h3>The 12 numbers behind <span id="pm-team"></span></h3>
+      <div class="scroll"><table id="params"></table></div>
+      <p class="small muted">"Counted" is what happened in the team's own matches. "Adjusted" is the model's estimate against an average opponent, after accounting for schedule; teams with few matches also lean on the season before. Bold adjusted rates beat the league average. Showing Team A from the <a href="#matchups">Matchups</a> page.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="intro">
+      <div class="eyebrow">Step 3 · Calculating a match</div>
+      <h2>From two teams to a win probability</h2>
+      <p>To predict a match, the model combines the two teams' numbers one step at a time. Nothing here is simulated. Instead of rolling dice to play thousands of pretend matches, it adds up the probability of every possible rally and every possible score. That gives the answer a simulation would settle on, without the randomness. Below is the full calculation for the matchup chosen on the <a href="#matchups">Matchups</a> page.</p>
+    </div>
+    <div class="panel worked" id="worked"></div>
+    <div class="panel">
+      <h3>Why small rally edges matter</h3>
+      <p class="small muted">The last step uses nothing but the scoring rules: every rally scores, the winner serves next, sets go to 25 (the fifth to 15), win by 2. Set the two rally numbers yourself to see how a small gap grows over a match. The Division I average is about 57%.</p>
+      <div class="cols">
+        <div style="display:grid;gap:16px">
+          <label for="so-a"><span>Team A wins <strong class="num" id="so-a-v"></strong> of rallies when receiving serve</span>
+            <input type="range" id="so-a" min="45" max="70" step="0.5" value="59"></label>
+          <label for="so-b"><span>Team B wins <strong class="num" id="so-b-v"></strong> of rallies when receiving serve</span>
+            <input type="range" id="so-b" min="45" max="70" step="0.5" value="55"></label>
+        </div>
+        <div class="edge-out">
+          <div><span class="big" id="e-set"></span><span class="small muted">Team A wins a set</span></div>
+          <div><span class="big" id="e-match"></span><span class="small muted">Team A wins the match</span></div>
+          <div><span class="big" id="e-sweep"></span><span class="small muted">Team A sweeps 3-0</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="intro">
+      <div class="eyebrow">Step 4 · Testing it</div>
+      <h2>Predicting matches it hadn't seen</h2>
+      <p>A model can describe the past perfectly and still predict badly. So every prediction on this site was made using only matches played before it.</p>
+    </div>
+    <ol class="chain">
+      <li><h3>Week by week</h3><p>Through the 2025 season the model was refit every week on matches already played, then asked to predict the next week. Its settings, such as how much to trust last season, were chosen using 2024, so 2025 is a clean test.</p></li>
+      <li><h3>Brackets</h3><p>For each NCAA tournament from 2021 to 2025, the model saw only matches before the first round, then computed every team's odds over every possible path through the bracket, with home court for the host schools.</p></li>
+      <li><h3>Good and bad nights</h3><p>Teams play better or worse on a given night. Match odds average over a small random swing in form for each match, which keeps the odds for long shots honest.</p></li>
+    </ol>
+    <div class="cols">
+      <div class="panel">
+        <h3>When it says 70%, it wins about 70%</h3>
+        <div id="cal-chart"></div>
+        <details><summary>Show the numbers</summary><div class="scroll"><table id="cal-table"></table></div></details>
+      </div>
+      <div class="panel">
+        <h3>2025 matches called right</h3>
+        <div class="vs" id="acc-vs"></div>
+        <p class="small muted">Each dot groups matches by the model's win probability for the home or first-listed team. Dots on the diagonal mean the stated odds matched how often teams actually won.</p>
+        <h3>What was simulated</h3>
+        <p class="small muted">Predictions are calculated, not simulated. Simulation was used for one thing: testing momentum. We replayed every 2024 and 2025 set many times with each rally independent of the last, and compared the streaks with real ones. That result is on the <a href="#findings">Findings</a> page.</p>
+      </div>
+    </div>
+    <p class="small muted">Data: ncaavolleyballr by Jeffrey R. Stevens (MIT license), from stats.ncaa.org.</p>
+  </section>
+  </div>
+  </main>
+  <footer>
+    <div>Rally Odds · built <span id="f-built"></span></div>
+    <div>Every number on this page is computed from the model described above.</div>
+  </footer>
+</div>
+<div id="tip" hidden></div>
+
+<script>
+// MATH-START (pure functions; tested against the Python model)
+const logit = p => Math.log(p) - Math.log1p(-p);
+const expit = z => 1 / (1 + Math.exp(-z));
+
+// Exact P(A wins a set). pSrv: P(A wins a rally when A serves); pRcv: when B serves.
+function setWin(pSrv, pRcv, target, aFirst) {
+  const t = target;
+  // From a tie at t-1 or later: x = A serving, y = B serving.
+  const a11 = 1 - (1 - pSrv) * pRcv, a12 = -pSrv * (1 - pSrv);
+  const a21 = -(1 - pRcv) * pRcv, a22 = 1 - pRcv * (1 - pSrv);
+  const b1 = pSrv * pSrv, b2 = pRcv * pSrv, det = a11 * a22 - a12 * a21;
+  const tieA = (b1 * a22 - a12 * b2) / det, tieB = (a11 * b2 - a21 * b1) / det;
+  const V = new Float64Array(t * t * 2);
+  const at = (a, b, s) => (a * t + b) * 2 + s;
+  const val = (a, b, s) => {
+    if (a >= t && a - b >= 2) return 1;
+    if (b >= t && b - a >= 2) return 0;
+    if (a === t - 1 && b === t - 1) return s ? tieA : tieB;
+    return V[at(a, b, s)];
+  };
+  for (let a = t - 1; a >= 0; a--) for (let b = t - 1; b >= 0; b--) {
+    if (a === t - 1 && b === t - 1) continue;
+    for (const s of [1, 0]) {
+      const p = s ? pSrv : pRcv;
+      V[at(a, b, s)] = p * val(a + 1, b, 1) + (1 - p) * val(a, b + 1, 0);
+    }
+  }
+  return val(0, 0, aFirst ? 1 : 0);
+}
+
+// Set and match outcome probabilities for A, from sideout rates soA (A receiving) and soB.
+function matchOutcomes(soA, soB, formSd, gh) {
+  const nodes = formSd > 0 ? gh.x.map((x, i) => [x, gh.w[i]]).filter(([, w]) => w > 1e-9) : [[0, 1]];
+  const out = { set: 0, win: 0, s30: 0, s31: 0, s32: 0, s23: 0, s13: 0, s03: 0 };
+  let wsum = 0;
+  for (const [x, w] of nodes) {
+    const a = expit(logit(soA) + formSd * x), b = expit(logit(soB) - formSd * x);
+    const pSrv = 1 - b, pRcv = a;
+    const s = 0.5 * (setWin(pSrv, pRcv, 25, true) + setWin(pSrv, pRcv, 25, false));
+    const f = 0.5 * (setWin(pSrv, pRcv, 15, true) + setWin(pSrv, pRcv, 15, false));
+    const o = {
+      set: s, s30: s ** 3, s31: 3 * s ** 3 * (1 - s), s32: 6 * s * s * (1 - s) ** 2 * f,
+      s03: (1 - s) ** 3, s13: 3 * s * (1 - s) ** 3, s23: 6 * s * s * (1 - s) ** 2 * (1 - f),
+    };
+    o.win = o.s30 + o.s31 + o.s32;
+    for (const k in out) out[k] += w * o[k];
+    wsum += w;
+  }
+  for (const k in out) out[k] /= wsum;
+  return out;
+}
+
+// Touch model. A team's p array: [serve off x2, serve def x2, fb off x2, fb def x2, tr off x2, tr def x2].
+// Each step: eta_k = b_k + off(T)_k - def(O)_k + home * h_k, with a reference class at 0.
+function stepProbs(b, h, off, def, home) {
+  const e = b.map((bk, k) => Math.exp(bk + off[k] - def[k] + home * h[k]));
+  const z = 1 + e.reduce((x, y) => x + y, 0);
+  return [...e.map(v => v / z), 1 / z];
+}
+// P(receiver R wins the rally when S serves). ctx: {b, h} intercepts per step; homeR in {1,0,-1}.
+function sideout(R, S, homeR, ctx) {
+  const P = (team, i) => team.p.slice(i, i + 2);
+  const srv = stepProbs(ctx.b.serve, ctx.h.serve, P(S, 0), P(R, 2), -homeR);   // ace, serr, in play
+  const fb = stepProbs(ctx.b.fb, ctx.h.fb, P(R, 4), P(S, 6), homeR);          // win, lose, to opp
+  const trR = stepProbs(ctx.b.tr, ctx.h.tr, P(R, 8), P(S, 10), homeR);
+  const trS = stepProbs(ctx.b.tr, ctx.h.tr, P(S, 8), P(R, 10), -homeR);
+  const [wR, , tR] = trR, [wS, , tS] = trS;
+  const x = (wR + tR * (1 - wS - tS)) / (1 - tR * tS);   // R wins from its transition possession
+  const y = wS + tS * (1 - x);                             // S wins from its transition possession
+  const wFb = fb[0] + fb[2] * (1 - y);
+  return { p: srv[1] + srv[2] * wFb, srv, fb, tr: trR, trS, x, y };
+}
+// MATH-END
+
+// The standalone index.html carries its data inline; the hosted copy loads data.json.
+const inlineData = document.getElementById("data");
+(inlineData ? Promise.resolve(JSON.parse(inlineData.textContent))
+            : fetch("data.json").then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); }))
+  .then(start, err => {
+    console.error(err);
+    document.body.insertAdjacentHTML("afterbegin", '<p class="loaderr">The numbers on this page could not load. Make sure data.json is in the same folder as this page.</p>');
+  });
+
+function start(D) {
+const $ = id => document.getElementById(id);
+const pct = (x, d = 0) => (100 * x).toFixed(d) + "%";
+const fmtInt = n => n.toLocaleString("en-US");
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const ROUND = { 1: "Round 1", 2: "Round 2", 3: "Regional semifinal", 4: "Regional final", 5: "National semifinal", 6: "Final" };
+const FINISH = ["Lost round 1", "Lost round 2", "Lost regional semi", "Lost regional final", "Lost national semi", "Runner-up", "Champion"];
+
+// Tooltip
+const tip = $("tip");
+document.addEventListener("pointermove", e => {
+  const t = e.target.closest("[data-tip]");
+  if (!t) { tip.hidden = true; return; }
+  tip.innerHTML = t.getAttribute("data-tip");
+  tip.hidden = false;
+  const r = tip.getBoundingClientRect();
+  let x = e.clientX + 14, y = e.clientY + 14;
+  if (x + r.width > innerWidth - 8) x = e.clientX - r.width - 14;
+  if (y + r.height > innerHeight - 8) y = e.clientY - r.height - 14;
+  tip.style.left = Math.max(8, x) + "px"; tip.style.top = Math.max(8, y) + "px";
+});
+document.addEventListener("pointerleave", () => { tip.hidden = true; });
+
+// Horizontal comparison bars
+function vsBars(el, rows, max = 1, fmt = v => pct(v, 1)) {
+  el.innerHTML = rows.map(r => `<div class="line" data-tip="${esc(r.tip || r.label + ": " + fmt(r.v))}">
+    <span>${esc(r.label)}</span><span class="track"><i style="width:${(100 * r.v / max).toFixed(1)}%;background:${r.color}"></i></span>
+    <span class="num" style="text-align:right">${fmt(r.v)}</span></div>`).join("");
+}
+
+// ---------- Hero ----------
+const T = D.totals, BR = D.bracket;
+$("h-seasons").textContent = T.seasons.replace("-", "–");
+$("h-rallies").textContent = (T.rallies / 1e6).toFixed(2) + " million";
+$("h-called").textContent = Math.round(BR.acc.model * BR.acc.games);
+$("b-matches").textContent = fmtInt(T.matches);
+$("b-season-acc").textContent = pct(D.calibration.accuracy);
+$("b-tourney").textContent = Math.round(BR.acc.model * BR.acc.games) + "/" + BR.acc.games;
+$("b-points").textContent = BR.score.model;
+$("b-points-base").textContent = BR.score.record;
+$("m-seasons").textContent = T.seasons.replace("-", "–");
+$("f-built").textContent = D.built;
+
+// ---------- How the model thinks ----------
+function updateEdge() {
+  const a = +$("so-a").value / 100, b = +$("so-b").value / 100;
+  $("so-a-v").textContent = pct(a, 1); $("so-b-v").textContent = pct(b, 1);
+  const o = matchOutcomes(a, b, 0, D.gh);
+  $("e-set").textContent = pct(o.set); $("e-match").textContent = pct(o.win); $("e-sweep").textContent = pct(o.s30);
+}
+$("so-a").addEventListener("input", updateEdge); $("so-b").addEventListener("input", updateEdge);
+updateEdge();
+
+// ---------- Bracket ----------
+const YEARS = Object.keys(D.brackets).sort();
+let year = YEARS[YEARS.length - 1], showAll = false;
+$("b-years").innerHTML = YEARS.map(y => `<button type="button" data-y="${y}">${y}</button>`).join("");
+$("b-years").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  year = b.dataset.y; showAll = false; drawBracket();
+});
+function heat(p) {
+  const pctMix = Math.round(8 + 82 * p);
+  const fg = p > 0.55 ? "var(--on-seq)" : "var(--ink)";
+  const txt = p >= 0.995 ? ">99%" : p < 0.005 ? (p > 0 ? "<1%" : "–") : pct(p);
+  return `<td class="heat" style="background:color-mix(in oklab, var(--seq) ${pctMix}%, var(--surface));color:${fg}">${txt}</td>`;
+}
+const longDate = iso => new Date(iso + "T12:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+function drawOdds(BS) {
+  const cols = ["Rd 2", "Sweet 16", "Elite 8", "Final 4", "Final", "Title"];
+  const rows = showAll ? BS.teams.slice() : BS.teams.slice(0, 16);
+  const champ = BS.teams.find(t => t.wins === 6);
+  if (!showAll && !rows.includes(champ)) rows.push(champ);
+  $("odds").innerHTML = `<thead><tr><th>Team</th><th>Record</th>${cols.map(c => `<th>${c}</th>`).join("")}<th>Finish</th></tr></thead><tbody>` +
+    rows.map(t => {
+      const w = Math.round(t.rec[0] * t.rec[1]), l = t.rec[1] - w;
+      return `<tr class="${t.wins === 6 ? "champ-row" : ""}"><td>${esc(t.n)}</td><td class="num">${w}-${l}</td>${t.odds.map(heat).join("")}
+        <td><span class="finish ${t.wins === 6 ? "champ" : ""}">${FINISH[t.wins]}</span></td></tr>`;
+    }).join("") + "</tbody>";
+  $("b-all").textContent = showAll ? "Show top 16" : "Show all 64 teams";
+  $("b-all").setAttribute("aria-expanded", String(showAll));
+}
+$("b-all").addEventListener("click", () => { showAll = !showAll; drawOdds(D.brackets[year]); });
+function drawBracket() {
+  const BS = D.brackets[year], n = BS.acc.games;
+  document.querySelectorAll("#b-years button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.y === year)));
+  $("b-year").textContent = year;
+  $("b-intro").textContent = `The model saw only matches played before ${longDate(BS.start)}. For every team it computed the exact chance of reaching each round, over every possible path through the 64-team bracket, including home court for the first-weekend and regional hosts.`;
+  const sc = BS.score;
+  $("b-picks").textContent = sc.model_champ === sc.record_champ
+    ? `Both brackets picked ${sc.model_champ} to win it all. ${BS.champion} won.`
+    : `The rally model picked ${sc.model_champ}; the record-based bracket picked ${sc.record_champ}. ${BS.champion} won.`;
+  vsBars($("vs-games"), [
+    { label: "Rally model", v: BS.acc.model, color: "var(--s1)", tip: `Rally model: ${Math.round(BS.acc.model * n)} of ${n}` },
+    { label: "Better record", v: BS.acc.record, color: "var(--axis)", tip: `Pick the better record: ${Math.round(BS.acc.record * n)} of ${n}` },
+  ], 1, v => Math.round(v * n) + "/" + n);
+  vsBars($("vs-points"), [
+    { label: "Rally model", v: sc.model, color: "var(--s1)" },
+    { label: "Better record", v: sc.record, color: "var(--axis)" },
+  ], sc.max, v => String(v));
+  drawOdds(BS);
+  const ups = BS.games.filter(g => g.p < 0.5).sort((a, b) => a.p - b.p).slice(0, 5);
+  $("upsets").innerHTML = ups.map(g => {
+    const loser = g.w === g.a ? g.b : g.a;
+    return `<li><span class="pct">${pct(g.p)}</span><span><strong>${esc(g.w)}</strong> over ${esc(loser)}<br><span class="small muted">${ROUND[g.r]}. The model gave ${esc(g.w)} a ${pct(g.p)} chance.</span></span></li>`;
+  }).join("") || `<li><span></span><span class="muted">The model's favorite won every match.</span></li>`;
+  const byRound = [1, 2, 3, 4, 5, 6].map(r => {
+    const gs = BS.games.filter(g => g.r === r), right = gs.filter(g => g.p > 0.5).length;
+    return { label: ROUND[r], v: right / gs.length, color: "var(--s1)", tip: `${ROUND[r]}: favorite won ${right} of ${gs.length}`, n: gs.length, right };
+  });
+  vsBars($("by-round"), byRound, 1, v => pct(v));
+  $("by-round").querySelectorAll(".line").forEach((el, i) => { el.lastElementChild.textContent = byRound[i].right + "/" + byRound[i].n; });
+}
+drawBracket();
+
+// ---------- Matchup machine ----------
+const seasons = Object.keys(D.seasons).sort().reverse();
+const state = { a: { s: "2025", n: "Kentucky" }, b: { s: "2025", n: "Texas A&M" }, home: 0 };
+function fillTeams(side) {
+  const sel = $(side + "-team"), S = D.seasons[state[side].s];
+  sel.innerHTML = S.teams.map(t => `<option value="${esc(t.n)}">${t.rank}. ${esc(t.n)} (${t.w}-${t.l})</option>`).join("");
+  if (!S.teams.some(t => t.n === state[side].n)) state[side].n = S.teams[0].n;
+  sel.value = state[side].n;
+}
+for (const side of ["a", "b"]) {
+  const ss = $(side + "-season");
+  ss.innerHTML = seasons.map(s => `<option value="${s}">${s}${s === "2020" ? " (spring 2021)" : ""}</option>`).join("");
+  ss.addEventListener("change", () => { state[side].s = ss.value; fillTeams(side); drawMatchup(); });
+  $(side + "-team").addEventListener("change", e => { state[side].n = e.target.value; drawMatchup(); });
+}
+$("venue").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  state.home = +b.dataset.v; drawMatchup();
+});
+const champs = D.champions;
+const presets = [
+  { label: "2025 final: Kentucky vs Texas A&M", a: ["2025", "Kentucky"], b: ["2025", "Texas A&M"], home: 0 },
+  { label: "The big upset: Texas A&M at Nebraska", a: ["2025", "Nebraska"], b: ["2025", "Texas A&M"], home: 1 },
+  { label: `Champions: ${champs["2021"].champ} 2021 vs ${champs["2025"].champ} 2025`, a: ["2021", champs["2021"].champ], b: ["2025", champs["2025"].champ], home: 0 },
+  { label: `Champions: ${champs["2023"].champ} 2023 vs ${champs["2024"].champ} 2024`, a: ["2023", champs["2023"].champ], b: ["2024", champs["2024"].champ], home: 0 },
+];
+$("presets").innerHTML = presets.map((p, i) => `<button class="chip" type="button" data-i="${i}">${esc(p.label)}</button>`).join("");
+$("presets").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  const p = presets[+b.dataset.i];
+  state.a = { s: p.a[0], n: p.a[1] }; state.b = { s: p.b[0], n: p.b[1] }; state.home = p.home;
+  $("a-season").value = state.a.s; $("b-season").value = state.b.s; fillTeams("a"); fillTeams("b");
+  drawMatchup();
+});
+
+function ctxFor(sa, sb) {
+  const A = D.seasons[sa], B = D.seasons[sb], mix = (x, y) => x.map((v, i) => (v + y[i]) / 2);
+  const ctx = { b: {}, h: {} };
+  for (const k of ["serve", "fb", "tr"]) { ctx.b[k] = mix(A.b[k], B.b[k]); ctx.h[k] = mix(A.h[k], B.h[k]); }
+  return ctx;
+}
+function label(side) { return state[side].n + (state.a.s !== state.b.s ? " " + state[side].s : ""); }
+
+function drawMatchup() {
+  const A = D.seasons[state.a.s].teams.find(t => t.n === state.a.n);
+  const B = D.seasons[state.b.s].teams.find(t => t.n === state.b.n);
+  const ctx = ctxFor(state.a.s, state.b.s);
+  const ra = sideout(A, B, state.home, ctx), rb = sideout(B, A, -state.home, ctx);
+  const o = matchOutcomes(ra.p, rb.p, D.form_sd, D.gh);
+  const la = label("a"), lb = label("b");
+  document.querySelectorAll("#venue button").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.v === state.home)));
+  $("venue").children[0].textContent = state.a.n + " at home";
+  $("venue").children[2].textContent = state.b.n + " at home";
+  $("w-a-name").textContent = la; $("w-b-name").textContent = lb;
+  $("w-a").textContent = pct(o.win); $("w-b").textContent = pct(1 - o.win);
+  const bars = $("winbar").children;
+  bars[0].style.width = (100 * o.win) + "%"; bars[1].style.width = (100 * (1 - o.win)) + "%";
+  $("cross").hidden = state.a.s === state.b.s;
+
+  // Score distribution chart
+  const items = [
+    ["3-0", o.s30, "var(--s1)", la], ["3-1", o.s31, "var(--s1)", la], ["3-2", o.s32, "var(--s1)", la],
+    ["2-3", o.s23, "var(--s2)", lb], ["1-3", o.s13, "var(--s2)", lb], ["0-3", o.s03, "var(--s2)", lb],
+  ];
+  const W = 460, H = 220, padL = 8, padB = 40, padT = 22, bw = (W - padL * 2) / items.length;
+  const max = Math.max(...items.map(i => i[1]), 0.05);
+  const y = v => padT + (H - padT - padB) * (1 - v / max);
+  let svg = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Probability of each final score">`;
+  svg += `<line class="axisl" x1="0" x2="${W}" y1="${H - padB}" y2="${H - padB}"/>`;
+  items.forEach(([lab, v, col, team], i) => {
+    const x = padL + i * bw + 6, w = bw - 12, top = y(v), h = H - padB - top;
+    const r = Math.min(4, h / 2);
+    svg += `<g data-tip="${esc(team)} wins ${lab.startsWith("3") ? lab : lab.split("-").reverse().join("-")}: ${pct(v, 1)}">
+      <rect x="${x - 4}" y="${padT - 10}" width="${w + 8}" height="${H - padT + 10}" fill="transparent"/>
+      <path d="M${x},${H - padB} V${top + r} Q${x},${top} ${x + r},${top} H${x + w - r} Q${x + w},${top} ${x + w},${top + r} V${H - padB} Z" style="fill:${col}"/>
+      <text x="${x + w / 2}" y="${top - 6}" text-anchor="middle" class="ink">${pct(v)}</text>
+      <text x="${x + w / 2}" y="${H - padB + 18}" text-anchor="middle">${lab}</text></g>`;
+  });
+  svg += `<text x="${padL + 1.5 * bw}" y="${H - 4}" text-anchor="middle">${esc(la)} wins</text>`;
+  svg += `<text x="${padL + 4.5 * bw}" y="${H - 4}" text-anchor="middle">${esc(lb)} wins</text></svg>`;
+  $("scores-chart").innerHTML = svg;
+
+  // Step table
+  const rows = [
+    ["Opponent serves an ace", r => r.srv[0], -1],
+    ["Opponent misses the serve", r => r.srv[1], 1],
+    ["Wins on its first attack", r => r.fb[0], 1],
+    ["Loses on its first attack", r => r.fb[1], -1],
+    ["Wins a possession after a dig", r => r.tr[0], 1],
+    ["Wins the rally (sideout)", r => r.p, 1],
+  ];
+  $("steps").innerHTML = `<thead><tr><th>When receiving serve</th><th><span class="swatch" style="background:var(--s1)"></span> ${esc(state.a.n)}</th><th><span class="swatch" style="background:var(--s2)"></span> ${esc(state.b.n)}</th></tr></thead><tbody>` +
+    rows.map(([lab, f, good]) => {
+      const va = f(ra), vb = f(rb), better = (va - vb) * good;
+      const bold = v => `<strong>${pct(v, 1)}</strong>`;
+      return `<tr><td>${lab}</td><td class="num">${better > 0.001 ? bold(va) : pct(va, 1)}</td><td class="num">${better < -0.001 ? bold(vb) : pct(vb, 1)}</td></tr>`;
+    }).join("") + "</tbody>";
+
+  // Explanation: the step where the favorite's edge is largest.
+  const favA = o.win >= 0.5, fav = favA ? la : lb, dog = favA ? lb : la;
+  const rf = favA ? ra : rb, rd = favA ? rb : ra;
+  const reasons = [
+    ["converts more first attacks into points", r => r.fb[0], 1],
+    ["wins more of the scrambles after a dig", r => r.tr[0], 1],
+    ["makes fewer errors on its first attack", r => r.fb[1], -1],
+    ["gives up fewer aces", r => r.srv[0], -1],
+  ].map(([txt, f, g]) => ({ txt, f, gap: (f(rf) - f(rd)) * g })).sort((x, y) => y.gap - x.gap);
+  const top = reasons[0], odds = Math.max(o.win, 1 - o.win);
+  const close = odds < 0.6;
+  drawWorked(la, lb, ra, rb, o);
+  drawParams(A, state.a.s);
+  $("why").innerHTML = close
+    ? `This one is close. <strong>${esc(fav)}</strong> wins ${pct(rf.p, 1)} of rallies when receiving serve, ${esc(dog)} ${pct(rd.p, 1)}. Over a full match that small gap makes ${esc(fav)} a ${pct(odds)} favorite.`
+    : `<strong>${esc(fav)}</strong> is a ${pct(odds)} favorite. Its biggest edge: it ${top.txt}, ${pct(top.f(rf), 1)} to ${pct(top.f(rd), 1)}. It wins ${pct(rf.p, 1)} of rallies when receiving serve, against ${pct(rd.p, 1)} for ${esc(dog)}.`;
+}
+
+// ---------- Worked example ----------
+function sbar(parts) {
+  return `<div class="sbar">${parts.map(([v, col, lab]) => `<i style="flex:${v} 0 0;background:${col}" data-tip="${esc(lab)}: ${pct(v, 1)}"></i>`).join("")}</div>
+    <div class="skey">${parts.map(([v, col, lab]) => `<span><i class="swatch" style="background:${col}"></i>${esc(lab)} <strong class="num">${pct(v, 1)}</strong></span>`).join("")}</div>`;
+}
+function drawWorked(la, lb, ra, rb, o) {
+  const A = "var(--s1)", B = "var(--s2)", G = "var(--axis)";
+  const scr = 1 - ra.y;  // A wins once the ball has gone back to B
+  const venue = state.home === 1 ? `at ${esc(state.a.n)}` : state.home === -1 ? `at ${esc(state.b.n)}` : "on a neutral floor";
+  $("worked").innerHTML = `
+    <header><h3>${esc(la)} receiving ${esc(lb)}'s serve, ${venue}</h3><a href="#matchups">Change the teams</a></header>
+    <div class="wstep"><span class="n">1</span><div class="wbody"><h3>The serve</h3>
+      <p>${esc(lb)} serves. Its serving strength meets ${esc(la)}'s passing.</p>
+      <div>${sbar([[ra.srv[0], B, `Ace, point ${lb}`], [ra.srv[1], A, `Service error, point ${la}`], [ra.srv[2], G, "In play"]])}</div></div></div>
+    <div class="wstep"><span class="n">2</span><div class="wbody"><h3>${esc(la)}'s first attack</h3>
+      <p>If the serve is in play, ${esc(la)} passes, sets and attacks against ${esc(lb)}'s block and defense.</p>
+      <div>${sbar([[ra.fb[0], A, `Scores, point ${la}`], [ra.fb[1], B, `Error or blocked, point ${lb}`], [ra.fb[2], G, `Ball goes back to ${lb}`]])}</div></div></div>
+    <div class="wstep"><span class="n">3</span><div class="wbody"><h3>The scramble</h3>
+      <p>If the ball goes back, the teams trade possessions until someone scores. Each time ${esc(la)} has it, it scores ${pct(ra.tr[0], 1)}, loses the point ${pct(ra.tr[1], 1)} and sends it back ${pct(ra.tr[2], 1)}. For ${esc(lb)} the same numbers are ${pct(ra.trS[0], 1)}, ${pct(ra.trS[1], 1)} and ${pct(ra.trS[2], 1)}.</p>
+      <p>Adding up every possible back-and-forth, ${esc(la)} wins <strong class="num">${pct(scr, 1)}</strong> of the scrambles that start with ${esc(lb)} on the ball.</p></div></div>
+    <div class="wstep"><span class="n">4</span><div class="wbody"><h3>Add it up</h3>
+      <p>${esc(la)} wins the rally on a service error, or the serve is in play and it either scores on the first attack or wins the scramble.</p>
+      <div class="formula">${pct(ra.srv[1], 1)} + ${pct(ra.srv[2], 1)} × (${pct(ra.fb[0], 1)} + ${pct(ra.fb[2], 1)} × ${pct(scr, 1)}) = <b>${pct(ra.p, 1)}</b></div>
+      <p>${esc(la)} wins <strong>${pct(ra.p, 1)}</strong> of rallies when receiving ${esc(lb)}'s serve.</p></div></div>
+    <div class="wstep"><span class="n">5</span><div class="wbody"><h3>Flip it around</h3>
+      <p>The same steps with ${esc(lb)} receiving give ${esc(lb)} <strong>${pct(rb.p, 1)}</strong> of rallies when receiving ${esc(la)}'s serve.</p></div></div>
+    <div class="wstep"><span class="n">6</span><div class="wbody"><h3>From rallies to a match</h3>
+      <p>Every rally scores and the winner serves next, so those two numbers decide everything. Working through every possible score, and allowing for good and bad nights, ${esc(la)} wins a set <strong>${pct(o.set)}</strong> of the time and the match <strong>${pct(o.win)}</strong>.</p></div></div>`;
+}
+
+// ---------- The 12 numbers ----------
+const PARAM_ROWS = [
+  ["Serving", "serve", [
+    [0, "off", 0, "Aces", "Ace rate on its serves", 1],
+    [1, "off", 1, "Service errors", "Service error rate", -1]]],
+  ["Passing", "serve", [
+    [2, "def", 0, "Avoiding aces", "Opponents' ace rate on serves to this team", -1],
+    [3, "def", 1, "Drawing errors", "Opponents' service error rate", 1]]],
+  ["First attack (when receiving)", "fb", [
+    [4, "off", 0, "Scoring", "Scores on its first attack after the pass", 1],
+    [5, "off", 1, "Errors", "Loses the point on its first attack (error or blocked)", -1]]],
+  ["Defending the first attack (when serving)", "fb", [
+    [6, "def", 0, "Stopping kills", "Opponents score on their first attack", -1],
+    [7, "def", 1, "Forcing errors", "Opponents lose the point on their first attack", 1]]],
+  ["Scramble offense", "tr", [
+    [8, "off", 0, "Scoring", "Scores on a possession after a dig", 1],
+    [9, "off", 1, "Errors", "Loses the point on a possession after a dig", -1]]],
+  ["Scramble defense", "tr", [
+    [10, "def", 0, "Stopping kills", "Opponents score on a possession after a dig", -1],
+    [11, "def", 1, "Forcing errors", "Opponents lose the point on a possession after a dig", 1]]],
+];
+function drawParams(team, season) {
+  const S = D.seasons[season], zero = [0, 0], raw = team.raw;
+  $("pm-team").textContent = `${team.n} (${season})`;
+  const rateFor = (i, part, side, cls) => {
+    const pair = team.p.slice(i - cls, i - cls + 2);
+    return (side === "off" ? stepProbs(S.b[part], S.h[part], pair, zero, 0) : stepProbs(S.b[part], S.h[part], zero, pair, 0))[cls];
+  };
+  // Walkthrough on number 5: scoring on the first attack.
+  const adj5 = rateFor(4, "fb", "off", 0);
+  if (raw) {
+    const tougher = adj5 > raw.rate[4];
+    $("how-count").innerHTML = `
+      <li><span class="eyebrow">1 · Count</span><span class="big">${pct(raw.rate[4], 1)}</span>
+        <p>In its ${season} matches, ${esc(team.n)} made ${fmtInt(raw.n[2])} first attacks after a pass and scored on ${pct(raw.rate[4], 1)} of them.</p></li>
+      <li><span class="eyebrow">2 · Adjust for opponents</span><span class="big">${pct(adj5, 1)}</span>
+        <p>The model rates every team at once, so each rate is judged against who it came against. ${esc(team.n)}'s opponents defended ${tougher ? "better" : "worse"} than average, so against an average team it would score on ${pct(adj5, 1)}.</p></li>
+      <li><span class="eyebrow">3 · Store</span><span class="big">${team.p[4] >= 0 ? "+" : "−"}${Math.abs(team.p[4]).toFixed(3)}</span>
+        <p>That becomes number 5 below, on the model's log-odds scale, where 0 is league average. The other eleven numbers are made the same way.</p></li>`;
+  }
+  let html = `<thead><tr><th class="l">Number</th><th class="l">What it measures</th><th>Counted</th><th>Adjusted</th><th>League avg</th><th>Model value</th></tr></thead><tbody>`;
+  for (const [group, part, rows] of PARAM_ROWS) {
+    html += `<tr><td class="grp" colspan="6">${group}</td></tr>`;
+    for (const [i, side, cls, name, desc, good] of rows) {
+      const v = rateFor(i, part, side, cls);
+      const avg = stepProbs(S.b[part], S.h[part], zero, zero, 0)[cls];
+      const better = (v - avg) * good > 0.0005, val = team.p[i];
+      const counted = raw ? `${pct(raw.rate[i], 1)} <span class="muted small">of ${fmtInt(raw.n[Math.floor(i / 2)])}</span>` : "–";
+      html += `<tr><td class="l">${i + 1}. ${name}</td><td class="l desc">${desc}</td><td class="num">${counted}</td>
+        <td class="num">${better ? `<strong>${pct(v, 1)}</strong>` : pct(v, 1)}</td><td class="num">${pct(avg, 1)}</td>
+        <td class="num">${val >= 0 ? "+" : "−"}${Math.abs(val).toFixed(3)}</td></tr>`;
+    }
+  }
+  $("params").innerHTML = html + "</tbody>";
+}
+
+// ---------- Home cards ----------
+$("c-bracket").textContent = Math.round(BR.acc.model * BR.acc.games) + "/" + BR.acc.games;
+$("c-teams").textContent = fmtInt(Object.values(D.seasons).reduce((n, s) => n + s.teams.length, 0));
+$("c-acc").textContent = pct(D.calibration.accuracy);
+
+// ---------- Best team vs champion ----------
+(function () {
+  const rows = Object.keys(D.seasons).sort().map(s => {
+    const teams = D.seasons[s].teams, top = teams[0], ch = D.champions[s].champ;
+    const c = teams.find(t => t.n === ch);
+    return { s, top, c, won: top.n === ch };
+  });
+  const wins = rows.filter(r => r.won).length;
+  $("best-count").textContent = wins; $("best-total").textContent = rows.length;
+  $("c-best").textContent = wins + " of " + rows.length;
+  $("best").innerHTML = `<thead><tr><th>Season</th><th>Model's top team</th><th>Record</th><th>Champion</th><th>Record</th><th>Champion's rank</th></tr></thead><tbody>` +
+    rows.reverse().map(r => `<tr><td class="num">${r.s}${r.s === "2020" ? " (spring 2021)" : ""}</td><td>${esc(r.top.n)}</td><td class="num">${r.top.w}-${r.top.l}</td>
+      <td>${r.won ? `<span class="finish champ">${esc(r.c.n)}</span>` : esc(r.c ? r.c.n : D.champions[r.s].champ)}</td>
+      <td class="num">${r.c ? r.c.w + "-" + r.c.l : ""}</td><td class="num">${r.c ? "#" + r.c.rank : "outside top 64"}</td></tr>`).join("") + "</tbody>";
+})();
+
+// ---------- Findings ----------
+const F = D.findings;
+const eliteMax = Math.max(...F.elite.map(e => e.share));
+vsBars($("elite"), F.elite.map(e => ({ label: e.label, v: e.share, color: "var(--s1)" })), eliteMax, v => pct(v));
+$("el-seasons").textContent = T.seasons.replace("-", "–");
+$("home-pct").textContent = pct(F.home.home_match) + "/" + pct(1 - F.home.home_match).replace("%", "");
+$("home-pct2").textContent = pct(F.home.home_match);
+$("home-match").textContent = pct(F.home.home_match);
+$("home-so").textContent = pct(F.home.home_sideout, 1);
+$("away-so").textContent = pct(F.home.away_sideout, 1);
+$("sets-table").innerHTML = `<thead><tr><th>Situation</th><th>Matches</th><th>Actually happened</th><th>Expected</th></tr></thead><tbody>
+  <tr><td>Team down 0-2 comes back to win</td><td class="num">${fmtInt(F.sets.down02)}</td><td class="num">${pct(F.sets.comeback, 1)}</td><td class="num">${pct(F.sets.comeback_exp, 1)}</td></tr>
+  <tr><td>Set 1 winner wins the match</td><td class="num">${fmtInt(F.sets.matches)}</td><td class="num">${pct(F.sets.set1_holds, 1)}</td><td class="num">${pct(F.sets.set1_holds_exp, 1)}</td></tr></tbody>`;
+
+// ---------- Under the hood: data ----------
+$("d-matches").textContent = fmtInt(T.matches);
+$("d-rallies").textContent = (T.rallies / 1e6).toFixed(2) + "M";
+$("d-rallies-h").textContent = (T.rallies / 1e6).toFixed(2) + " million";
+(function () {
+  const R = D.sample_rally; if (!R) return;
+  $("sample-cap").textContent = `${R.away} vs ${R.home}, national final, ${longDate(R.date)}. Set ${R.set}, tied ${R.score[0]}-${R.score[1]}.`;
+  const poss = [...new Set(R.rows.map(r => r.poss))];
+  $("sample-rally").innerHTML = poss.map((k, i) => {
+    const rows = R.rows.filter(r => r.poss === k), team = rows[0].team, next = poss[i + 1];
+    const step = k === 1 ? "The serve" : k === 2 ? "First attack" : "Scramble";
+    const nextTeam = next !== undefined ? R.rows.find(r => r.poss === next).team : null;
+    return `<div class="poss"><span class="eyebrow">${step}</span><h4>${esc(team)}</h4>
+      <ol>${rows.map(r => `<li><span>${esc(r.event)}</span><span>${esc(r.player || "")}</span></li>`).join("")}</ol>
+      <div class="out ${nextTeam ? "" : "point"}">${nextTeam ? `In play, to ${esc(nextTeam)}` : `Point ${esc(R.winner)}`}</div></div>`;
+  }).join("");
+})();
+
+// ---------- First draw (after every helper above is defined) ----------
+$("a-season").value = state.a.s; $("b-season").value = state.b.s;
+fillTeams("a"); fillTeams("b"); drawMatchup();
+
+// ---------- Views ----------
+const VIEWS = ["home", "bracket", "matchups", "findings", "model"];
+function route() {
+  const h = location.hash.slice(1), v = VIEWS.includes(h) ? h : "home";
+  document.querySelectorAll(".view").forEach(el => { el.hidden = el.dataset.view !== v; });
+  document.querySelectorAll("#nav a").forEach(a => {
+    if (a.getAttribute("href") === "#" + v) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+  });
+  tip.hidden = true;
+  window.scrollTo(0, 0);
+}
+addEventListener("hashchange", route);
+route();
+
+// ---------- Momentum chart ----------
+const MO = D.momentum;
+const series = [
+  { key: "actual", name: "Real matches", color: "var(--s1)", dash: "" },
+  { key: "form", name: "Replay: no momentum, with match-day form", color: "var(--s2)", dash: "" },
+  { key: "no_form", name: "Replay: no momentum, no form", color: "var(--s3)", dash: "5 4" },
+];
+$("mo-legend").innerHTML = series.map(s => `<span><i style="background:${s.color}"></i>${s.name}</span>`).join("");
+(function () {
+  const W = 520, H = 300, L = 44, R = 92, Tp = 14, Bt = 36;
+  const ys = [0.49, 0.59], ks = MO.k.map(k => k === 6 ? "6+" : String(k));
+  const x = i => L + (W - L - R) * i / (ks.length - 1), y = v => Tp + (H - Tp - Bt) * (1 - (v - ys[0]) / (ys[1] - ys[0]));
+  let s = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Receiving team's rally win rate by the server's current run length">`;
+  for (let v = 0.50; v <= 0.5801; v += 0.02) s += `<line class="gridl" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"/><text x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${pct(v)}</text>`;
+  ks.forEach((k, i) => { s += `<text x="${x(i)}" y="${H - Bt + 18}" text-anchor="middle">${k}</text>`; });
+  s += `<text x="${(L + W - R) / 2}" y="${H - 4}" text-anchor="middle">Points in a row by the serving team</text>`;
+  const ends = [];
+  for (const se of series) {
+    const pts = MO[se.key].map((v, i) => `${x(i)},${y(v)}`).join(" ");
+    s += `<polyline points="${pts}" fill="none" style="stroke:${se.color}" stroke-width="2" stroke-dasharray="${se.dash}" stroke-linejoin="round"/>`;
+    MO[se.key].forEach((v, i) => { s += `<circle cx="${x(i)}" cy="${y(v)}" r="4" style="fill:${se.color};stroke:var(--surface)" stroke-width="2"/>`; });
+    ends.push({ y: y(MO[se.key][ks.length - 1]), name: se.key === "actual" ? "Real" : se.key === "form" ? "With form" : "No form" });
+  }
+  ends.sort((a, b) => a.y - b.y);
+  for (let i = 1; i < ends.length; i++) if (ends[i].y - ends[i - 1].y < 14) ends[i].y = ends[i - 1].y + 14;
+  ends.forEach(e => { s += `<text x="${W - R + 10}" y="${e.y + 4}" class="ink">${e.name}</text>`; });
+  ks.forEach((k, i) => {
+    const t = `<strong>After ${k} in a row</strong><br>${fmtInt(MO.n[i])} real rallies<br>` + series.map(se => `${se.name}: ${pct(MO[se.key][i], 1)}`).join("<br>");
+    const half = (W - L - R) / (ks.length - 1) / 2;
+    s += `<rect x="${x(i) - half}" y="${Tp}" width="${2 * half}" height="${H - Tp - Bt}" fill="transparent" data-tip="${esc(t)}"/>`;
+  });
+  $("mo-chart").innerHTML = s + "</svg>";
+  $("mo-table").innerHTML = `<thead><tr><th>In a row</th><th>Rallies</th>${series.map(se => `<th>${se.name}</th>`).join("")}</tr></thead><tbody>` +
+    ks.map((k, i) => `<tr><td>${k}</td><td class="num">${fmtInt(MO.n[i])}</td>${series.map(se => `<td class="num">${pct(MO[se.key][i], 1)}</td>`).join("")}</tr>`).join("") + "</tbody>";
+  $("mo-n").textContent = fmtInt(MO.n.reduce((a, b) => a + b, 0));
+})();
+
+// ---------- Calibration ----------
+(function () {
+  const C = D.calibration, W = 420, H = 380, L = 46, R = 16, Tp = 12, Bt = 46;
+  const x = v => L + (W - L - R) * v, y = v => Tp + (H - Tp - Bt) * (1 - v);
+  let s = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Calibration: predicted versus actual win rate">`;
+  for (const v of [0, 0.25, 0.5, 0.75, 1]) {
+    s += `<line class="gridl" x1="${x(0)}" x2="${x(1)}" y1="${y(v)}" y2="${y(v)}"/><line class="gridl" x1="${x(v)}" x2="${x(v)}" y1="${y(0)}" y2="${y(1)}"/>`;
+    s += `<text x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${pct(v)}</text><text x="${x(v)}" y="${H - Bt + 18}" text-anchor="middle">${pct(v)}</text>`;
+  }
+  s += `<line x1="${x(0)}" y1="${y(0)}" x2="${x(1)}" y2="${y(1)}" style="stroke:var(--axis)" stroke-width="1.5" stroke-dasharray="4 4"/>`;
+  s += `<text x="${x(0.62)}" y="${y(0.56)}" transform="rotate(-${Math.atan2(H - Tp - Bt, W - L - R) * 180 / Math.PI} ${x(0.62)} ${y(0.56)})">perfect calibration</text>`;
+  s += `<text x="${(L + W - R) / 2}" y="${H - 6}" text-anchor="middle">Model's win probability</text>`;
+  s += `<text x="12" y="${(Tp + H - Bt) / 2}" text-anchor="middle" transform="rotate(-90 12 ${(Tp + H - Bt) / 2})">How often they won</text>`;
+  C.bins.forEach(b => {
+    s += `<g data-tip="Predicted ${pct(b.pred, 1)}<br>Won ${pct(b.actual, 1)} of ${fmtInt(b.n)} matches">
+      <circle cx="${x(b.pred)}" cy="${y(b.actual)}" r="14" fill="transparent"/>
+      <circle cx="${x(b.pred)}" cy="${y(b.actual)}" r="6" style="fill:var(--s1);stroke:var(--surface)" stroke-width="2"/></g>`;
+  });
+  $("cal-chart").innerHTML = s + "</svg>";
+  $("cal-table").innerHTML = `<thead><tr><th>Predicted</th><th>Matches</th><th>Won</th></tr></thead><tbody>` +
+    C.bins.map(b => `<tr><td class="num">${pct(b.pred, 1)}</td><td class="num">${fmtInt(b.n)}</td><td class="num">${pct(b.actual, 1)}</td></tr>`).join("") + "</tbody>";
+  vsBars($("acc-vs"), [
+    { label: "Rally model", v: C.accuracy, color: "var(--s1)", tip: `Rally model: ${pct(C.accuracy, 1)} of ${fmtInt(C.matches)} matches` },
+    { label: "Coin flip", v: 0.5, color: "var(--axis)" },
+  ]);
+})();
+} // start
+</script>
