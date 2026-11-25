@@ -629,6 +629,13 @@ footer { border-top: 2px solid var(--line); padding-block: 24px 40px; font-size:
     </div>
     <div class="panel worked" id="worked"></div>
     <div class="panel">
+      <h3>Good and bad nights: match-day form</h3>
+      <p>A team's twelve numbers describe its season average, but no team plays exactly to its average every night. Travel, an injury, a hot hitter or a loud gym can lift a team or flatten it for a whole match. The model can't see those causes, so it allows for a small random swing in each match: one team may be a little sharper than usual and the other a little flatter. Since nobody knows in advance which way the swing will go, the model averages the odds over every possible swing.</p>
+      <p>A typical swing moves a team's sideout rate by about <strong id="form-pp"></strong> percentage points, for example from 57% to <span id="form-ex"></span>. The size comes from the data: when one team plays above its expected level in a match, its opponent tends to play below theirs by a matching amount.</p>
+      <div class="mini" id="form-mini"></div>
+      <p class="small muted">The swing pulls lopsided odds a little toward 50%. That matters most for long shots: a team that would almost never win if both sides played to their averages still wins now and then when it has a great night and its opponent has a flat one.</p>
+    </div>
+    <div class="panel">
       <h3>Why small rally edges matter</h3>
       <p class="small muted">The last step uses nothing but the scoring rules: every rally scores, the winner serves next, sets go to 25 (the fifth to 15), win by 2. Set the two rally numbers yourself to see how a small gap grows over a match. The Division I average is about 57%.</p>
       <div class="cols">
@@ -1173,6 +1180,17 @@ function sbar(parts) {
     <div class="skey">${parts.map(([v, col, lab]) => `<span><i class="swatch" style="background:${col}"></i>${esc(lab)} <strong class="num">${pct(v, 1)}</strong></span>`).join("")}</div>`;
 }
 function drawWorked(la, lb, ra, rb, o) {
+  // Match-day form, shown with this matchup's numbers.
+  const swing = expit(logit(0.57) + D.form_sd) - 0.57;
+  $("form-pp").textContent = (100 * swing).toFixed(1);
+  $("form-ex").textContent = pct(0.57 + swing);
+  const flat = matchOutcomes(ra.p, rb.p, 0, D.gh).win;
+  const favA = o.win >= 0.5, fav = favA ? la : lb;
+  const pFlat = favA ? flat : 1 - flat, pForm = favA ? o.win : 1 - o.win;
+  $("form-mini").innerHTML = `
+    <div><span class="big">${pct(pFlat)}</span><span class="small muted">${esc(fav)}'s chance if both teams play exactly to their averages</span></div>
+    <div><span class="big">${pct(pForm)}</span><span class="small muted">${esc(fav)}'s chance allowing for good and bad nights</span></div>
+    <div><span class="big">${pct(1 - pForm)}</span><span class="small muted">the underdog's chance, the number used everywhere on this site</span></div>`;
   const A = "var(--s1)", B = "var(--s2)", G = "var(--axis)";
   const scr = 1 - ra.y;  // A wins once the ball has gone back to B
   const venue = state.home === 1 ? `at ${esc(state.a.n)}` : state.home === -1 ? `at ${esc(state.b.n)}` : "on a neutral floor";
