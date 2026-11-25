@@ -118,6 +118,53 @@ def champions(con):
     return {s: {"champ": w, "runner_up": l} for s, w, l in rows}
 
 
+# Order of the per-team numbers in a match breakdown, all from the team's side when it is
+# receiving serve: sideout rate, aces against, opponent service errors, first-attack scoring,
+# first-attack errors or blocked, scramble scoring (per possession after a dig).
+BREAKDOWN = ("sideout", "aces_against", "serve_errors_for", "first_attack_score", "first_attack_lose", "scramble_score")
+
+
+def match_counts(d, con, season):
+    """Per-match counts for one season, keyed for quick lookup, plus block points."""
+    counts = {}
+    for table, cols in (("sideout", ("k", "n")), ("serve", ("ace", "serr", "inplay")),
+                        ("fb", ("win", "lose", "to_opp")), ("tr", ("win", "lose", "to_opp"))):
+        t = d[table]
+        for i in np.flatnonzero((t["match_id"] // 100000) == season):
+            counts[(table, int(t["match_id"][i]), t["t"][i])] = [float(t[c][i]) for c in cols]
+    blocks = {(int(m), team): int(n) for m, team, n in con.execute("""
+        SELECT match_id, point_team, count(*) FROM rallies
+        WHERE season = ? AND usable AND end_event = 'Block' GROUP BY ALL""", [season]).fetchall()}
+    matches = {(dt_, frozenset((a, h))): int(mid) for mid, dt_, a, h in con.execute(
+        "SELECT match_id, date, away_team, home_team FROM matches WHERE season = ?", [season]).fetchall()}
+    return counts, blocks, matches
+
+
+def breakdown(model, idx, a, b, host, mid, counts, blocks):
+    """Expected (pre-tournament model, this matchup and venue) vs actual, for both teams."""
+    out = {"exp": {}, "act": {}, "n": {}, "blk": {}}
+    for T, O in ((a, b), (b, a)):
+        h = np.array([1.0 if host == T else -1.0 if host == O else 0.0])
+        ti, oi = idx([T]), idx([O])
+        srv = model.parts["serve"].probs(oi, ti, -h)[0]
+        fb = model.parts["fb"].probs(ti, oi, h)[0]
+        tr = model.parts["tr"].probs(ti, oi, h)[0]
+        so = model.sideout(ti, oi, h)[0]
+        keys = [("sideout", T), ("serve", O), ("fb", T), ("tr", T)]
+        got = [counts.get((tbl, mid, team)) for tbl, team in keys]
+        if any(g is None for g in got):
+            return None
+        (k, n), (ace, serr, inplay), (fw, fl, fo), (tw, tl, to) = got
+        serves, fbn, trn = ace + serr + inplay, fw + fl + fo, tw + tl + to
+        if min(n, serves, fbn) == 0:
+            return None
+        out["exp"][T] = r4([so, srv[0], srv[1], fb[0], fb[1], tr[0]])
+        out["act"][T] = r4([k / n, ace / serves, serr / serves, fw / fbn, fl / fbn, tw / max(trn, 1)])
+        out["n"][T] = [int(n), int(serves), int(serves), int(fbn), int(fbn), int(trn)]
+        out["blk"][T] = blocks.get((mid, T), 0)
+    return out
+
+
 def bracket_export(d, idx, con, season):
     root = B.rebuild(D.DB, season)
     start = min(n.date for n in B.walk(root) if n.round == 1)
@@ -134,9 +181,20 @@ def bracket_export(d, idx, con, season):
         for t, p in adv[id(n)].items():
             odds[t][n.round - 1] = p
 
+    counts, blocks, mindex = match_counts(d, con, season)
+    found = [0, 0]
+
     def ser(node):
         kids = [ser(c) if isinstance(c, B.Node) else c for c in (node.left, node.right)]
-        return {"r": node.round, "host": node.host, "w": node.winner, "pick": picks[id(node)], "k": kids}
+        a = node.left.winner if isinstance(node.left, B.Node) else node.left
+        b = node.right.winner if isinstance(node.right, B.Node) else node.right
+        mid = mindex.get((node.date, frozenset((a, b))))
+        x = breakdown(model, idx, a, b, node.host, mid, counts, blocks) if mid else None
+        found[0] += x is not None
+        found[1] += 1
+        return {"r": node.round, "host": node.host, "w": node.winner, "pick": picks[id(node)],
+                "a": a, "b": b, "pa": round(float(wp([a], [b], node.host)[0, 0]), 4),
+                "score": node.score, "x": x, "k": kids}
 
     games = BR.game_metrics(root, wp)
     base_right = 0
@@ -146,6 +204,7 @@ def bracket_export(d, idx, con, season):
     pw = np.array([g[4] for g in games])
     return {
         "tree": ser(root),
+        "breakdowns": f"{found[0]}/{found[1]}",
         "teams": [{"n": t, "odds": r4(odds[t]), "wins": wins[t],
                    "rec": [round(record.get(t, (0, 0))[0], 3), record.get(t, (0, 0))[1]]}
                   for t in sorted(odds, key=lambda t: -odds[t][5])],

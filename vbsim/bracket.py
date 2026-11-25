@@ -30,6 +30,7 @@ class Node:
     winner: str                       # actual winner
     venue_home: Optional[str]         # home team in the actual match (None = neutral)
     host: Optional[str] = None        # site host for any matchup at this node
+    score: str = ""                   # actual set score, winner first ("3-1")
     teams: list = field(default_factory=list)
 
     def children(self):
@@ -74,7 +75,9 @@ def _games(con, season, start, end):
         else:
             venue_home = team
         winner = team if result.startswith("W") else opp
-        games[key] = {"date": d, "teams": (team, opp), "winner": winner, "venue_home": venue_home}
+        sets = result[2:]                           # this team's sets first, e.g. "1-3"
+        score = sets if result.startswith("W") else "-".join(reversed(sets.split("-")))
+        games[key] = {"date": d, "teams": (team, opp), "winner": winner, "venue_home": venue_home, "score": score}
     return list(games.values())
 
 
@@ -105,7 +108,7 @@ def rebuild(db_path, season, start=None, end=None):
             if prev["winner"] != t:
                 raise ValueError(f"{t} lost its previous match on {prev['date']} but played again")
             kids.append(build(prev, rnd - 1))
-        return Node(rnd, g["date"], kids[0], kids[1], g["winner"], g["venue_home"])
+        return Node(rnd, g["date"], kids[0], kids[1], g["winner"], g["venue_home"], score=g["score"])
 
     root = build(final, 6)
     _fill_teams(root)
