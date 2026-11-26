@@ -27,11 +27,33 @@ suppressPackageStartupMessages({
   library(purrr)
 })
 
+# ncaavolleyballr 0.5.1 hard-codes 2025 as the latest season it accepts. Raise that limit
+# for this run only so newer seasons can be requested.
+if (ncaavolleyballr:::most_recent_season() < season) {
+  utils::assignInNamespace("most_recent_season", function() season, ns = "ncaavolleyballr")
+  # Its team-ID check also only knows the bundled (pre-2026) IDs, so skip that check too.
+  utils::assignInNamespace("check_team_id", function(...) invisible(TRUE), ns = "ncaavolleyballr")
+}
+
 raw_dir <- file.path("data", "raw")
 cache <- file.path(raw_dir, paste0("cache_", season))
 dir.create(file.path(cache, "pbp"), recursive = TRUE, showWarnings = FALSE)
 dir.create(file.path(cache, "teammatch"), recursive = TRUE, showWarnings = FALSE)
 say <- function(...) cat(format(Sys.time(), "%H:%M:%S"), ..., "\n")
+
+# Team list for a season, fetched through the browser. (The package's get_teams() uses a
+# plain request, which stats.ncaa.org blocks.)
+teams_live <- function(season) {
+  url <- paste0("https://stats.ncaa.org/team/inst_team_list?academic_year=", season + 1,
+                "&conf_id=-1&division=1&sport_code=WVB")
+  page <- ncaavolleyballr:::request_live_url(url)
+  links <- rvest::html_elements(page, "table a")
+  data.frame(team_name = rvest::html_text(links),
+             team_url = rvest::html_attr(links, "href")) |>
+    dplyr::mutate(team_id = stringr::str_extract(.data$team_url, "\\d+"), div = 1, yr = season) |>
+    dplyr::filter(!is.na(.data$team_id)) |>
+    dplyr::distinct(.data$team_id, .keep_all = TRUE)
+}
 
 # Cache helper: fetch once, then read from disk on every later run.
 cached <- function(path, fetch) {
@@ -50,8 +72,7 @@ cached <- function(path, fetch) {
 teams <- wvb_teams |> filter(yr == season, div == 1)
 if (nrow(teams) == 0) {
   say("No", season, "teams bundled with this package version; fetching the team list.")
-  teams <- cached(file.path(cache, "teams.rds"), function() get_teams(year = season, division = 1, sport = "WVB"))
-  teams <- teams |> filter(div == 1)
+  teams <- cached(file.path(cache, "teams.rds"), function() teams_live(season))
 }
 say(nrow(teams), "Division I teams for", season)
 
