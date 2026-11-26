@@ -107,6 +107,17 @@ main:focus { outline: none; }
 .top nav a { color: var(--ink-2); text-decoration: none; }
 .top nav a:hover { color: var(--ink); text-decoration: underline; }
 .top nav a:focus-visible { outline-width: 2px; outline-offset: 4px; border-radius: 2px; }
+.menu-btn { display: none; }
+.menu-btn .i-close, .top.open .menu-btn .i-open { display: none; }
+.top.open .menu-btn .i-close { display: inline; }
+@media (max-width: 640px) {
+  .top { align-items: center; }
+  .menu-btn { display: inline-grid; place-items: center; width: 44px; height: 44px; margin-right: -10px; padding: 0; border: 0; border-radius: 6px; background: transparent; color: var(--ink); cursor: pointer; }
+  .top nav { display: none; flex-basis: 100%; flex-direction: column; gap: 0; font-size: 1rem; border-top: 1px solid var(--line); }
+  .top.open nav { display: flex; }
+  .top nav a { padding: 12px 2px; border-bottom: 1px solid var(--grid); }
+  .top nav a[aria-current="page"] { text-decoration: none; box-shadow: inset 3px 0 0 var(--gold); padding-left: 12px; }
+}
 
 /* Hero */
 .hero { display: grid; gap: 28px; padding-block: 56px 32px; }
@@ -187,7 +198,8 @@ tr.champ-row td:first-child { font-weight: 700; }
 .bk .box { fill: var(--surface); stroke: var(--line); stroke-width: 1; }
 .bk .box.upset { stroke: var(--gold); stroke-width: 2; }
 .bk .game { cursor: pointer; }
-.bk .game:hover .box, .bk .game:focus-visible .box { stroke: var(--court); }
+@media (hover: hover) { .bk .game:hover .box { stroke: var(--court); } }
+.bk .game:focus-visible .box { stroke: var(--court); }
 .bk .game.sel .box { stroke: var(--court); stroke-width: 2.5; }
 .bk .sep { stroke: var(--grid); }
 .bk .conn { fill: none; stroke: var(--axis); stroke-width: 1.5; }
@@ -356,9 +368,12 @@ footer { border-top: 2px solid var(--line); padding-block: 24px 40px; font-size:
   border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 16px 48px rgb(0 0 0 / 0.28); overflow: hidden; }
 @media (max-width: 560px) {
   body.chat-open { overflow: hidden; }
-  .chat { inset: 0; width: auto; height: auto; border: 0; border-radius: 0;
+  .chat { inset: 0 0 auto 0; width: auto; height: 100vh; height: 100dvh; border: 0; border-radius: 0;
     padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); }
 }
+.chat:focus { outline: none; }
+@media (prefers-reduced-motion: no-preference) { .chat:not([hidden]) { animation: chat-in 0.2s ease-out; } }
+@keyframes chat-in { from { opacity: 0; transform: translateY(16px); } }
 .chat-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px 12px 16px; border-bottom: 1px solid var(--line); }
 .chat-head h2 { font-size: 1.5rem; }
 .chat-head .tools { display: flex; align-items: center; gap: 6px; }
@@ -406,6 +421,9 @@ footer { padding-bottom: 96px; }
   <button class="skip" type="button" id="skip">Skip to content</button>
   <header class="top">
     <a class="mark" href="#home">RALLY <span>ODDS</span></a>
+    <button class="menu-btn" type="button" id="menu-btn" aria-expanded="false" aria-controls="nav" aria-label="Menu">
+      <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path class="i-open" d="M4 7h16M4 12h16M4 17h16"/><path class="i-close" d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
     <nav aria-label="Pages" id="nav">
       <a href="#home">Home</a><a href="#bracket">Brackets</a><a href="#matchups">Match simulator</a>
       <a href="#findings">Findings</a><a href="#model">How it works</a>
@@ -789,7 +807,7 @@ footer { padding-bottom: 96px; }
 <button class="fab" type="button" id="chat-fab" aria-expanded="false" aria-controls="chat" aria-label="Ask the model" title="Ask the model">
   <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M11.1 7.1a16.55 16.55 0 0 1 10.9 4"/><path d="M12 12a12.6 12.6 0 0 1-8.7 5"/><path d="M16.8 13.6a16.55 16.55 0 0 1-9 7.5"/><path d="M20.7 17a12.8 12.8 0 0 0-8.7-5 13.3 13.3 0 0 1 0-10"/><path d="M6.3 3.8a16.55 16.55 0 0 0 1.9 11.5"/></svg>
 </button>
-<div class="chat" id="chat" role="dialog" aria-label="Ask the model" hidden>
+<div class="chat" id="chat" role="dialog" aria-label="Ask the model" tabindex="-1" hidden>
   <div class="chat-head">
     <h2>Ask the model</h2>
     <div class="tools">
@@ -1314,7 +1332,7 @@ const FINISH = ["Lost round 1", "Lost round 2", "Lost regional semi", "Lost regi
 
 // Tooltip
 const tip = $("tip");
-document.addEventListener("pointermove", e => {
+function showTip(e) {
   const t = e.target.closest("[data-tip]");
   if (!t) { tip.hidden = true; return; }
   tip.innerHTML = t.getAttribute("data-tip");
@@ -1324,8 +1342,14 @@ document.addEventListener("pointermove", e => {
   if (x + r.width > innerWidth - 8) x = e.clientX - r.width - 14;
   if (y + r.height > innerHeight - 8) y = e.clientY - r.height - 14;
   tip.style.left = Math.max(8, x) + "px"; tip.style.top = Math.max(8, y) + "px";
-});
+}
+document.addEventListener("pointermove", e => { if (e.pointerType === "mouse" || e.pointerType === "pen") showTip(e); });
+let lastPointer = "mouse";   // click events don't say touch vs mouse in every browser, so remember it from pointerdown
+document.addEventListener("pointerdown", e => { lastPointer = e.pointerType; if (e.pointerType === "touch") tip.hidden = true; }, true);
+// A tap on a chart shows its tooltip; bracket games skip it because the tap opens the breakdown instead.
+document.addEventListener("click", e => { if (lastPointer === "touch" && e.detail && !e.target.closest(".game")) showTip(e); });
 document.addEventListener("pointerleave", () => { tip.hidden = true; });
+addEventListener("scroll", () => { tip.hidden = true; }, { capture: true, passive: true });
 
 // Horizontal comparison bars
 function vsBars(el, rows, max = 1, fmt = v => pct(v, 1)) {
@@ -1491,8 +1515,15 @@ function selectGame(id, BS) {
   const n = NODES[id];
   const regs = regionsOf(BS.tree);
   const ri = regs.findIndex(rf => contains(rf, n));
-  regionTab = ri >= 0 ? "r" + ri : "ff";
-  drawBracketView(BS);
+  const tab = ri >= 0 ? "r" + ri : "ff";
+  if (tab !== regionTab || !$("bracket-svg").querySelector(`.game[data-id="${id}"]`)) { regionTab = tab; drawBracketView(BS); }
+  // Redrawing would drop hover, focus and the bracket's scroll position, so only move the highlight.
+  $("bracket-svg").querySelectorAll(".game").forEach(g => g.classList.toggle("sel", +g.dataset.id === id));
+  const g = $("bracket-svg").querySelector(".game.sel"), box = $("bracket-svg");
+  if (g) {   // keep the selected match in view sideways when the bracket is wider than the screen
+    const gr = g.getBoundingClientRect(), br = box.getBoundingClientRect();
+    if (gr.left < br.left || gr.right > br.right) box.scrollLeft += gr.left - br.left - (br.width - gr.width) / 2;
+  }
   drawBreakdown(n);
 }
 function drawBreakdown(n) {
@@ -1561,7 +1592,11 @@ $("reg-tabs").addEventListener("click", e => {
   regionTab = b.dataset.k; drawBracketView(D.brackets[year]);
 });
 $("bracket-svg").addEventListener("click", e => {
-  const g = e.target.closest(".game"); if (g) selectGame(+g.dataset.id, D.brackets[year]);
+  const g = e.target.closest(".game"); if (!g) return;
+  selectGame(+g.dataset.id, D.brackets[year]);
+  // On a phone the breakdown sits below the bracket, out of sight, so bring it up after a tap.
+  if (lastPointer === "touch" && e.detail && $("bd").getBoundingClientRect().top > innerHeight * 0.6)
+    $("bd").scrollIntoView({ behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
 });
 $("bracket-svg").addEventListener("keydown", e => {
   const g = e.target.closest(".game");
@@ -2161,12 +2196,22 @@ $("skip").addEventListener("click", () => $("main").focus());
   q.addEventListener("input", autosize);
   q.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); form.requestSubmit(); } });
   stopBtn.addEventListener("click", () => ctl?.abort());
+  // On phones the chat fills the screen. Don't focus the box on open: the keyboard would cover the
+  // suggestions. While the keyboard is up, size the panel to the visible area so the input stays above it.
+  const phone = window.matchMedia?.("(max-width: 560px)") || { matches: false }, vv = window.visualViewport;
+  function fitChat() {
+    if (!vv || panel.hidden || !phone.matches) { panel.style.top = panel.style.height = ""; return; }
+    panel.style.top = vv.offsetTop + "px"; panel.style.height = vv.height + "px";
+    scrollDown();
+  }
+  vv?.addEventListener("resize", fitChat); vv?.addEventListener("scroll", fitChat);
   function openChat() {
     panel.hidden = false; fab.setAttribute("aria-expanded", "true"); document.body.classList.add("chat-open");
     if (!turns.length && !busy) renderEmpty();   // fresh suggestions for the page you're on
-    q.focus();
+    fitChat();
+    if (phone.matches) panel.focus(); else q.focus();
   }
-  function closeChat() { panel.hidden = true; fab.setAttribute("aria-expanded", "false"); document.body.classList.remove("chat-open"); fab.focus(); }
+  function closeChat() { panel.hidden = true; fab.setAttribute("aria-expanded", "false"); document.body.classList.remove("chat-open"); fitChat(); fab.focus(); }
   fab.addEventListener("click", openChat);
   $("chat-close").addEventListener("click", closeChat);
   panel.addEventListener("keydown", e => { if (e.key === "Escape") closeChat(); });
@@ -2183,8 +2228,19 @@ function route() {
     if (a.getAttribute("href") === "#" + v) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
   });
   tip.hidden = true;
+  setMenu(false);
   window.scrollTo(0, 0);
 }
+// Phone menu: the nav collapses behind a button under 640px
+function setMenu(open) {
+  document.querySelector(".top").classList.toggle("open", open);
+  $("menu-btn").setAttribute("aria-expanded", String(open));
+}
+$("menu-btn").addEventListener("click", () => setMenu($("menu-btn").getAttribute("aria-expanded") !== "true"));
+$("nav").addEventListener("click", e => { if (e.target.closest("a")) setMenu(false); });
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && $("menu-btn").getAttribute("aria-expanded") === "true") { setMenu(false); $("menu-btn").focus(); }
+});
 addEventListener("hashchange", route);
 route();
 
