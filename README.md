@@ -110,6 +110,8 @@ analysis/   model comparison, overconfidence and momentum tests, bracket scoring
 web/        the site: template, build script, generated index.html and data.json
 rallytools/ the model as tools: match odds, team profiles, brackets, upset breakdowns, safe SQL; MCP server; grounding checker
 evals/      golden questions with computed answers, grader, runner for the question-answering agent
+rallyagent/ the agent (tool-use loop + grounding check), its CLI, and the public web API
+serve/      container and Cloud Run deploy script for the public API
 tests/      unit tests for the match math, fitting, bracket odds and the tools
 ```
 
@@ -204,6 +206,24 @@ so grounding is a backstop and correctness checks the numbers that matter agains
 .venv/bin/python -m evals.golden --check          # golden answers still match the model and data
 .venv/bin/python -m evals.run --selftest          # harness and grader sanity check (free, runs in CI)
 .venv/bin/python -m evals.run --answerer <module:function> --variant baseline   # a real agent
+```
+
+## The agent and its public API
+
+`python -m rallyagent "Could Nebraska have beaten 2023 Texas?"` answers with Claude Haiku 5.5 calling the
+tools above, then checks every number in the answer against the tool results, with one rewrite if
+any number has no source. `--config split` (Haiku researches, Opus 5.5 writes) and `--config opus`
+are there for comparison; on the evals so far Haiku matched them at about a twentieth of the cost.
+
+`rallyagent/api.py` serves the same agent at `POST /ask {"question": ...}`. The browser sends only a
+question; the prompt, tools, model and limits are fixed on the server: 500-character questions,
+10 per hour per visitor, a daily spend cap (default $1), and an optional Cloudflare Turnstile check.
+Answers that fail the grounding check are replaced with a plain "couldn't answer reliably".
+
+```sh
+.venv/bin/python -m pipeline.public_db       # 14 MB database for the server (no touch events or rallies)
+RALLY_DB=serve/vb_public.duckdb .venv/bin/uvicorn rallyagent.api:app --port 8080
+PROJECT=<gcp-project> serve/deploy_cloudrun.sh   # Cloud Run: one instance, scales to zero
 ```
 
 ## Working with the data

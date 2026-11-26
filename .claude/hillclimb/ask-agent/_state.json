@@ -1,0 +1,56 @@
+{
+  "harness_sha": "3119300eefd59614",
+  "metrics": [
+    {
+      "id": "correct",
+      "label": "Correct",
+      "kind": "binary"
+    },
+    {
+      "id": "grounded",
+      "label": "Grounded",
+      "kind": "float",
+      "scale": 1
+    },
+    {
+      "id": "tool_choice",
+      "label": "Tool choice",
+      "kind": "binary"
+    },
+    {
+      "id": "recall",
+      "label": "Recall",
+      "kind": "float",
+      "scale": 1
+    },
+    {
+      "id": "refused",
+      "label": "Refused",
+      "kind": "binary"
+    }
+  ],
+  "perf_fields": [
+    {
+      "id": "latency_s",
+      "label": "Latency",
+      "unit": "s"
+    },
+    {
+      "id": "tool_calls",
+      "label": "Tool calls"
+    },
+    {
+      "id": "in_tokens",
+      "label": "In tok"
+    },
+    {
+      "id": "out_tokens",
+      "label": "Out tok"
+    },
+    {
+      "id": "cost_usd",
+      "label": "Cost",
+      "unit": "$"
+    }
+  ]
+}

@@ -78,3 +78,10 @@ def test_sql_row_limit_and_timeout():
     assert r["row_count"] == 5 and r["truncated"]
     with pytest.raises(C.ToolError, match="longer than"):
         query_stats("select count(*) from rallies a, rallies b", timeout_s=1)
+
+
+def test_upset_reasons_are_ranked_with_plain_labels():
+    x = C.explain_upset(2024, "Missouri", "SMU")
+    assert [r["rank"] for r in x["reasons"]] == list(range(1, len(x["reasons"]) + 1))
+    assert x["biggest_factor"] == x["reasons"][0]
+    assert x["biggest_factor"]["what"] == "Missouri's passing: how often Missouri got aced on SMU's serves"

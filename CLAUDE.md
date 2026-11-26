@@ -9,9 +9,12 @@ Public site: https://m3tang.github.io/volleyball-sim/ · Repo: github.com/m3tang
 - `analysis/` evaluations; results the site reads go in `analysis/results/`
 - `web/build_site.py` → `web/data.json`, `web/index.html` (standalone, data inline), `web/artifact.html` (loads data.json)
 - `web/template.html` holds all markup, CSS and JS. Edit this, never index.html/artifact.html.
+  The `AGENT-START`/`AGENT-END` block ports rallytools/core.py tools + grounding to JS for the Ask view (artifact: `sample` capability with in-page tools; Pages: Cloud Run API). Keep it in step with core.py; `tests/test_site_agent.py` compares them.
 - `rallytools/` model-as-tools: `core.py` (reads web/data.json, mirrors the site's JS math), `sql.py` (guarded read-only DuckDB), `server.py` (MCP server, mcp 2.x `MCPServer`; `--check` calls every tool)
 - `rallytools/grounding.py` checks every number in an answer against tool results; `rallytools/registry.py` name→tool for the agent and evals
 - `evals/` golden set (`golden.py` generates `golden.jsonl`/`golden.md` from core + SQL; never hand-edit), `grade.py`, `answerers.py` (oracle/null/... harness checks), `run.py` (runner; paid answerers gated by `--approve-harness`, which is the user's to pass)
+- `rallyagent/` agent (`agent.py`: research loop, optional writer, grounding rewrite; default config Haiku 5.5), `api.py` public Starlette API with rate/budget/Turnstile guards, `pricing.py`. API key: env, else macOS Keychain item `vb-sim-agent-api-key`
+- `serve/` public API container (`Dockerfile`, builds from repo root) and `deploy_cloudrun.sh`; `pipeline/public_db.py` makes `serve/vb_public.duckdb` (14 MB, `rally_summary` replaces rallies; `RALLY_DB` points the SQL tool at it)
 - `tools/checks/` page checks (Node + puppeteer-core + jsdom; `npm install` there once)
 
 ## Commands
@@ -31,6 +34,7 @@ Pipe long build/analysis output through `tail`; it is verbose.
 ```sh
 cd tools/checks
 node views.js ../../web/index.html               # JS errors + every view renders
+node ask.js ../../web/index.html                 # Ask view end to end with a fake in-page Claude (no usage)
 node pp.js <view> 390 /tmp/x.png 1               # phone width overflow check; views: home bracket matchups findings model
 node pp.js <view> 1280 /tmp/x.png                # desktop
 node el.js <view> "<css selector>" /tmp/x.png [width]   # screenshot one element (prefer over full pages)
@@ -41,7 +45,8 @@ Find code in template.html with `grep -n`, then read only that range; the file i
 ## Deploy
 - Push to `main` → "Deploy site" workflow publishes `web/` to GitHub Pages. Watch with `gh run watch`.
 - Claude artifact copy: publish `web/artifact.html` to https://claude.ai/artifact/W78Lz9nHJ9NWKQ89qphGah
-  with `files={"data.json": "web/data.json"}`.
+  with `files={"data.json": "web/data.json"}`; it declares `capabilities: {sample: {}}` (omit on redeploys to keep it).
+- Agent API: `PROJECT=rally-odds-agent serve/deploy_cloudrun.sh` (needs `/opt/homebrew/share/google-cloud-sdk/bin` on PATH for docker push). Live at https://rally-agent-eu35voqj3q-uc.a.run.app
 - Commit `web/index.html`, `web/artifact.html` and `web/data.json` along with template changes.
 - No Claude/AI attribution lines in commits or PRs.
 

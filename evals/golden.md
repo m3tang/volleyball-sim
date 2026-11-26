@@ -47,7 +47,7 @@
 
 | id | question | expected | acceptable tools |
 |---|---|---|---|
-| dream_matchup-001 | Could Nebraska have beaten 2023 Texas? | P(Nebraska 2025 wins) = 87% | win_probability |
+| dream_matchup-001 | Could Nebraska have beaten 2023 Texas? | (P(Nebraska 2025 wins) = 87%; says it assumed 2025 Nebraska: 2025 Nebraska / Nebraska's 2025 / Nebraska (2025) / 2025 Huskers / 2025 Cornhuskers) OR (P(Nebraska 2023 wins) = 66%; says it assumed 2023 Nebraska: 2023 Nebraska / Nebraska's 2023 / Nebraska (2023) / 2023 Huskers / 2023 Cornhuskers) | win_probability |
 | dream_matchup-002 | Who wins: 2024 Creighton or 2022 Stanford? | P(Creighton 2024 wins) = 70% (or 0.3033); favorite: Creighton | win_probability |
 | dream_matchup-003 | Dream matchup: 2020 Kentucky against 2022 Louisville. What are the odds? | P(Louisville 2022 wins) = 69% (or 0.3084); favorite: Louisville | win_probability |
 | dream_matchup-004 | Who wins: 2021 Kentucky or 2025 Pitt? | P(Pittsburgh 2025 wins) = 73% (or 0.2693); favorite: Pittsburgh / Pitt | win_probability |
@@ -69,23 +69,23 @@
 |---|---|---|---|
 | team_profile-001 | Adjusted for opponents, how often did North Carolina score on its first attack in 2025? | adjusted first-attack scoring = 44% | team_profile |
 | team_profile-002 | Adjusted for opponents, how often did Kansas score on its first attack in 2025? | adjusted first-attack scoring = 44% | team_profile |
-| team_profile-003 | What was Arkansas State's ace rate when serving in 2025? | ace rate (counted or adjusted) = 6.8% (about 1 in 15) (or 0.0737) | query_stats, team_profile |
+| team_profile-003 | What was Arkansas State's ace rate when serving in 2025? | ace rate (counted, adjusted, or box score) = 6.8% (about 1 in 15) (or 0.0737) | query_stats, team_profile |
 | team_profile-004 | How good was San Diego in long rallies in 2025? What's its scramble scoring rate compared with the league? | adjusted scramble scoring = 41% (or 0.3821); league average = 33% | team_profile |
 | team_profile-005 | What was Tennessee's record in 2025, and where did the model rank them? | wins = 20; losses = 8; rank = 12 | season_rankings, team_profile |
 | team_profile-006 | Adjusted for opponents, how often did Wisconsin score on its first attack in 2025? | adjusted first-attack scoring = 52% | team_profile |
-| team_profile-007 | What was Marquette's ace rate when serving in 2024? | ace rate (counted or adjusted) = 6.1% (about 1 in 15) (or 0.0694) | query_stats, team_profile |
+| team_profile-007 | What was Marquette's ace rate when serving in 2024? | ace rate (counted, adjusted, or box score) = 6.1% (about 1 in 15) (or 0.0694) | query_stats, team_profile |
 | team_profile-008 | How good was Arizona State in long rallies in 2024? What's its scramble scoring rate compared with the league? | adjusted scramble scoring = 40% (or 0.3633); league average = 33% | team_profile |
 | team_profile-009 | What was Missouri's record in 2024, and where did the model rank them? | wins = 22; losses = 9; rank = 16 | season_rankings, team_profile |
 | team_profile-010 | Adjusted for opponents, how often did Indiana score on its first attack in 2023? | adjusted first-attack scoring = 44% | team_profile |
-| team_profile-011 | What was Florida's ace rate when serving in 2023? | ace rate (counted or adjusted) = 7.0% (about 1 in 15) (or 0.0831) | query_stats, team_profile |
+| team_profile-011 | What was Florida's ace rate when serving in 2023? | ace rate (counted, adjusted, or box score) = 7.0% (about 1 in 15) (or 0.0831) | query_stats, team_profile |
 | team_profile-012 | How good was Miami in long rallies in 2022? What's its scramble scoring rate compared with the league? | adjusted scramble scoring = 39% (or 0.3618); league average = 32% | team_profile |
 | team_profile-013 | What was Hawaii's record in 2022, and where did the model rank them? | wins = 22; losses = 7; rank = 36 | season_rankings, team_profile |
 | team_profile-014 | Adjusted for opponents, how often did Western Kentucky score on its first attack in 2021? | adjusted first-attack scoring = 47% | team_profile |
-| team_profile-015 | What was Wisconsin's ace rate when serving in 2021? | ace rate (counted or adjusted) = 5.8% (about 1 in 15) (or 0.0713) | query_stats, team_profile |
+| team_profile-015 | What was Wisconsin's ace rate when serving in 2021? | ace rate (counted, adjusted, or box score) = 5.8% (about 1 in 15) (or 0.0713, 0.0612) | query_stats, team_profile |
 | team_profile-016 | How good was Missouri in long rallies in 2025? What's its scramble scoring rate compared with the league? | adjusted scramble scoring = 40% (or 0.3585); league average = 33% | team_profile |
 | team_profile-017 | What was Illinois's record in 2024, and where did the model rank them? | wins = 18; losses = 13; rank = 34 | season_rankings, team_profile |
 | team_profile-018 | Adjusted for opponents, how often did Western Kentucky score on its first attack in 2023? | adjusted first-attack scoring = 44% | team_profile |
-| team_profile-019 | What was Purdue's ace rate when serving in 2022? | ace rate (counted or adjusted) = 6.0% (about 1 in 15) (or 0.0726) | query_stats, team_profile |
+| team_profile-019 | What was Purdue's ace rate when serving in 2022? | ace rate (counted, adjusted, or box score) = 6.0% (about 1 in 15) (or 0.0726) | query_stats, team_profile |
 | team_profile-020 | How good was Northern Iowa in long rallies in 2025? What's its scramble scoring rate compared with the league? | adjusted scramble scoring = 40% (or 0.371); league average = 33% | team_profile |
 
 ## rankings

@@ -1,0 +1,6 @@
+# Public agent API only (rallyagent/api.py). The full project's requirements are in ../requirements.txt.
+anthropic==2.14.0
+duckdb==1.4.5
+numpy==2.0.2
+starlette==1.10.0
+uvicorn==0.54.0

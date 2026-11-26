@@ -34,6 +34,8 @@ ROOT = HERE.parent
 GOLDEN = HERE / "golden.jsonl"
 FLOW = ROOT / ".claude" / "hillclimb" / "ask-agent"
 HARNESS = [HERE / "run.py", HERE / "grade.py", HERE / "golden.jsonl", ROOT / "rallytools" / "grounding.py"]
+from rallyagent.pricing import cost_usd  # noqa: E402  (model x usage -> $, shared with the public API)
+
 METRICS = [
     {"id": "correct", "label": "Correct", "kind": "binary"},
     {"id": "grounded", "label": "Grounded", "kind": "float", "scale": 1},
@@ -71,6 +73,8 @@ def trace(case, run):
         t.append({"role": "tool_call", "name": c["name"], "content": json.dumps(c.get("args") or {}, indent=2)})
         body = c["result"] if c.get("error") is None else {"error": c["error"]}
         t.append({"role": "tool_result", "content": json.dumps(body, indent=1, default=str)})
+    if run.get("research_notes"):
+        t.append({"role": "assistant", "content": "[research notes, passed to the writer]\n" + run["research_notes"]})
     t.append({"role": "assistant", "content": run.get("answer") or ""})
     return t
 
@@ -139,7 +143,8 @@ def run(answerer, cases, out_dir=None, reps=1, concurrency=8, timeout_s=180):
                "grade": g["grade"], "model": run_.get("model"), "usage": usage,
                "in_tokens": usage.get("input_tokens", 0), "out_tokens": usage.get("output_tokens", 0),
                "latency_s": run_["latency_s"], "tool_calls": len(run_.get("tool_calls") or []),
-               "answer": run_.get("answer"), "meta": g["detail"]}
+               "cost_usd": cost_usd(run_.get("usage_by_model")), "answer": run_.get("answer"),
+               "meta": {**g["detail"], "model_calls": run_.get("model_calls"), "grounding": run_.get("grounding")}}
         return case, k, (row, run_), None
 
     with cf.ThreadPoolExecutor(max_workers=concurrency) as ex:
@@ -176,6 +181,10 @@ def summarize(rows):
     checked = sum(r["meta"]["checked_numbers"] for r in ok)
     bad = sum(len(r["meta"]["ungrounded"]) for r in ok)
     out["hallucination_rate"] = bad / checked if checked else 0.0
+    out["cost_usd"] = sum(r.get("cost_usd", 0) for r in ok)
+    lat = sorted(r["latency_s"] for r in ok)
+    out["latency_p50"] = lat[len(lat) // 2] if lat else 0.0
+    out["latency_p90"] = lat[int(0.9 * (len(lat) - 1))] if lat else 0.0
     out["numbers_per_answer"] = checked / len(ok) if ok else 0.0
     by = defaultdict(list)
     for r in ok:
@@ -190,6 +199,9 @@ def print_summary(name, s):
     print(f"{name}: {s['cases']} cases | correct {f(s['correct'])} | grounded {f(s['grounded'])} | "
           f"tool choice {f(s['tool_choice'])} | hallucination rate {100 * s['hallucination_rate']:.1f}% "
           f"({s['numbers_per_answer']:.1f} numbers/answer) | refused {100 * s['refused'][0]:.0f}%")
+    if s["cost_usd"]:
+        print(f"   cost ${s['cost_usd']:.3f} total, ${s['cost_usd'] / max(s['cases'], 1):.4f}/case | "
+              f"latency p50 {s['latency_p50']:.1f}s, p90 {s['latency_p90']:.1f}s")
     print("   by category (correct): " + ", ".join(f"{k} {100 * v:.0f}%" for k, v in s["by_category"].items()))
 
 
@@ -206,7 +218,7 @@ EXPECT = {
 
 
 def selftest(cases):
-    free = sum(not c["expect"]["numbers"] for c in cases) / len(cases)
+    free = sum(not any(alt["numbers"] for alt in c["expect"].get("alternatives") or [c["expect"]]) for c in cases) / len(cases)
     ok = True
     for name in EXPECT:
         rows = run(name, cases)
@@ -223,6 +235,27 @@ def selftest(cases):
     return ok
 
 
+def regrade(variant_dir):
+    """Re-score saved transcripts with the current grader (no model calls). For grader fixes."""
+    cases = {c["id"]: c for c in load_cases()}
+    rf = variant_dir / "results.jsonl"
+    rows = [json.loads(l) for l in rf.read_text().splitlines()]
+    for r in rows:
+        t = json.loads((variant_dir / "traces" / f"{r['prompt_id']}_rep{r['rep']}.json").read_text())
+        calls = []
+        for turn, nxt in zip(t, t[1:]):
+            if turn["role"] == "tool_call":
+                body = json.loads(nxt["content"])
+                err = body.get("error") if isinstance(body, dict) and set(body) == {"error"} else None
+                calls.append({"name": turn["name"], "args": json.loads(turn["content"]),
+                              "result": None if err else body, "error": err})
+        g = grade(cases[r["prompt_id"]], {"answer": r["answer"], "tool_calls": calls})
+        r["grade"] = g["grade"]
+        r["meta"] = {**r["meta"], **g["detail"]}
+    rf.write_text("".join(json.dumps(r, default=str) + "\n" for r in rows))
+    return rows
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--selftest", action="store_true")
@@ -234,9 +267,18 @@ def main():
     ap.add_argument("--concurrency", type=int, default=8)
     ap.add_argument("--timeout-s", type=float, default=180)
     ap.add_argument("--approve-harness", action="store_true")
+    ap.add_argument("--regrade", action="store_true", help="re-score --variant's saved transcripts; no model calls")
     a = ap.parse_args()
+    if a.regrade:
+        print_summary(a.variant, summarize(regrade(FLOW / a.variant)))
+        return
     from vbsim.data import DB
-    cases = load_cases(a.ids, a.category, need_db=None if DB.exists() else False)
+    ids = [x for arg in (a.ids or []) for x in arg.replace(",", " ").split()]  # "a b" or a,b or a b
+    cases = load_cases(ids, a.category, need_db=None if DB.exists() else False)
+    if ids and len(cases) != len(set(ids)):
+        sys.exit(f"unknown case ids: {', '.join(sorted(set(ids) - {c['id'] for c in cases}))}")
+    if not cases:
+        sys.exit("no cases match")
     if a.selftest:
         sys.exit(0 if selftest(cases) else 1)
     _, free = get_answerer(a.answerer)

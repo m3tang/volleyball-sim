@@ -21,13 +21,15 @@ def answer(case_id, text, calls=None):
     return grade(c, {"answer": text, "tool_calls": calls})["grade"]
 
 
-# dream_matchup-001: "Could Nebraska have beaten 2023 Texas?" -> 2025 Nebraska 87.3%
+# dream_matchup-001: "Could Nebraska have beaten 2023 Texas?" -> 2025 Nebraska 87.3% (or 2023 Nebraska 66%,
+# either way the answer must say which Nebraska)
 @pytest.mark.parametrize("text, correct", [
     ("Probably. The model makes 2025 Nebraska an 87% favorite over 2023 Texas.", 1),
-    ("Nebraska wins this one 87.3 percent of the time.", 1),
-    ("Nebraska would be a heavy favorite, around 0.87.", 1),
-    ("Nebraska wins about 88% of the time.", 0),          # wrong at the precision written
-    ("Nebraska is the favorite.", 0),                    # no number
+    ("2025 Nebraska wins this one 87.3 percent of the time.", 1),
+    ("2025 Nebraska would be a heavy favorite, around 0.87.", 1),
+    ("2025 Nebraska wins about 88% of the time.", 0),     # wrong at the precision written
+    ("2025 Nebraska is the favorite.", 0),               # no number
+    ("Nebraska wins 87% of the time.", 0),               # doesn't say which Nebraska
     ("", 0),
 ])
 def test_correct_at_stated_precision(text, correct):
@@ -53,12 +55,12 @@ def test_fan_names_count_as_facts():
 
 
 def test_hallucinated_numbers_are_flagged_but_tools_ground_the_rest():
-    g = answer("dream_matchup-001", "Nebraska is an 87% favorite. Nebraska also hit .412 and went 33-1.")
+    g = answer("dream_matchup-001", "2025 Nebraska is an 87% favorite. Nebraska also hit .412 and went 33-1.")
     assert g["correct"] == 1 and g["grounded"] == pytest.approx(1 / 3, abs=0.01)
 
 
 def test_no_tools_means_ungrounded():
-    g = answer("dream_matchup-001", "Nebraska is an 87% favorite.", calls=[])
+    g = answer("dream_matchup-001", "2025 Nebraska is an 87% favorite.", calls=[])
     assert g["correct"] == 1 and g["grounded"] == 0 and g["tool_choice"] == 0
 
 
@@ -113,3 +115,22 @@ def test_golden_answers_still_match_the_model():
     new = golden.generate()
     old = [json.loads(l) for l in golden.OUT.read_text().splitlines()]
     assert new == old
+
+
+def test_record_written_as_a_pair_counts():
+    # team_profile-005: Tennessee 2025, 20-8, ranked 12th (found in the pilot: "20-8" was missed)
+    assert answer("team_profile-005", "Tennessee went 20-8 in 2025 and the model ranked them 12th.")["correct"] == 1
+    assert answer("team_profile-005", "Tennessee went 21-8 in 2025 and the model ranked them 12th.")["correct"] == 0
+
+
+def test_a_caveat_is_not_a_refusal():
+    g = answer("bracket-015", "The rally model can't say exactly why, but it gave Texas A&M a 0.4% chance "
+                              "(about 1 in 250). The data doesn't cover injuries.")
+    assert g["correct"] == 1 and g["refused"] == 0
+
+
+def test_hyphenated_keywords_match():
+    # upset-008: San Diego over Stanford 2022, top reason first-attack scoring (found in the upset comparison)
+    c = CASES["upset-008"]
+    p = c["expect"]["numbers"][0]["value"]
+    assert answer("upset-008", f"San Diego had a {100 * p:.0f}% chance; the biggest factor was its first-attack scoring.")["correct"] == 1

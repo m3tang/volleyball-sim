@@ -5,6 +5,9 @@ scipy==1.13.1
 pytest
 # MCP server (rallytools/server.py)
 mcp==2.3.0
+# Agent and its API (rallyagent/); httpx for the API tests
+anthropic==2.14.0
+httpx
 # Baseline comparison only (analysis/xgb_baseline.py)
 xgboost==2.1.4
 pandas==2.3.3

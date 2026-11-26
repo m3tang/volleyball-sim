@@ -55,6 +55,8 @@ def _compose(case, shift=False):
     e = case["expect"]
     if e["refuse"]:
         return REFUSAL_TEXT
+    if e.get("alternatives"):
+        e = e["alternatives"][0]
     parts = [_fmt(x, shift) for x in e["numbers"]] + [f["any_of"][0] for f in e["facts"]]
     return "Per the rally model: " + "; ".join(parts) + "."
 

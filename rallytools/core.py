@@ -347,6 +347,14 @@ def tournament_matches(season, team=None, upsets_only=False):
 # for the team itself, category). Mirrors reasons() in web/template.html.
 REASONS = [(3, 1, "first_attack_scoring"), (4, -1, "first_attack_errors"), (5, 1, "scramble_scoring"),
            (1, -1, "aces_against"), (2, 1, "opponent_service_errors")]
+# What each reason means, for the team it is about (T) and its opponent (O).
+REASON_TEXT = {
+    "first_attack_scoring": "{T} scoring on its first attack after the pass",
+    "first_attack_errors": "{T}'s first-attack errors and blocked swings",
+    "scramble_scoring": "{T} scoring on possessions after a dig (the scramble)",
+    "aces_against": "{T}'s passing: how often {T} got aced on {O}'s serves",
+    "opponent_service_errors": "{O}'s missed serves when serving to {T}",
+}
 BREAKDOWN_COLS = ["sideout", "aces_against", "opponent_service_errors", "first_attack_scoring",
                   "first_attack_errors_or_blocked", "scramble_scoring"]
 
@@ -372,13 +380,21 @@ def explain_upset(season, team_a, team_b):
             a, e, n = x["act"][T][i], x["exp"][T][i], x["n"][T][i]
             pts = good * (a - e) * n * sgn
             if pts >= 1:
+                O = L if T == W else W
                 reasons.append({"points_for_winner": round(pts, 1), "team": T, "category": cat,
+                                "what": REASON_TEXT[cat].format(T=T, O=O),
                                 "actual_rate": a, "expected_rate": e, "chances": n})
     reasons.sort(key=lambda r: -r["points_for_winner"])
+    for k, r in enumerate(reasons, 1):
+        r["rank"] = k
     table = {T: {c: {"expected": x["exp"][T][i], "actual": x["act"][T][i], "chances": x["n"][T][i]}
                  for i, c in enumerate(BREAKDOWN_COLS)} | {"block_points": x["blk"][T]} for T in (W, L)}
-    return {**view, "breakdown_available": True, "reasons": reasons, "by_team": table,
-            "notes": "points_for_winner = extra points the winner gained from that part of the game versus "
+    return {**view, "breakdown_available": True,
+            "biggest_factor": reasons[0] if reasons else None,
+            "reasons": reasons, "by_team": table,
+            "notes": "reasons are ranked by points swung, largest first: lead with rank 1 (biggest_factor) when "
+                     "explaining the result. points_for_winner = extra points the winner gained from that part of "
+                     "the game versus "
                      "the model's expectation, given how many chances each team had. Expected rates come from "
                      "the pre-tournament model for this matchup and venue."}
 

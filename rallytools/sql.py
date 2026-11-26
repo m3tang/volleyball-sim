@@ -1,4 +1,8 @@
-"""Read-only SQL over data/vb.duckdb, with guardrails for a model writing the queries.
+"""Read-only SQL over data/vb.duckdb (or $RALLY_DB), with guardrails for a model writing the queries.
+
+RALLY_DB points at another database, e.g. serve/vb_public.duckdb for the public agent
+(pipeline/public_db.py), which has rally_summary in place of the 4.5M-row rallies table. Only
+tables that exist in the database are offered and allowed.
 
 Layers, outermost first:
   1. exactly one statement, and it must be a SELECT (WITH ... SELECT included)
@@ -11,16 +15,21 @@ allowed tables), so a model can fix its query and retry.
 """
 import datetime as dt
 import decimal
+import os
 import threading
+from pathlib import Path
+
 import duckdb
 
-from vbsim.data import DB
+from vbsim import data as _data
+
+DB = Path(os.environ.get("RALLY_DB") or _data.DB)
 
 from .core import ToolError
 
 # events (30M touch rows) is left out on purpose: scans of it are slow, and every question
 # the agent is meant to answer is covered by rallies and the box-score tables.
-ALLOWED = {
+CATALOG = {
     "matches": "One row per match. match_id, season, date, away_team, home_team, n_sets, away_sets, home_sets, "
                "winner, clean (play-by-play passed checks), n_usable_rallies.",
     "sets": "One row per set. match_id, set_no, away_final, home_final, winner_side ('away'/'home'), legal_final.",
@@ -39,7 +48,24 @@ ALLOWED = {
     "player_season": 'Season totals per player. season_year, "Team", "Conference", "Player", "Yr", "Pos", "Ht", '
                      '"GP", "Kills", "Errors", "Total Attacks", "Hit Pct", "Assists", "Aces", "SErr", "Digs", '
                      '"Block Solos", "Block Assists", "TB", "PTS", "Hometown".',
+    "rally_summary": "Per season and rally-ending event (public database, in place of rallies). season, end_event "
+                     "('all' for the season total, 'Kill', 'Ace', 'Service error', 'First ball kill', 'Block', ...), "
+                     "rallies (count), sideout_rate (share won by the receiving team).",
 }
+
+
+def _available():
+    if not DB.exists():
+        return {k: v for k, v in CATALOG.items() if k != "rally_summary"}
+    con = duckdb.connect(str(DB), read_only=True)
+    try:
+        present = {r[0] for r in con.execute("SELECT table_name FROM information_schema.tables").fetchall()}
+    finally:
+        con.close()
+    return {k: v for k, v in CATALOG.items() if k in present}
+
+
+ALLOWED = _available()
 NOTES = ("Team names match the site (e.g. 'Texas A&M', 'Penn St.'). matches.season and team_match.season_year are "
          "the fall season year. The NCAA tournament rows in team_match have the event name in \"Opponent\".")
 MAX_ROWS = 200

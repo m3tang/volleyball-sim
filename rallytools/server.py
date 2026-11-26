@@ -102,7 +102,8 @@ def tournament_matches(
 def explain_upset(season: BracketSeason, team_a: Team, team_b: Team) -> dict:
     """Why an NCAA tournament match went the way it did: the points each part of the game swung
     toward the winner, comparing what happened with what the pre-tournament model expected for
-    that matchup and venue. Works for any tournament match, upset or not."""
+    that matchup and venue. Works for any tournament match, upset or not. Reasons are ranked by points
+    swung; biggest_factor is rank 1, so lead with it."""
     return C.explain_upset(season, team_a, team_b)
 
 

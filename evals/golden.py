@@ -133,12 +133,18 @@ class Gen:
                          [prob(f"P({a} wins 3-0)", r["final_score_probs_team_a_first"]["3-0"])], tools=[tool], ref=ref, tags=[v, str(s)])
 
     def dream(self, n=15):
-        # The seed question, as asked: Nebraska with no season means the latest one.
-        r = C.win_probability("Nebraska", 2025, "Texas", 2023)
-        self.add("dream_matchup", "Could Nebraska have beaten 2023 Texas?",
-                 [prob("P(Nebraska 2025 wins)", r["p_team_a_wins"])],
-                 tools=[{"tool": "win_probability", "teams": [["Nebraska", 2025], ["Texas", 2023]], "home": None}],
-                 ref="win_probability('Nebraska', 2025, 'Texas', 2023)", tags=["seed"])
+        # The seed question, as asked. "Nebraska" has no season: 2023 Nebraska (the team Texas beat in the 2023
+        # final) and 2025 Nebraska (the latest) are both fair readings, so either passes if the answer says which.
+        alts, tools = [], []
+        for s in (2025, 2023):
+            r = C.win_probability("Nebraska", s, "Texas", 2023)
+            alts.append({"numbers": [prob(f"P(Nebraska {s} wins)", r["p_team_a_wins"])],
+                         "facts": [fact(f"says it assumed {s} Nebraska", f"{s} Nebraska", f"Nebraska's {s}", f"Nebraska ({s})",
+                                        f"{s} Huskers", f"{s} Cornhuskers")]})
+            tools.append({"tool": "win_probability", "teams": [["Nebraska", s], ["Texas", 2023]], "home": None})
+        self.add("dream_matchup", "Could Nebraska have beaten 2023 Texas?", tools=tools,
+                 ref="win_probability('Nebraska', 2025 or 2023, 'Texas', 2023)", tags=["seed", "ambiguous season"])
+        self.cases[-1]["expect"]["alternatives"] = alts
         champs = {int(s): v["champ"] for s, v in C.data()["champions"].items()}
         pairs = set()
         while len(pairs) < n - 1:
@@ -185,9 +191,11 @@ class Gen:
                 self.add("team_profile", f"Adjusted for opponents, how often did {fan(t)} score on its first attack in {s}?",
                          [prob("adjusted first-attack scoring", x["adjusted_rate"])], tools=tool, ref=ref, tags=[str(s)])
             elif kind == 2:
+                # Three fair definitions: play-by-play serves (counted), opponent-adjusted, box-score aces/attempts.
                 x = step["serving_aces"]
+                box = self.sql('SELECT "Aces" / "SrvAtt" FROM team_season WHERE season_year = ? AND "Team" = ?', [s, t])[0][0]
                 self.add("team_profile", f"What was {fan(t)}'s ace rate when serving in {s}?",
-                         [prob("ace rate (counted or adjusted)", x["counted_rate"], alt=[x["adjusted_rate"]])],
+                         [prob("ace rate (counted, adjusted, or box score)", x["counted_rate"], alt=[x["adjusted_rate"]] + ([box] if box is not None else []))],
                          tools=tool + [{"tool": "query_stats"}], ref=ref, tags=[str(s)])
             else:
                 x = step["scramble_scoring"]
@@ -347,11 +355,13 @@ def fmt_expect(c):
     e = c["expect"]
     if e["refuse"]:
         return "decline: not in the data"
+    if e.get("alternatives"):
+        return " OR ".join("(" + fmt_expect({"expect": {**alt, "refuse": False}}) + ")" for alt in e["alternatives"])
     parts = []
     for x in e["numbers"]:
         v = C.odds_text(x["value"]) if x["scale"] == "prob" else f"{x['value']:.3f}" if x["scale"] == "decimal" else f"{x['value']:,}"
         parts.append(f"{x['label']} = {v}" + (f" (or {', '.join(map(str, x['alt']))})" if x.get("alt") else ""))
-    for f in c["expect"]["facts"]:
+    for f in e["facts"]:
         parts.append(f"{f['label']}: " + " / ".join(f["any_of"]))
     return "; ".join(parts)
 

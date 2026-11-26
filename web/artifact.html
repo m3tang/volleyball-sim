@@ -328,6 +328,58 @@ footer { border-top: 2px solid var(--line); padding-block: 24px 40px; font-size:
 @media (prefers-reduced-motion: no-preference) {
   .winbar div, .vs .track i, .flow .bar i { transition: width 0.35s ease; }
 }
+
+/* Ask the model: a chat pinned to every page */
+.fab { position: fixed; z-index: 24; right: calc(max(16px, env(safe-area-inset-right, 0px)) + 4px); bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
+  display: inline-flex; align-items: center; gap: 8px; font: inherit; font-weight: 600; font-size: 0.95rem; cursor: pointer;
+  background: var(--court); color: var(--surface); border: 0; border-radius: 999px; padding: 12px 18px 12px 14px; box-shadow: 0 6px 20px rgb(0 0 0 / 0.22); }
+.fab svg { width: 20px; height: 20px; flex: none; }
+.fab:hover { filter: brightness(1.08); }
+.fab[aria-expanded="true"] { display: none; }
+.chat { position: fixed; z-index: 25; right: calc(max(16px, env(safe-area-inset-right, 0px)) + 4px); bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
+  width: min(420px, calc(100vw - 40px)); height: min(640px, calc(100vh - 40px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)));
+  display: grid; grid-template-rows: auto minmax(0, 1fr) auto; background: var(--surface); color: var(--ink);
+  border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 16px 48px rgb(0 0 0 / 0.28); overflow: hidden; }
+@media (max-width: 560px) {
+  body.chat-open { overflow: hidden; }
+  .chat { inset: 0; width: auto; height: auto; border: 0; border-radius: 0;
+    padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); }
+}
+.chat-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px 12px 16px; border-bottom: 1px solid var(--line); }
+.chat-head h2 { font-size: 1.5rem; }
+.chat-head .tools { display: flex; align-items: center; gap: 6px; }
+.icon-btn { font: inherit; display: inline-grid; place-items: center; width: 34px; height: 34px; border: 1px solid transparent; border-radius: 6px; background: transparent; color: var(--ink-2); cursor: pointer; }
+.icon-btn:hover { border-color: var(--line); color: var(--ink); }
+.btn.slim { padding: 5px 10px; font-size: 0.82rem; }
+.chat-log { overflow-y: auto; overscroll-behavior: contain; padding: 16px; display: grid; gap: 14px; align-content: start; }
+.chat-empty { display: grid; gap: 12px; }
+.chat-empty p { color: var(--ink-2); font-size: 0.95rem; }
+.chat-empty .chips { display: grid; gap: 8px; }
+.chat-empty .chip { text-align: left; border-radius: 8px; }
+.msg { max-width: 100%; min-width: 0; }
+.msg.user { justify-self: end; max-width: 85%; background: var(--court-soft); border-radius: 12px 12px 2px 12px; padding: 8px 12px; overflow-wrap: anywhere; }
+.msg.bot { display: grid; gap: 8px; }
+.answer { display: grid; gap: 8px; }
+.answer p { max-width: none; }
+.ask-status { display: flex; align-items: center; gap: 8px; color: var(--ink-2); }
+.ask-status .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--axis); flex: none; }
+.ask-status[data-state="working"] .dot { background: var(--gold); }
+.ask-status[data-state="ok"] .dot { background: var(--s3); }
+.ask-status[data-state="error"] .dot { background: var(--s2); }
+@media (prefers-reduced-motion: no-preference) { .ask-status[data-state="working"] .dot { animation: askpulse 1.2s ease-in-out infinite; } }
+@keyframes askpulse { 50% { opacity: 0.35; } }
+.work { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; font-size: 0.85rem; }
+.work code { font-family: var(--mono); font-size: 0.8rem; color: var(--ink-2); overflow-wrap: anywhere; }
+.chat-foot { border-top: 1px solid var(--line); padding: 10px 12px 12px; display: grid; gap: 6px; }
+.chat-form { display: flex; gap: 8px; align-items: flex-end; }
+.chat-form textarea { flex: 1; min-width: 0; font: inherit; font-size: 0.95rem; color: var(--ink); background: var(--bg); border: 1px solid var(--axis);
+  border-radius: 8px; padding: 9px 11px; resize: none; max-height: 8.5em; line-height: 1.4; }
+.chat-form textarea:focus-visible { outline: 3px solid var(--gold); outline-offset: 1px; }
+.btn.primary { background: var(--court); border-color: var(--court); color: var(--surface); font-weight: 600; }
+.btn.primary:hover { filter: brightness(1.08); }
+.btn:disabled { opacity: 0.55; cursor: default; }
+.chat-note { font-size: 0.75rem; color: var(--ink-2); }
+footer { padding-bottom: 96px; }
 </style>
 
 <div class="wrap">
@@ -335,7 +387,7 @@ footer { border-top: 2px solid var(--line); padding-block: 24px 40px; font-size:
   <header class="top">
     <a class="mark" href="#home">RALLY <span>ODDS</span></a>
     <nav aria-label="Pages" id="nav">
-      <a href="#home">Home</a><a href="#bracket">Brackets</a><a href="#matchups">Match simulator</a>
+      <a href="#home">Home</a><a href="#bracket">Brackets</a><a href="#matchups">Match simulator</a><a href="#ask" id="nav-ask">Ask the model</a>
       <a href="#findings">Findings</a><a href="#model">Under the hood</a>
     </nav>
   </header>
@@ -667,6 +719,30 @@ footer { border-top: 2px solid var(--line); padding-block: 24px 40px; font-size:
     <div>The code, data pipeline and model are on <a href="https://github.com/m3tang/volleyball-sim">GitHub</a>.</div>
   </footer>
 </div>
+<button class="fab" type="button" id="chat-fab" aria-expanded="false" aria-controls="chat">
+  <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 3c-2.5 4-2.5 14 0 18M4 9.5c5 1.5 11 1.5 16 0M4.5 15c5-1 10-1 15 0"/></svg>
+  Ask the model
+</button>
+<div class="chat" id="chat" role="dialog" aria-label="Ask the model" hidden>
+  <div class="chat-head">
+    <h2>Ask the model</h2>
+    <div class="tools">
+      <button class="btn slim" type="button" id="chat-new">New chat</button>
+      <button class="icon-btn" type="button" id="chat-close" aria-label="Close">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="chat-log" id="chat-log" aria-live="polite"></div>
+  <div class="chat-foot">
+    <form class="chat-form" id="chat-form">
+      <textarea id="chat-q" aria-label="Your question" rows="1" maxlength="500" placeholder="Ask about any team or match"></textarea>
+      <button class="btn" type="button" id="chat-stop" hidden>Stop</button>
+      <button class="btn primary" type="submit" id="chat-go">Ask</button>
+    </form>
+    <div class="chat-note" id="chat-note"></div>
+  </div>
+</div>
 <div id="tip" hidden></div>
 
 <script>
@@ -743,6 +819,337 @@ function sideout(R, S, homeR, ctx) {
   return { p: srv[1] + srv[2] * wFb, srv, fb, tr: trR, trS, x, y };
 }
 // MATH-END
+
+// AGENT-START (pure functions of the page data; tested against rallytools/core.py and grounding.py)
+// The "Ask the model" tools, ported from rallytools/core.py so the answers match the Python agent's,
+// plus the grounding check from rallytools/grounding.py. Uses the MATH functions above.
+class ToolError extends Error {}
+const r4 = x => Math.round(x * 1e4) / 1e4;
+const ROUND_NAMES = ["Round 1", "Round 2", "Regional semifinal", "Regional final", "National semifinal", "Final"];
+const REACH_NAMES = ["Round 2", "Regional semifinal (Sweet 16)", "Regional final (Elite 8)",
+  "National semifinal (Final 4)", "Final", "Champion"];
+const TEAM_ALIASES = { "usc": "southern california", "miami": "miami (fl)", "pitt": "pittsburgh", "lmu": "lmu (ca)",
+  "loyola marymount": "lmu (ca)", "saint mary's": "saint mary's (ca)", "st. mary's": "saint mary's (ca)",
+  "northern iowa": "uni", "central florida": "ucf", "hawai'i": "hawaii", "fau": "florida atlantic",
+  "texas a & m": "texas a&m", "tamu": "texas a&m", "uk": "kentucky", "nebby": "nebraska",
+  "north carolina st.": "nc st.", "n.c. st.": "nc st." };
+const TEAM_ABBREV = [["fla.", "florida"], ["ky.", "kentucky"], ["mich.", "michigan"], ["ill.", "illinois"],
+  ["colo.", "colorado"], ["ariz.", "arizona"], ["caro.", "carolina"], ["conn.", "connecticut"], ["tenn.", "tennessee"],
+  ["ala.", "alabama"], ["ga.", "georgia"], ["la.", "louisiana"], ["mo.", "missouri"], ["ind.", "indiana"],
+  ["wash.", "washington"], ["ark.", "arkansas"], ["miss.", "miss"], ["val.", "valley"], ["so.", "southern"],
+  ["col.", "college"], ["u.", ""]];
+function normTeam(name, alias = true) {
+  let x = String(name).toLowerCase().replace(/&amp;/g, "&").replace(/’/g, "'").trim();
+  x = x.replace(/\bstate\b/g, "st.").replace(/\bst\b(?!\.)/g, "st.");
+  for (const [k, v] of TEAM_ABBREV) x = x.replace(new RegExp("(?<![\\w.])" + k.replace(/\./g, "\\.") + "(?=\\s|$)", "g"), v);
+  x = x.replace(/\buniversity of\b|\bthe\b|\buniversity\b/g, "").replace(/\s+/g, " ").trim();
+  return alias ? (TEAM_ALIASES[x] ?? x) : x;
+}
+// "Did you mean" suggestions: bigram overlap, close enough to difflib's for a hint.
+function closeNames(q, names, n = 3) {
+  const grams = s => { const g = new Set(); for (let i = 0; i < s.length - 1; i++) g.add(s.slice(i, i + 2)); return g; };
+  const a = grams(q);
+  return names.map(s => { const b = grams(s); let k = 0; for (const x of a) if (b.has(x)) k++; return [2 * k / (a.size + b.size || 1), s]; })
+    .filter(([sc]) => sc >= 0.5).sort((x, y) => y[0] - x[0]).slice(0, n).map(x => x[1]);
+}
+function oneInText(p) {
+  const n = 1 / p, nice = n < 10 ? Math.round(n) : n < 100 ? Math.round(n / 5) * 5 : n < 1000 ? Math.round(n / 50) * 50 : Math.round(n / 500) * 500;
+  return `about 1 in ${nice.toLocaleString("en-US")}`;
+}
+function oddsText(p) {
+  if (p >= 0.995 && p < 1) return ">99%";
+  if (p > 0 && p < 0.001) return `<0.1% (${oneInText(p)})`;
+  const s = p < 0.1 ? `${(100 * p).toFixed(1)}%` : `${(100 * p).toFixed(0)}%`;
+  return p > 0 && p < 0.1 ? `${s} (${oneInText(p)})` : s;
+}
+
+function agentTools(D) {
+  const seasons = Object.keys(D.seasons).map(Number).sort();
+  const season = s => {
+    const v = Number(s);
+    if (!Number.isInteger(v)) throw new ToolError(`season must be a year like 2025, got ${JSON.stringify(s)}`);
+    if (!D.seasons[v]) throw new ToolError(`no data for season ${v}; seasons available: ${seasons[0]}-${seasons.at(-1)}`);
+    return v;
+  };
+  function resolve(name, s) {
+    s = season(s);
+    const teams = D.seasons[s].teams, by = new Map(teams.map(t => [normTeam(t.n), t]));
+    const q = normTeam(name);
+    let t = by.get(q);
+    if (!t) {
+      const bare = [...by].filter(([k]) => k.replace(/\s*\([a-z]{2}\)$/, "") === q);
+      if (bare.length === 1) t = bare[0][1];
+    }
+    if (t) return t;
+    const close = closeNames(q, [...by.keys()]).map(k => by.get(k).n);
+    let msg = `no team named ${JSON.stringify(name)} in the ${s} ratings.`;
+    if (close.length) msg += ` Did you mean: ${close.join(", ")}?`;
+    if (s !== seasons.at(-1)) msg += ` The published ${s} ratings include only that season's top ${teams.length} teams.`;
+    throw new ToolError(msg);
+  }
+  const ctxFor = (sa, sb) => {
+    const A = D.seasons[sa], B = D.seasons[sb], mix = (x, y) => x.map((v, i) => (v + y[i]) / 2), c = { b: {}, h: {} };
+    for (const k of ["serve", "fb", "tr"]) { c.b[k] = mix(A.b[k], B.b[k]); c.h[k] = mix(A.h[k], B.h[k]); }
+    return c;
+  };
+  const steps = r => ({ sideout: r4(r.p), aced: r4(r.srv[0]), opponent_service_error: r4(r.srv[1]),
+    first_attack_score: r4(r.fb[0]), first_attack_error_or_blocked: r4(r.fb[1]), scramble_score: r4(r.tr[0]) });
+
+  function win_probability({ team_a, season_a, team_b, season_b, venue = "neutral" }) {
+    if (!["neutral", "team_a_home", "team_b_home"].includes(venue))
+      throw new ToolError(`venue must be one of neutral, team_a_home, team_b_home, got ${JSON.stringify(venue)}`);
+    const sa = season(season_a), sb = season(season_b ?? season_a);
+    const A = resolve(team_a, sa), B = resolve(team_b, sb);
+    if (A === B) throw new ToolError("team_a and team_b are the same team and season");
+    const home = { neutral: 0, team_a_home: 1, team_b_home: -1 }[venue], ctx = ctxFor(sa, sb);
+    const ra = sideout(A, B, home, ctx), rb = sideout(B, A, -home, ctx);
+    const o = matchOutcomes(ra.p, rb.p, D.form_sd, D.gh);
+    return {
+      team_a: { name: A.n, season: sa }, team_b: { name: B.n, season: sb }, venue, cross_season: sa !== sb,
+      p_team_a_wins: r4(o.win), p_team_b_wins: r4(1 - o.win),
+      display: { [A.n]: oddsText(o.win), [B.n]: oddsText(1 - o.win) },
+      favorite: o.win >= 0.5 ? A.n : B.n, p_team_a_wins_set: r4(o.set),
+      final_score_probs_team_a_first: { "3-0": r4(o.s30), "3-1": r4(o.s31), "3-2": r4(o.s32), "2-3": r4(o.s23), "1-3": r4(o.s13), "0-3": r4(o.s03) },
+      when_receiving_serve: { [A.n]: steps(ra), [B.n]: steps(rb) },
+      notes: "Exact calculation over every rally and final score; averaged over match-day form."
+        + (sa !== sb ? " Cross-season matchups assume the overall level of play is the same in both seasons." : ""),
+    };
+  }
+
+  const PARAMS = [
+    [0, "serve", "off", 0, "serving_aces", "Ace rate on its serves", 1],
+    [1, "serve", "off", 1, "serving_errors", "Service error rate", -1],
+    [2, "serve", "def", 0, "passing_aces_allowed", "Opponents' ace rate on serves to this team", -1],
+    [3, "serve", "def", 1, "passing_errors_drawn", "Opponents' service error rate", 1],
+    [4, "fb", "off", 0, "first_attack_scoring", "Scores on its first attack after the pass", 1],
+    [5, "fb", "off", 1, "first_attack_errors", "Loses the point on its first attack (error or blocked)", -1],
+    [6, "fb", "def", 0, "first_attack_defense_kills_allowed", "Opponents score on their first attack", -1],
+    [7, "fb", "def", 1, "first_attack_defense_errors_forced", "Opponents lose the point on their first attack", 1],
+    [8, "tr", "off", 0, "scramble_scoring", "Scores on a possession after a dig", 1],
+    [9, "tr", "off", 1, "scramble_errors", "Loses the point on a possession after a dig", -1],
+    [10, "tr", "def", 0, "scramble_defense_kills_allowed", "Opponents score on a possession after a dig", -1],
+    [11, "tr", "def", 1, "scramble_defense_errors_forced", "Opponents lose the point on a possession after a dig", 1]];
+
+  function team_profile({ team, season: s0 }) {
+    const s = season(s0), t = resolve(team, s), S = D.seasons[s], zero = [0, 0];
+    const rows = PARAMS.map(([i, part, side, cls, name, desc, good]) => {
+      const pair = t.p.slice(i - cls, i - cls + 2);
+      const adj = (side === "off" ? stepProbs(S.b[part], S.h[part], pair, zero, 0) : stepProbs(S.b[part], S.h[part], zero, pair, 0))[cls];
+      const avg = stepProbs(S.b[part], S.h[part], zero, zero, 0)[cls];
+      const row = { number: i + 1, name, measures: desc, adjusted_rate: r4(adj), league_average: r4(avg),
+        better_than_average: (adj - avg) * good > 0.0005, model_value: t.p[i] };
+      if (t.raw) { row.counted_rate = t.raw.rate[i]; row.counted_chances = t.raw.n[Math.floor(i / 2)]; }
+      return row;
+    });
+    return { team: t.n, season: s, rank: t.rank, teams_ranked: S.teams.length, wins: t.w, losses: t.l, rating: t.r,
+      rating_means: "share of rallies won against a league-average team on a neutral floor", steps: rows,
+      notes: "counted = what happened in the team's own matches; adjusted = the model's estimate against an average opponent. Ratings are end of season." };
+  }
+
+  function season_rankings({ season: s0, top = 25 }) {
+    const s = season(s0), teams = D.seasons[s].teams, n = Math.max(1, Math.min(Number(top) || 25, 400));
+    return { season: s, teams_published: teams.length,
+      rankings: teams.slice(0, n).map(t => ({ rank: t.rank, team: t.n, wins: t.w, losses: t.l, rating: t.r })) };
+  }
+
+  const bracketOf = s0 => {
+    const s = season(s0), b = D.brackets[s];
+    if (!b) throw new ToolError(`no bracket for ${s}. Brackets cover ${Object.keys(D.brackets).sort().join(", ")}; 2020 had a 48-team field with byes and is not modeled.`);
+    return [s, b];
+  };
+
+  function bracket_forecast({ season: s0, top = 10 }) {
+    const [s, b] = bracketOf(s0), n = Math.max(1, Math.min(Number(top) || 10, 64));
+    const champ = b.teams.find(t => t.n === b.champion).odds[5];
+    return { season: s, tournament_start: b.start, actual_champion: b.champion,
+      actual_champion_pre_tournament_title_odds: champ, actual_champion_display: oddsText(champ),
+      model_pick_champion: b.score.model_champ,
+      title_odds: b.teams.slice(0, n).map(t => ({ team: t.n, p_title: t.odds[5], display: oddsText(t.odds[5]), tournament_wins: t.wins })),
+      bracket_score: { model: b.score.model, better_record_baseline: b.score.record, max: b.score.max, baseline_champion_pick: b.score.record_champ },
+      matches_called: { model_correct: Math.round(b.acc.model * b.acc.games), games: b.acc.games, model_accuracy: r4(b.acc.model),
+        baseline_accuracy: r4(b.acc.record), model_log_loss: r4(b.acc.log_loss) },
+      notes: "Odds are exact (every path through the bracket) from a model fit only on matches before round 1." };
+  }
+
+  function advancement_odds({ team, season: s0 }) {
+    const [s, b] = bracketOf(s0), by = new Map(b.teams.map(t => [normTeam(t.n), t])), t = by.get(normTeam(team));
+    if (!t) {
+      const close = closeNames(normTeam(team), [...by.keys()]).map(k => by.get(k).n);
+      throw new ToolError(`${JSON.stringify(team)} was not in the ${s} NCAA tournament field.` + (close.length ? ` Did you mean: ${close.join(", ")}?` : ""));
+    }
+    return { team: t.n, season: s, p_reach: REACH_NAMES.map((stage, i) => ({ stage, p: t.odds[i], display: oddsText(t.odds[i]) })),
+      tournament_wins: t.wins, result: t.wins === 6 ? "won the title" : `lost in the ${ROUND_NAMES[t.wins]}`,
+      pre_tournament_win_pct: t.rec[0], pre_tournament_matches: t.rec[1] };
+  }
+
+  const nodes = function* (n) { yield n; for (const k of n.k) if (typeof k === "object") yield* nodes(k); };
+  const matchView = (s, n) => {
+    const pw = n.w === n.a ? n.pa : 1 - n.pa;
+    return { season: s, round: ROUND_NAMES[n.r - 1], winner: n.w, loser: n.w === n.a ? n.b : n.a, score: n.score, host: n.host,
+      model_pick: n.pick, p_winner_pre_match: r4(pw), display: oddsText(pw), upset: pw < 0.5 };
+  };
+
+  function tournament_matches({ season: s0, team, upsets_only = false }) {
+    const [s, b] = bracketOf(s0), out = [];
+    for (const n of nodes(b.tree)) {
+      const v = matchView(s, n);
+      if (upsets_only && !v.upset) continue;
+      if (team && ![normTeam(n.a), normTeam(n.b)].includes(normTeam(team))) continue;
+      out.push(v);
+    }
+    out.sort((x, y) => ROUND_NAMES.indexOf(x.round) - ROUND_NAMES.indexOf(y.round) || y.p_winner_pre_match - x.p_winner_pre_match);
+    if (team && !out.length) throw new ToolError(`no ${s} NCAA tournament match found for ${JSON.stringify(team)}`);
+    return { season: s, matches: out };
+  }
+
+  const REASONS = [[3, 1, "first_attack_scoring"], [4, -1, "first_attack_errors"], [5, 1, "scramble_scoring"],
+    [1, -1, "aces_against"], [2, 1, "opponent_service_errors"]];
+  const REASON_TEXT = {
+    first_attack_scoring: (T, O) => `${T} scoring on its first attack after the pass`,
+    first_attack_errors: (T, O) => `${T}'s first-attack errors and blocked swings`,
+    scramble_scoring: (T, O) => `${T} scoring on possessions after a dig (the scramble)`,
+    aces_against: (T, O) => `${T}'s passing: how often ${T} got aced on ${O}'s serves`,
+    opponent_service_errors: (T, O) => `${O}'s missed serves when serving to ${T}` };
+  const COLS = ["sideout", "aces_against", "opponent_service_errors", "first_attack_scoring", "first_attack_errors_or_blocked", "scramble_scoring"];
+
+  function explain_upset({ season: s0, team_a, team_b }) {
+    const [s, b] = bracketOf(s0), want = [normTeam(team_a), normTeam(team_b)].sort().join("|");
+    const node = [...nodes(b.tree)].find(n => [normTeam(n.a), normTeam(n.b)].sort().join("|") === want);
+    if (!node) throw new ToolError(`${team_a} and ${team_b} did not meet in the ${s} NCAA tournament. Breakdowns exist only for tournament matches.`);
+    const view = matchView(s, node), x = node.x;
+    if (!x) return { ...view, breakdown_available: false, notes: "No play-by-play was recorded for this match, so there is no breakdown." };
+    const W = view.winner, L = view.loser, reasons = [];
+    for (const [T, sgn] of [[W, 1], [L, -1]]) for (const [i, good, cat] of REASONS) {
+      const a = x.act[T][i], e = x.exp[T][i], n = x.n[T][i], pts = good * (a - e) * n * sgn;
+      if (pts >= 1) reasons.push({ points_for_winner: Math.round(pts * 10) / 10, team: T, category: cat,
+        what: REASON_TEXT[cat](T, T === W ? L : W), actual_rate: a, expected_rate: e, chances: n });
+    }
+    reasons.sort((p, q) => q.points_for_winner - p.points_for_winner);
+    reasons.forEach((r, k) => { r.rank = k + 1; });
+    const by_team = {};
+    for (const T of [W, L]) { by_team[T] = {}; COLS.forEach((c, i) => { by_team[T][c] = { expected: x.exp[T][i], actual: x.act[T][i], chances: x.n[T][i] }; }); by_team[T].block_points = x.blk[T]; }
+    return { ...view, breakdown_available: true, biggest_factor: reasons[0] ?? null, reasons, by_team,
+      notes: "reasons are ranked by points swung, largest first: lead with rank 1 (biggest_factor) when explaining the result. points_for_winner = extra points the winner gained from that part of the game versus the model's expectation, given how many chances each team had. Expected rates come from the pre-tournament model for this matchup and venue." };
+  }
+
+  function model_facts() {
+    return { data: D.totals, seasons_rated: seasons, brackets: Object.keys(D.brackets).map(Number),
+      calibration_2025: { log_loss: r4(D.calibration.log_loss), accuracy: r4(D.calibration.accuracy), matches: D.calibration.matches },
+      covers: "Division I women's volleyball play-by-play 2020-2025: the rally model's ratings, match odds and NCAA tournament forecasts.",
+      does_not_cover: ["box-score stats like kills, aces or hitting percentage (this version has only the model's numbers)",
+        "injuries or lineups for a given match", "anything after the 2025 season", "men's volleyball, other divisions, beach volleyball",
+        "betting lines", "full ratings for teams outside the top 64 before 2025"] };
+  }
+
+  return { win_probability, team_profile, season_rankings, bracket_forecast, advancement_odds, tournament_matches, explain_upset, model_facts };
+}
+
+// Tool definitions for Claude, matching rallyagent/tools.py (minus the SQL tools, which need the database).
+const T_SEASON = { type: "integer", description: "Fall season year, 2020-2025" };
+const T_TEAM = { type: "string", description: "Team name as commonly written, e.g. 'Texas A&M', 'Penn State', 'USC'" };
+const T_BRACKET = { type: "integer", description: "NCAA tournament season, 2021-2025" };
+const AGENT_TOOL_SPECS = [
+  ["win_probability", "Exact odds that team_a beats team_b, with set and final-score probabilities and each team's rally-step rates. Call for any 'who wins', 'what are the chances', 'most likely score' or 'could X beat Y' question, including hypothetical matchups between teams from different seasons. Uses end-of-season ratings.",
+    { team_a: T_TEAM, season_a: T_SEASON, team_b: T_TEAM, season_b: { type: "integer", description: "team_b's season if different from season_a" },
+      venue: { type: "string", enum: ["neutral", "team_a_home", "team_b_home"], description: "Where the match is played; neutral unless the question says whose gym" } },
+    ["team_a", "season_a", "team_b"]],
+  ["team_profile", "A team-season's rank, record, rating and its 12 rally-step numbers (serving, passing, first attack, defending the first attack, scramble offense and defense), counted and opponent-adjusted, next to league averages. Call for questions about how good a team was, its record, or a specific strength or weakness.",
+    { team: T_TEAM, season: T_SEASON }, ["team", "season"]],
+  ["season_rankings", "End-of-season model rankings by rating. Call for 'best team', 'top N', or 'where did X rank'. 2020-2024 publish only the top 64 teams.",
+    { season: T_SEASON, top: { type: "integer", description: "How many teams, default 25" } }, ["season"]],
+  ["bracket_forecast", "The model's pre-tournament NCAA bracket forecast for a season: title odds, the model's champion pick, the actual champion and its pre-tournament odds, bracket score versus picking the better record, matches called.",
+    { season: T_BRACKET, top: { type: "integer", description: "How many title-odds rows, default 10" } }, ["season"]],
+  ["advancement_odds", "One tournament team's pre-tournament odds of reaching each round (Sweet 16, Elite 8, Final Four, final, title) and how far it actually went. Call for a specific team's tournament odds.",
+    { team: T_TEAM, season: T_BRACKET }, ["team", "season"]],
+  ["tournament_matches", "NCAA tournament results for a season with the model's pre-match odds for each winner. Call to find upsets (upsets_only), a team's tournament path, or the biggest upset.",
+    { season: T_BRACKET, team: { type: "string", description: "Only this team's matches" }, upsets_only: { type: "boolean", description: "Only matches the winner had under 50% to win" } },
+    ["season"]],
+  ["explain_upset", "Why one NCAA tournament match went the way it did: points each part of the game swung toward the winner, actual versus what the pre-tournament model expected. Call for 'how did X beat Y' or 'why did X win' about a tournament match. Reasons come ranked by points swung; biggest_factor is rank 1. Lead your explanation with it, and keep the ranking when you mention others.",
+    { season: T_BRACKET, team_a: T_TEAM, team_b: T_TEAM }, ["season", "team_a", "team_b"]],
+  ["model_facts", "What the data covers and does not, and the model's tested accuracy. Call when unsure whether a question is answerable from this data.", {}, []],
+];
+
+// The instructions turn (the in-page version of rallyagent/prompts.py RESEARCH_SINGLE, without SQL).
+const ASK_RULES = `You answer questions about NCAA Division I women's volleyball, 2020-2025, for Rally Odds, a site built on a rally-by-rally model of every match. You have tools that run the model. Use them; never answer a factual or numeric question from memory.
+
+Choosing tools:
+- Match odds, "who wins", "could X beat Y", most likely score, sweeps: win_probability. Teams may be from different seasons. Venue is neutral unless the question says whose gym.
+- How good a team was, its record, rank, a strength or weakness: team_profile (season_rankings for top-N lists).
+- NCAA tournament: bracket_forecast (whole field, the model's pick, bracket score), advancement_odds (one team's round-by-round odds), tournament_matches (results, upsets), explain_upset (why one tournament match went the way it did).
+- If a team is named without a season, pick the season the question implies ("could Nebraska have beaten 2023 Texas" most likely means the 2023 teams; "how good is Nebraska" means 2025) and say which season you used.
+- Call independent tools in parallel. Stop calling tools once you have what the question needs.
+- In a conversation, earlier messages are context only. Every number in an answer must come from a tool call made for that answer, so call the tools again when you reuse an earlier number. Resolve follow-ups like "and at home?" from the earlier messages.
+
+What this can't answer: box-score stats such as kills, aces, digs or hitting percentage (say those need the Rally Odds site's version of Ask the model), injuries, lineups, coaches, recruiting, betting lines, attendance, TV ratings, anything before 2020 or after 2025, future seasons, men's, beach, or non-Division I volleyball. For these, say plainly that the data doesn't cover it and what it does cover; don't estimate.
+
+Numbers: every number in your answer must come from a tool result. You may round it, never change it. Don't compute new numbers (differences, sums, ratios). Write odds as a percentage, adding "about 1 in N" for long shots under 10%.
+
+Style: a volleyball fan who is a data analyst. Plain, concise, short paragraphs. Lead with the answer in the first sentence, then the one or two numbers that explain it. Usually two to five sentences. Call the model "the model" or "the rally model", never "it" and never "we". Plain text: no bold, no headings, no bullet lists unless the question asks for a list. Don't name tools or fields; say where a number comes from in fan terms ("the model", "the bracket forecast").`;
+
+// ---- Grounding: is every number in the answer one a tool returned? (port of rallytools/grounding.py) ----
+const G_PAT = /(\b(?:1|one)[\s-]+in[\s-]+(\d[\d,]*))|((?<![\w.])\d+(?:\.\d+)?|(?<![\w\d])\.\d+)\s*(?:%|\s?percent(?:age\s+points?)?\b|\s?pct\b|\s?points?\s+of\s+percentage)|(?<![\d.,])(\d{1,3})\s?[-–](\s?)(\d{1,3})(?![\d%]|\.\d)|(?<![\w.])(\d+)(?:st|nd|rd|th)\b|((?<![\w.])(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?(?![\w])|(?<![\w\d])\.\d+(?![\w]))/gi;
+const G_BOUND = /(?:(<|under|less than|below|fewer than)|(>|over|more than|above|greater than))\s*(?:about\s+|roughly\s+)?$/i;
+const G_BEFORE = /(?:\bround|\bset|\bgame|\bbest[- ]of[- ]?|\btop|\bweek|\bdivision|\bfirst|\bthe)\s*$/i;
+const G_AFTER = /^\s*(?:-?\s*sets?\b|-?\s*setters?\b|seeds?\b)/i;
+const gDec = s => (s.replace(/,/g, "").split(".")[1] || "").length;
+function gExtract(text) {
+  const out = [];
+  for (const m of String(text || "").matchAll(G_PAT)) {
+    const b = G_BOUND.exec(text.slice(Math.max(0, m.index - 20), m.index));
+    const bound = b ? (b[1] ? "<" : ">") : "";
+    if (m[1]) out.push({ text: m[1], kind: "one_in", value: Number(m[2].replace(/,/g, "")), decimals: 0, start: m.index });
+    else if (m[3]) out.push({ text: m[0], kind: "pct", value: Number(m[3]), decimals: gDec(m[3]), bound, start: m.index });
+    else if (m[4]) out.push({ text: m[0], kind: "pair", pair: [Number(m[4]), Number(m[6])], value: 0, decimals: 0, start: m.index });
+    else if (m[7]) out.push({ text: m[0], kind: "num", value: Number(m[7]), decimals: 0, start: m.index });
+    else out.push({ text: m[0], kind: "num", value: Number(m[8].replace(/,/g, "")), decimals: gDec(m[8]), bound, start: m.index });
+  }
+  return out;
+}
+const gTol = d => 0.5 * 10 ** -d + 1e-9;
+function groundCheck(answer, calls, question = "") {
+  const nums = [], probs = [], oneIns = new Set(), pairs = new Set();
+  const addV = v => { if (typeof v !== "number" || !isFinite(v)) return; nums.push(v); if (v >= 0 && v <= 1) probs.push(v); };
+  const addT = s => { for (const m of gExtract(s)) {
+    if (m.kind === "pct") { addV(m.value / 100); nums.push(m.value); }
+    else if (m.kind === "one_in") oneIns.add(m.value);
+    else if (m.kind === "pair") pairs.add(m.pair.join("-"));
+    else addV(m.value); } };
+  const walk = o => {
+    if (Array.isArray(o)) o.forEach(walk);
+    else if (o && typeof o === "object") for (const [k, v] of Object.entries(o)) { if (/^\d{1,3}-\d{1,3}$/.test(k)) addT(k); walk(v); }
+    else if (typeof o === "string") addT(o);
+    else addV(o);
+  };
+  for (const c of calls) { walk(c.args || {}); if (c.result != null) walk(c.result); }
+  const qm = gExtract(question), qn = new Set(qm.flatMap(m => m.kind === "pair" ? m.pair : [m.value]));
+  const near = (x, m) => Math.abs(x - m.value) <= gTol(m.decimals);
+  const pctOk = (m, p) => { const x = 100 * p;
+    if (m.bound === "<") return x > 0 && x < m.value + 1e-9;
+    if (m.bound === ">") return x > m.value - 1e-9 && x < 100;
+    return Math.abs(x - m.value) <= gTol(m.decimals); };
+  const grounded = m => {
+    if (m.kind === "pair") { const [a, b] = m.pair; return pairs.has(`${a}-${b}`) || pairs.has(`${b}-${a}`) || (nums.includes(a) && nums.includes(b)); }
+    if (m.kind === "one_in") return oneIns.has(m.value) || probs.some(p => p > 0 && p < 0.5 && Math.round(1 / p) === m.value);
+    if (m.kind === "pct") return probs.some(p => pctOk(m, p)) || nums.some(x => near(x, m));
+    return nums.some(x => near(x, m));
+  };
+  const out = []; let prev = null;
+  for (const m of gExtract(answer)) {
+    let why = "";
+    if (m.kind === "num" && m.decimals === 0 && m.value >= 1990 && m.value <= 2035 && !m.text.includes(",")) why = "year";
+    else if ((m.kind === "num" || m.kind === "pct") && qn.has(m.value)) why = "in question";
+    else if (m.kind === "pair" && qn.has(m.pair[0]) && qn.has(m.pair[1])) why = "in question";
+    else if (m.kind === "num" && m.decimals === 0 && (G_BEFORE.test(answer.slice(Math.max(0, m.start - 12), m.start)) || G_AFTER.test(answer.slice(m.start + m.text.length)))) why = "structural";
+    let ok = why ? true : grounded(m);
+    if (!ok && m.kind === "one_in" && prev && prev.m.kind === "pct" && prev.ok && m.start - (prev.m.start + prev.m.text.length) <= 12
+        && prev.m.value > 0 && prev.m.value < 50 && oneInText(prev.m.value / 100) === `about 1 in ${m.value.toLocaleString("en-US")}`) ok = true;
+    out.push({ ...m, exempt: why, grounded: ok });
+    prev = { m, ok };
+  }
+  const checked = out.filter(x => !x.exempt);
+  return { mentions: out, n: checked.length, ungrounded: checked.filter(x => !x.grounded).map(x => x.text) };
+}
+// AGENT-END
 
 // The standalone index.html carries its data inline; the hosted copy loads data.json.
 const inlineData = document.getElementById("data");
@@ -1378,6 +1785,185 @@ fillTeams("a"); fillTeams("b"); drawMatchup();
 
 // Skip link: move keyboard focus to the main content without changing the view
 $("skip").addEventListener("click", () => $("main").focus());
+
+// ---------- Ask the model: a chat pinned to every page ----------
+// Two ways to answer, picked when the page loads:
+//   in a Claude artifact: Claude (the viewer's own account) calls the tools in AGENT-START, run in this page
+//   on the public site:   POST to the agent API (rallyagent/api.py on Cloud Run), which runs the Python agent
+// Earlier messages are context only: every number in an answer must come from that answer's tool calls.
+{
+  const AGENT_API = "https://rally-agent-eu35voqj3q-uc.a.run.app";
+  const MAX_HISTORY = 6;   // earlier messages sent with a follow-up (the API's cap)
+  const tools = agentTools(D);
+  const NOT_RELIABLE = "Sorry, that one couldn't be answered reliably from the model's numbers. Try asking about match odds, a team's season, or an NCAA tournament from 2020 to 2025.";
+  const LABEL = { win_probability: "Match odds", team_profile: "Team profile", season_rankings: "Season rankings",
+    bracket_forecast: "Bracket forecast", advancement_odds: "Tournament odds", tournament_matches: "Tournament results",
+    explain_upset: "Match breakdown", model_facts: "What the data covers", query_stats: "Box-score query", sql_schema: "Box-score tables" };
+  const CLAUDE_ERRORS = { not_granted: "Claude isn't allowed to answer here. Allow it from this artifact's menu, then ask again.",
+    sampling_disabled: "Claude isn't available on this account.", rate_limited: "You've reached your Claude usage limit for now. Try again later.",
+    tools_unavailable: "This Claude app can't run the model's tools. Open the artifact in a browser at claude.ai.",
+    refused: "Claude declined that question. Try asking it another way.", session_expired: "Sign in to Claude again, then ask.",
+    empty_completion: "Claude didn't produce an answer. Try a simpler question.", prompt_too_large: "This chat is too long. Start a new chat and ask again." };
+  const fab = $("chat-fab"), panel = $("chat"), log = $("chat-log"), form = $("chat-form"), q = $("chat-q");
+  const go = $("chat-go"), stopBtn = $("chat-stop");
+  let mode = null, sample = null, ctl = null, busy = false;
+  let turns = [];   // the conversation as shown, oldest first
+
+  const ready = (async () => {
+    const s = window.claude?.use ? await window.claude.use("sample").catch(() => null) : null;
+    const lim = s ? await s.limits().catch(() => null) : null;
+    mode = s && lim?.tools ? "claude" : s ? "no-tools" : "api";
+    if (mode === "claude") sample = s;
+    $("chat-note").textContent = mode === "claude"
+      ? "Runs on your Claude account and uses your plan. This version covers the model's numbers; box-score stats need the Rally Odds website."
+      : "Answers are written by Claude from the model's numbers, 10 questions an hour. Questions are logged to improve answers; don't include personal details.";
+  })();
+
+  // Suggestions follow the page: the matchup on the simulator, the selected match on the bracket.
+  function suggestions() {
+    const v = location.hash.slice(1), out = [];
+    if (v === "matchups") out.push(`Who wins ${state.a.s} ${state.a.n} vs ${state.b.s} ${state.b.n}, and why?`);
+    if (v === "bracket" && selected != null && NODES[selected]) {
+      const n = NODES[selected];
+      out.push(`How did ${n.w} beat ${other(n, n.w)} in the ${year} tournament?`, `Who did the model pick to win in ${year}?`);
+    }
+    for (const ex of ["Could Nebraska have beaten 2023 Texas?", "Why did Texas A&M win the 2025 title?",
+      "Who was the best team of 2022?", "What were Pitt's odds of reaching the 2024 Final Four?"]) if (out.length < 4) out.push(ex);
+    return out;
+  }
+  function renderEmpty() {
+    const box = document.createElement("div"), p = document.createElement("p"), chips = document.createElement("div");
+    box.className = "chat-empty"; chips.className = "chips";
+    p.textContent = "Ask about any Division I team, matchup or NCAA tournament from 2020 to 2025. Claude runs the same model as the rest of this site, and every number is checked against the model before you see it. Follow-up questions work too.";
+    for (const ex of suggestions()) {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "chip"; b.textContent = ex;
+      b.addEventListener("click", () => { q.value = ex; form.requestSubmit(); });
+      chips.append(b);
+    }
+    box.append(p, chips);
+    log.replaceChildren(box);
+  }
+  const scrollDown = () => { log.scrollTop = log.scrollHeight; };
+  function addUser(text) {
+    const d = document.createElement("div"); d.className = "msg user"; d.textContent = text;
+    log.append(d); scrollDown();
+  }
+  // One assistant message: a status line, the answer, and the tools it ran.
+  function addBot() {
+    const d = document.createElement("div"), st = document.createElement("div"), dot = document.createElement("span"),
+      stText = document.createElement("span"), body = document.createElement("div"), work = document.createElement("details"),
+      sum = document.createElement("summary"), ol = document.createElement("ol");
+    d.className = "msg bot"; st.className = "ask-status small"; dot.className = "dot"; body.className = "answer"; ol.className = "work";
+    st.append(dot, stText); sum.textContent = "Show the work"; work.append(sum, ol); work.hidden = true;
+    d.append(st, body, work); log.append(d); scrollDown();
+    return {
+      status(state, text) { st.dataset.state = state; stText.textContent = text; },
+      show(text) {   // plain text in paragraphs; markdown emphasis dropped; never HTML
+        body.replaceChildren(...String(text).replace(/\*\*(.+?)\*\*/g, "$1").split(/\n\s*\n/).map(t => t.trim()).filter(Boolean)
+          .map(t => { const p = document.createElement("p"); p.textContent = t; return p; }));
+        scrollDown();
+      },
+      work(calls) {
+        ol.replaceChildren(...calls.map(c => {
+          const li = document.createElement("li"), code = document.createElement("code");
+          li.append(document.createTextNode((LABEL[c.name] || c.name) + " "));
+          code.textContent = Object.entries(c.args || {}).map(([k, v]) => `${k}: ${typeof v === "string" ? v : JSON.stringify(v)}`).join(", ");
+          li.append(code);
+          if (c.error) { const e = document.createElement("span"); e.className = "muted"; e.textContent = ` (${c.error})`; li.append(e); }
+          return li;
+        }));
+        work.hidden = !calls.length;
+      },
+    };
+  }
+
+  async function askClaude(question, history, bot) {
+    const calls = [];
+    ctl = new AbortController();
+    const toolDefs = AGENT_TOOL_SPECS.map(([name, description, properties, required]) => ({
+      name, description, inputSchema: { type: "object", properties, required },
+      execute: input => {
+        bot.status("working", `Running the model: ${(LABEL[name] || name).toLowerCase()}`);
+        const rec = { name, args: { ...input }, result: null, error: null };
+        calls.push(rec);
+        try { rec.result = tools[name](input); return rec.result; }
+        catch (e) { rec.error = e.message; throw e; }
+      } }));
+    const input = [{ role: "user", content: ASK_RULES }, ...history, { role: "user", content: question }];
+    const { text } = await sample(input, { tools: toolDefs, modelTier: "quick", signal: ctl.signal, onText: ({ text }) => bot.show(text) });
+    let answer = text, g = groundCheck(answer, calls, question);
+    if (g.ungrounded.length) {
+      // One rewrite, without tools, naming the numbers that had no source (as the Python agent does).
+      bot.status("working", "Checking the numbers again");
+      const convo = history.map(m => `${m.role === "user" ? "User" : "Assistant"}: ${m.content}`).join("\n");
+      const results = JSON.stringify(calls.filter(c => !c.error).map(c => ({ tool: c.name, args: c.args, result: c.result })));
+      const fix = `${ASK_RULES}\n\n${convo ? `Conversation so far (context only):\n${convo}\n\n` : ""}Question: ${question}\n\nTool results:\n${results}\n\nDraft answer:\n${answer}\n\n`
+        + `The draft has numbers that no tool returned: ${g.ungrounded.join(", ")}. Rewrite the answer so every number comes from the tool results. Drop a number rather than estimate it. Reply with only the rewritten answer.`;
+      answer = (await sample(fix, { modelTier: "quick", signal: ctl.signal, cache: false })).text;
+      g = groundCheck(answer, calls, question);
+    }
+    return { answer, calls, grounded: !g.ungrounded.length };
+  }
+
+  async function askApi(question, history) {
+    const r = await fetch(AGENT_API + "/ask", { method: "POST", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ question, history }) });
+    const body = await r.json().catch(() => ({}));
+    if (!r.ok) throw { message: body.error || `The agent returned an error (${r.status}).` };
+    return { answer: body.answer, calls: body.tools || [], grounded: !!body.grounded };
+  }
+
+  function setBusy(on) { busy = on; go.disabled = on; stopBtn.hidden = !on || mode !== "claude"; }
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+    const question = q.value.trim();
+    if (!question || busy) return;
+    if (log.querySelector(".chat-empty")) log.replaceChildren();
+    q.value = ""; autosize();
+    addUser(question);
+    const bot = addBot();
+    bot.status("working", "Thinking...");
+    setBusy(true);
+    await ready;
+    // Send whole exchanges only, so the history alternates and ends on an answer.
+    let history = turns.slice(-MAX_HISTORY);
+    if (history[0]?.role === "assistant") history = history.slice(1);
+    try {
+      if (mode === "no-tools") throw { message: CLAUDE_ERRORS.tools_unavailable };
+      const r = mode === "claude" ? await askClaude(question, history, bot) : await askApi(question, history);
+      const shown = r.grounded ? r.answer : NOT_RELIABLE;
+      bot.show(shown); bot.work(r.calls);
+      bot.status(r.grounded ? "ok" : "error", r.grounded ? "Every number checked against the model" : "Some numbers couldn't be checked, so the answer was withheld");
+      turns.push({ role: "user", content: question }, { role: "assistant", content: shown });
+    } catch (err) {
+      if (err?.code === "cancelled") bot.status("error", "Stopped");
+      else {
+        bot.show("");
+        bot.status("error", err?.code ? (CLAUDE_ERRORS[err.code] || "Something went wrong reaching Claude. Try again.")
+          : err instanceof TypeError ? "The agent couldn't be reached. Check your connection and try again."
+          : (err?.message || "Something went wrong. Try again."));
+      }
+    } finally { setBusy(false); ctl = null; q.focus(); }
+  });
+
+  function autosize() { q.style.height = "auto"; q.style.height = Math.min(q.scrollHeight, 140) + "px"; }
+  q.addEventListener("input", autosize);
+  q.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); form.requestSubmit(); } });
+  stopBtn.addEventListener("click", () => ctl?.abort());
+  function openChat() {
+    panel.hidden = false; fab.setAttribute("aria-expanded", "true"); document.body.classList.add("chat-open");
+    if (!turns.length && !busy) renderEmpty();   // fresh suggestions for the page you're on
+    q.focus();
+  }
+  function closeChat() { panel.hidden = true; fab.setAttribute("aria-expanded", "false"); document.body.classList.remove("chat-open"); fab.focus(); }
+  fab.addEventListener("click", openChat);
+  $("chat-close").addEventListener("click", closeChat);
+  panel.addEventListener("keydown", e => { if (e.key === "Escape") closeChat(); });
+  $("chat-new").addEventListener("click", () => { ctl?.abort(); turns = []; renderEmpty(); q.focus(); });
+  $("nav-ask").addEventListener("click", e => { e.preventDefault(); openChat(); });
+  if (location.hash === "#ask") openChat();
+}
 
 // ---------- Views ----------
 const VIEWS = ["home", "bracket", "matchups", "findings", "model"];
