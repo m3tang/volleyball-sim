@@ -1,0 +1,32 @@
+{
+ "source": "analysis/xgb_baseline.py",
+ "weekly_2025": {
+  "matches": 4786,
+  "rally": {
+   "log_loss": 0.4669,
+   "brier": 0.1536,
+   "accuracy": 0.774
+  },
+  "xgboost": {
+   "log_loss": 0.4966,
+   "brier": 0.1655,
+   "accuracy": 0.757
+  },
+  "diff_log_loss": 0.0296,
+  "diff_lo": 0.0198,
+  "diff_hi": 0.0395
+ },
+ "tournaments_2021_2025": {
+  "matches": 315,
+  "rally": {
+   "log_loss": 0.36,
+   "accuracy": 0.829
+  },
+  "xgboost": {
+   "log_loss": 0.46,
+   "accuracy": 0.762
+  },
+  "seasons_rally_won": 5
+ },
+ "features": 67
+}

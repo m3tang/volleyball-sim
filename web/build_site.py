@@ -24,6 +24,7 @@ from vbsim import models as M
 from vbsim.matchsim import match_win_prob
 
 HERE = Path(__file__).resolve().parent
+ROOT_DIR = HERE.parent
 SEASONS = list(range(2020, 2026))
 TABLES = ("sideout", "serve", "fb", "tr")
 MIN_MATCHES = 10
@@ -583,6 +584,9 @@ def main():
     data["findings"] = findings(d, idx)
     data["findings"]["serving"] = serving(data["seasons"])
     data["findings"]["points_per_set"] = round(POINTS_PER_SET, 1)
+    xgb_file = ROOT_DIR / "analysis" / "results" / "xgb_comparison.json"
+    if xgb_file.exists():
+        data["xgb"] = json.loads(xgb_file.read_text())
     print("calibration...")
     data["calibration"] = calibration_export(d, idx)
     print("momentum...")

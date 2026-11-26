@@ -36,6 +36,21 @@ Every prediction uses only matches played before it. Model settings were tuned o
 
 Predictions are calibrated: when the model gives a team 70%, it wins about 70% of the time.
 
+**Against XGBoost.** As a machine learning baseline, an XGBoost classifier got 67 season-to-date
+features for both teams (hitting, serving, blocking, record, previous season, home court), tuned
+on 2024 and refit weekly under the same rules.
+
+| test | matches | rally model log loss | XGBoost log loss | rally model accuracy | XGBoost accuracy |
+|---|---|---|---|---|---|
+| 2025, week by week | 4,786 | **0.467** | 0.497 | **77.4%** | 75.7% |
+| NCAA tournaments 2021–2025 | 315 | **0.360** | 0.460 | **82.9%** | 76.2% |
+
+The 2025 gap is 0.030 (95% bootstrap interval 0.020–0.040), and the rally model wins the
+tournament in all five seasons. Most of the edge comes early in the season and in December,
+where the rally model's prior from last season and its opponent adjustment matter most.
+Reproduce with `python -m analysis.xgb_baseline` (writes `analysis/results/xgb_comparison.json`,
+which the site build reads).
+
 **NCAA tournament brackets, predicted before the first round** (standard scoring, max 1920)
 
 | year | rally model | pick the better record | matches called (model) | champion |
@@ -110,6 +125,7 @@ python3 -m venv .venv
 
 .venv/bin/python -m analysis.evaluate_models # model comparison: tune on 2024, test on 2025
 .venv/bin/python -m analysis.overconfidence  # momentum test and match-day form
+.venv/bin/python -m analysis.xgb_baseline    # XGBoost baseline comparison (~10 min)
 .venv/bin/python -m web.build_site           # refit everything and rebuild the site (~2 min)
 open web/index.html
 ```

@@ -230,6 +230,27 @@ def main():
     r, x = np.concatenate(tot["r"]), np.concatenate(tot["x"])
     print(f"{'all':<8}{len(r):>6}{r.mean():>10.4f}{x.mean():>9.4f}")
 
+    # Saved for the README and the site (web/build_site.py reads this file).
+    import json
+    from pathlib import Path
+    mr, mx = metrics(both["p_rally"].values, both["y"].values), metrics(both["p_xgb"].values, both["y"].values)
+    tr_acc = lambda arr: float(np.mean(np.exp(-arr) > 0.5))
+    out = {"source": "analysis/xgb_baseline.py",
+           "weekly_2025": {"matches": int(len(both)),
+                           "rally": {k: round(mr[k], 4) for k in ("log_loss", "brier", "accuracy")},
+                           "xgboost": {k: round(mx[k], 4) for k in ("log_loss", "brier", "accuracy")},
+                           "diff_log_loss": round(float(diff.mean()), 4),
+                           "diff_lo": round(float(np.percentile(boots, 2.5)), 4), "diff_hi": round(float(np.percentile(boots, 97.5)), 4)},
+           "tournaments_2021_2025": {"matches": int(len(r)),
+                                     "rally": {"log_loss": round(float(r.mean()), 4), "accuracy": round(tr_acc(r), 4)},
+                                     "xgboost": {"log_loss": round(float(x.mean()), 4), "accuracy": round(tr_acc(x), 4)},
+                                     "seasons_rally_won": int(sum(a.mean() < b.mean() for a, b in zip(tot["r"], tot["x"])))},
+           "features": int(rows[2025].shape[1] - 3)}
+    path = Path(__file__).resolve().parent / "results" / "xgb_comparison.json"
+    path.parent.mkdir(exist_ok=True)
+    path.write_text(json.dumps(out, indent=1))
+    print("wrote", path)
+
 
 if __name__ == "__main__":
     main()

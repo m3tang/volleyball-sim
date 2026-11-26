@@ -643,6 +643,12 @@ footer { border-top: 2px solid var(--line); padding-block: 24px 40px; font-size:
         <p class="small muted">When the dots sit on the diagonal, the odds matched what actually happened.</p>
       </div>
     </div>
+    <div class="panel" id="xgb-panel" hidden>
+      <h3>The rally model beats XGBoost</h3>
+      <p class="small muted">XGBoost is the go-to machine learning model for tables of stats. This version got <span id="xgb-feat"></span> season-to-date numbers for both teams (hitting, aces, blocks, record, last season) and the same week-by-week rules.</p>
+      <div class="scroll"><table id="xgb-table"></table></div>
+      <p class="small muted">Lower log loss means better odds. The rally model won the tournament test in all <span id="xgb-won"></span> seasons. The gap is widest early in the season, when XGBoost has only a few matches of stats to go on and the rally model leans on last season. The rally model also adjusts every number for who the opponent was, which matters most in December when everyone left is good.</p>
+    </div>
     <div class="panel">
       <h3>What the model doesn't know</h3>
       <ul class="plain small twocol">
@@ -1449,6 +1455,19 @@ $("mo-legend").innerHTML = series.map(s => `<span><i style="background:${s.color
     { label: "Rally model", v: C.accuracy, color: "var(--s1)", tip: `Rally model: ${pct(C.accuracy, 1)} of ${fmtInt(C.matches)} matches` },
     { label: "Coin flip", v: 0.5, color: "var(--axis)" },
   ]);
+  const X = D.xgb;
+  if (X) {
+    const W = X.weekly_2025, R = X.tournaments_2021_2025;
+    $("xgb-feat").textContent = X.features;
+    $("xgb-won").textContent = R.seasons_rally_won;
+    const row = (name, m, n) => `<tr><td>${name}</td><td class="num">${fmtInt(n)}</td>
+      <td class="num">${m.r.log_loss.toFixed(3)}</td><td class="num">${m.x.log_loss.toFixed(3)}</td>
+      <td class="num">${pct(m.r.accuracy, 1)}</td><td class="num">${pct(m.x.accuracy, 1)}</td></tr>`;
+    $("xgb-table").innerHTML = `<thead><tr><th>Test</th><th>Matches</th><th>Rally<br>log loss</th><th>XGBoost<br>log loss</th><th>Rally<br>picks</th><th>XGBoost<br>picks</th></tr></thead><tbody>` +
+      row("2025 season", { r: W.rally, x: W.xgboost }, W.matches) +
+      row("Tournaments 2021–25", { r: R.rally, x: R.xgboost }, R.matches) + "</tbody>";
+    $("xgb-panel").hidden = false;
+  }
 })();
 } // start
 </script>
