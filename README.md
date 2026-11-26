@@ -18,7 +18,7 @@ matches.
   and the odds update, set by set.
 - **Findings:** what separates elite teams, how much home court is worth, whether momentum
   is real, and how often the best team wins the title.
-- **Under the hood:** the data, the twelve numbers the model learns per team, a step-by-step
+- **How it works:** the data, the twelve numbers the model learns per team, a step-by-step
   calculation of one rally, and how the model was tested.
 - **Ask the model:** a chat, pinned to every page, that answers questions with the model's own
   numbers and shows the lookups behind each answer.
