@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "rally-odds": {
+      "command": ".venv/bin/python",
+      "args": ["-m", "rallytools.server"]
+    }
+  }
+}

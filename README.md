@@ -108,15 +108,16 @@ pipeline/   download the data, build the DuckDB database, validate it
 vbsim/      the model: data loading, fitting, rally chain, match math, brackets
 analysis/   model comparison, overconfidence and momentum tests, bracket scoring
 web/        the site: template, build script, generated index.html and data.json
-tests/      unit tests for the match math, fitting and bracket odds
+rallytools/ the model as tools: match odds, team profiles, brackets, upset breakdowns, safe SQL; MCP server
+tests/      unit tests for the match math, fitting, bracket odds and the tools
 ```
 
 ## Run it yourself
 
-Requires Python 3.9 or later.
+Requires Python 3.12 (`brew install python@3.12` on a Mac).
 
 ```sh
-python3 -m venv .venv
+python3.12 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 .venv/bin/python pipeline/download.py        # ~4.5 GB of CSVs into data/raw/
 .venv/bin/python pipeline/build_db.py        # builds data/vb.duckdb (~1.5 min)
@@ -133,6 +134,40 @@ open web/index.html
 `web/index.html` is a standalone page with its data built in. Pushing to `main` deploys
 `web/` to GitHub Pages. After editing only `web/template.html`, rebuild with
 `python -m web.build_site --page-only`.
+
+## Ask the model from Claude (MCP server)
+
+`rallytools/server.py` exposes the model as ten read-only tools over the
+[Model Context Protocol](https://modelcontextprotocol.io), so Claude Code, Claude Desktop or any
+MCP client can answer questions like "Could 2025 Nebraska have beaten 2023 Texas?" with the
+model's own numbers.
+
+| tool | what it returns |
+|---|---|
+| `win_probability` | exact match odds for any two team-seasons and venue, set and final-score odds, rally-step rates |
+| `team_profile` | rank, record, rating and the twelve rally-step numbers, counted and opponent-adjusted |
+| `season_rankings` | end-of-season rankings |
+| `bracket_forecast`, `advancement_odds` | pre-tournament title and round-by-round odds, bracket score |
+| `tournament_matches` | tournament results with the model's pre-match odds; upsets only if asked |
+| `explain_upset` | points each part of the game swung toward the winner, actual vs expected |
+| `sql_schema`, `query_stats` | one read-only SELECT over the database (table allowlist, 200-row cap, 10 s timeout) |
+| `model_facts` | coverage, known gaps, tested accuracy |
+
+The model tools read `web/data.json`, the same parameters the site runs on, so they return the
+numbers the site shows (tests check them against the site's JavaScript math). Nothing is refit,
+so every call is instant and deterministic. The SQL tool needs `data/vb.duckdb`.
+
+**Claude Code:** the repo's `.mcp.json` registers the server; open the repo and approve it.
+**Claude Desktop:** add this to `claude_desktop_config.json`, with your own path:
+
+```json
+{"mcpServers": {"rally-odds": {
+  "command": "/path/to/volleyball-sim/.venv/bin/python",
+  "args": ["-m", "rallytools.server"],
+  "env": {"PYTHONPATH": "/path/to/volleyball-sim"}}}}
+```
+
+Check it without a client: `.venv/bin/python -m rallytools.server --check`.
 
 ## Working with the data
 

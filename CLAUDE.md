@@ -9,13 +9,16 @@ Public site: https://m3tang.github.io/volleyball-sim/ · Repo: github.com/m3tang
 - `analysis/` evaluations; results the site reads go in `analysis/results/`
 - `web/build_site.py` → `web/data.json`, `web/index.html` (standalone, data inline), `web/artifact.html` (loads data.json)
 - `web/template.html` holds all markup, CSS and JS. Edit this, never index.html/artifact.html.
+- `rallytools/` model-as-tools: `core.py` (reads web/data.json, mirrors the site's JS math), `sql.py` (guarded read-only DuckDB), `server.py` (MCP server, mcp 2.x `MCPServer`; `--check` calls every tool)
 - `tools/checks/` page checks (Node + puppeteer-core + jsdom; `npm install` there once)
 
 ## Commands
+.venv is Python 3.12 (rebuilt from 3.9 for the mcp SDK). A full rebuild on 3.12 shifts some numbers in the 4th decimal (BLAS/optimizer noise); don't commit data.json for that alone.
 ```sh
 .venv/bin/python -m pytest -q tests
 .venv/bin/python -m web.build_site --page-only   # after template.html edits only (seconds)
 .venv/bin/python -m web.build_site               # full refit + data.json (~1–2 min); needed when data/models change
+.venv/bin/python -m rallytools.server --check      # MCP tools smoke test
 .venv/bin/python -m analysis.xgb_baseline        # ~10 min, rewrites analysis/results/xgb_comparison.json
 ```
 Pipe long build/analysis output through `tail`; it is verbose.

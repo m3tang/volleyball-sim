@@ -1,7 +1,10 @@
+# Python 3.12 (brew install python@3.12; python3.12 -m venv .venv)
 duckdb==1.4.5
 numpy==2.0.2
 scipy==1.13.1
 pytest
+# MCP server (rallytools/server.py)
+mcp==2.3.0
 # Baseline comparison only (analysis/xgb_baseline.py)
 xgboost==2.1.4
 pandas==2.3.3
