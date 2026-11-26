@@ -21,6 +21,12 @@ CALLS = [
     ("win_probability", {"team_a": "Nebraska", "season_a": 2025, "team_b": "Texas", "season_b": 2023}),
     ("win_probability", {"team_a": "USC", "season_a": 2025, "team_b": "Kansas State", "venue": "team_b_home"}),
     ("win_probability", {"team_a": "Pitt", "season_a": 2024, "team_b": "Penn State", "venue": "team_a_home"}),
+    ("live_win_probability", {"team_a": "Texas", "season_a": 2025, "team_b": "Nebraska", "sets_a": 1, "sets_b": 2,
+                              "points_a": 20, "points_b": 23, "serving": "team_b"}),
+    ("live_win_probability", {"team_a": "Pitt", "season_a": 2024, "team_b": "Penn State", "venue": "team_b_home",
+                              "sets_a": 2, "sets_b": 2, "points_a": 16, "points_b": 15}),
+    ("live_win_probability", {"team_a": "Kentucky", "season_a": 2025, "team_b": "Texas A&M", "sets_a": 0, "sets_b": 0,
+                              "points_a": 0, "points_b": 0}),
     ("team_profile", {"team": "Penn State", "season": 2024}),
     ("team_profile", {"team": "Western Kentucky", "season": 2021}),
     ("season_rankings", {"season": 2022, "top": 5}),
@@ -36,6 +42,10 @@ ERRORS = [
     ("win_probability", {"team_a": "Nebraska", "season_a": 2019, "team_b": "Texas"}, "seasons available"),
     ("explain_upset", {"season": 2025, "team_a": "Nebraska", "team_b": "Stanford"}, "did not meet"),
     ("bracket_forecast", {"season": 2020}, "no bracket"),
+    ("live_win_probability", {"team_a": "Texas", "season_a": 2025, "team_b": "Nebraska", "sets_a": 1, "sets_b": 1,
+                              "points_a": 25, "points_b": 22}, "finished set"),
+    ("live_win_probability", {"team_a": "Texas", "season_a": 2025, "team_b": "Nebraska", "sets_a": 3, "sets_b": 1,
+                              "points_a": 0, "points_b": 0}, "match is over"),
 ]
 
 

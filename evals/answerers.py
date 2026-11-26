@@ -21,6 +21,8 @@ REFUSAL_TEXT = ("The data doesn't cover that. It has Division I women's volleyba
 
 def spec_to_call(spec, case):
     t = spec["tool"]
+    if "args" in spec:
+        return t, spec["args"]
     if t == "win_probability":
         (a, sa), (b, sb) = spec["teams"]
         venue = "neutral" if spec["home"] is None else "team_a_home" if spec["home"] == a else "team_b_home"

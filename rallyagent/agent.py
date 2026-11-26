@@ -140,7 +140,8 @@ class Agent:
         history = list(history or [])
         calls, status = [], "ok"
         system = P.RESEARCH if cfg.writer_model else P.RESEARCH_SINGLE
-        messages = [*({"role": m["role"], "content": m["content"]} for m in history), {"role": "user", "content": question}]
+        newest = f"Newest question: {question}" if history else question
+        messages = [*({"role": m["role"], "content": m["content"]} for m in history), {"role": "user", "content": newest}]
         resp = None
         for _ in range(cfg.max_turns):
             resp = self._create(cfg.research_model, cfg.research_effort, usage, "research",
@@ -236,7 +237,7 @@ _agents = {}
 def _answer(config, case):
     if config not in _agents:
         _agents[config] = Agent(config)
-    return _agents[config].ask(case["question"])
+    return _agents[config].ask(case["question"], case.get("history"))
 
 
 def answer_split(case):

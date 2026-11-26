@@ -187,6 +187,49 @@ def _match_outcomes(so_a, so_b):
     return out
 
 
+def _set_over(a, b, t):
+    return (a >= t or b >= t) and abs(a - b) >= 2
+
+
+def _live(so_a, so_b, sets_a, sets_b, pts_a, pts_b, a_serving):
+    """P(A wins the match) from a score in progress, plus the odds after A or B wins the next rally.
+
+    Averages over match-day form like _match_outcomes, but first weights each form level by how likely it
+    makes the sets already played: a team up 2-0 is probably having a good night."""
+    d = data()
+    gh = [(x, w) for x, w in zip(d["gh"]["x"], d["gh"]["w"]) if w > 1e-9]
+    x = np.array([g[0] for g in gh])
+    w = np.array([g[1] for g in gh])
+    logit = lambda p: np.log(p) - np.log1p(-p)
+    expit = lambda z: 1 / (1 + np.exp(-z))
+    sd = d["form_sd"]
+    p_srv, p_rcv = 1 - expit(logit(so_b) - sd * x), expit(logit(so_a) + sd * x)
+    s = 0.5 * (set_win_prob(p_srv, p_rcv, 25, True) + set_win_prob(p_srv, p_rcv, 25, False))
+    f = 0.5 * (set_win_prob(p_srv, p_rcv, 15, True) + set_win_prob(p_srv, p_rcv, 15, False))
+
+    def M(i, j):                       # P(A wins the match) at the start of a set, sets i-j
+        if i == 3 or j == 3:
+            return np.full_like(s, float(i == 3))
+        q = f if i + j == 4 else s
+        return q * M(i + 1, j) + (1 - q) * M(i, j + 1)
+
+    def at(i, j, a, b, serving):       # from a point inside set i+j+1
+        t = 15 if i + j == 4 else 25
+        if _set_over(a, b, t):
+            return M(i + 1, j) if a > b else M(i, j + 1)
+        q = set_win_prob(p_srv, p_rcv, t, serving, (a, b))
+        return q * M(i + 1, j) + (1 - q) * M(i, j + 1)
+
+    post = w * s ** sets_a * (1 - s) ** sets_b
+    post = post / post.sum()
+    avg = lambda v: float((v * post).sum())
+    t = 15 if sets_a + sets_b == 4 else 25
+    return {"win": avg(at(sets_a, sets_b, pts_a, pts_b, a_serving)),
+            "set": avg(set_win_prob(p_srv, p_rcv, t, a_serving, (pts_a, pts_b))),
+            "if_a": avg(at(sets_a, sets_b, pts_a + 1, pts_b, True)),
+            "if_b": avg(at(sets_a, sets_b, pts_a, pts_b + 1, False))}
+
+
 def _steps(r):
     return {"sideout": _r(r["p"]),
             "aced": _r(r["srv"][0]), "opponent_service_error": _r(r["srv"][1]),
@@ -221,6 +264,48 @@ def win_probability(team_a, season_a, team_b, season_b=None, venue="neutral"):
         "when_receiving_serve": {A["n"]: _steps(ra), B["n"]: _steps(rb)},
         "notes": ("Exact calculation over every rally and final score; averaged over match-day form."
                   + (" Cross-season matchups assume the overall level of play is the same in both seasons." if sa != sb else "")),
+    }
+
+
+def live_win_probability(team_a, season_a, team_b, season_b=None, venue="neutral", sets_a=0, sets_b=0,
+                         points_a=0, points_b=0, serving="team_a"):
+    """Match odds from a score in progress: sets won, points in the current set, and who serves next."""
+    if venue not in VENUES:
+        raise ToolError(f"venue must be one of {', '.join(VENUES)}, got {venue!r}")
+    if serving not in ("team_a", "team_b"):
+        raise ToolError(f"serving must be team_a or team_b, got {serving!r}")
+    sets_a, sets_b, points_a, points_b = (int(v) for v in (sets_a, sets_b, points_a, points_b))
+    if not (0 <= sets_a <= 2 and 0 <= sets_b <= 2):
+        raise ToolError("sets_a and sets_b must be 0, 1 or 2; at 3 the match is over")
+    target = 15 if sets_a + sets_b == 4 else 25
+    if points_a < 0 or points_b < 0 or points_a > 60 or points_b > 60:
+        raise ToolError("points must be between 0 and 60")
+    if _set_over(points_a, points_b, target):
+        raise ToolError(f"{points_a}-{points_b} is a finished set (sets go to {target}, win by 2); "
+                        "count it in sets_a or sets_b and give the score of the set in progress")
+    sa = _season(season_a)
+    sb = _season(season_b if season_b is not None else season_a)
+    A, B = resolve_team(team_a, sa), resolve_team(team_b, sb)
+    if A is B:
+        raise ToolError("team_a and team_b are the same team and season")
+    home = {"neutral": 0, "team_a_home": 1, "team_b_home": -1}[venue]
+    ctx = _ctx(sa, sb)
+    ra, rb = _sideout(A, B, home, ctx), _sideout(B, A, -home, ctx)
+    o = _live(ra["p"], rb["p"], sets_a, sets_b, points_a, points_b, serving == "team_a")
+    pre = _match_outcomes(ra["p"], rb["p"])["win"]
+    return {
+        "team_a": {"name": A["n"], "season": sa}, "team_b": {"name": B["n"], "season": sb}, "venue": venue,
+        "score": {"sets": f"{sets_a}-{sets_b}", "current_set": f"{points_a}-{points_b}", "set_number": sets_a + sets_b + 1,
+                  "set_to": target, "serving": A["n"] if serving == "team_a" else B["n"]},
+        "p_team_a_wins": _r(o["win"]), "p_team_b_wins": _r(1 - o["win"]),
+        "display": {A["n"]: odds_text(o["win"]), B["n"]: odds_text(1 - o["win"])},
+        "p_team_a_wins_current_set": _r(o["set"]),
+        "before_the_match": {"p_team_a_wins": _r(pre), "p_team_b_wins": _r(1 - pre)},
+        "next_rally": {f"if {A['n']} wins it": _r(o["if_a"]), f"if {B['n']} wins it": _r(o["if_b"]),
+                       "values_are": f"P({A['n']} wins the match)"},
+        "notes": ("Exact calculation from this score. The model also learns from the sets already played: "
+                  "a team that has won more of them is probably having a good night. Points in the current set "
+                  "aren't used for that."),
     }
 
 

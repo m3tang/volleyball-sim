@@ -130,4 +130,4 @@ def test_history_goes_before_the_question():
     r = A.Agent("haiku", client=fake).ask("And in 2023?", history=h)
     assert r["grounding"]["ok"]
     msgs = fake.requests[0]["messages"]
-    assert [m["role"] for m in msgs[:3]] == ["user", "assistant", "user"] and msgs[2]["content"] == "And in 2023?"
+    assert [m["role"] for m in msgs[:3]] == ["user", "assistant", "user"] and msgs[2]["content"] == "Newest question: And in 2023?"

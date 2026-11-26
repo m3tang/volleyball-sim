@@ -9,3 +9,5 @@ node_modules/
 .claude/hillclimb/**/state.json
 .claude/hillclimb/**/trajectory/
 .claude/settings.local.json
+# Visitors' questions from the public chat (evals/logs.py pull)
+evals/logs/

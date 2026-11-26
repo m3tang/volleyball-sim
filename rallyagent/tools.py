@@ -29,6 +29,21 @@ TOOLS = [
            "venue": {"type": "string", "enum": ["neutral", "team_a_home", "team_b_home"],
                      "description": "Where the match is played; neutral unless the question says whose gym"}},
           ["team_a", "season_a", "team_b"]),
+    _tool("live_win_probability",
+          "Odds that team_a wins the match from a score in progress: sets won, points in the current set and who "
+          "serves next. Also returns the odds before the match and after either team wins the next rally. Call for "
+          "'X leads 2-1', 'down 20-23 in the fourth', 'what are the odds from here' questions.",
+          {"team_a": TEAM, "season_a": SEASON, "team_b": TEAM,
+           "season_b": {"type": "integer", "description": "team_b's season if different from season_a"},
+           "venue": {"type": "string", "enum": ["neutral", "team_a_home", "team_b_home"],
+                     "description": "Where the match is played; neutral unless the question says whose gym"},
+           "sets_a": {"type": "integer", "description": "Sets team_a has won, 0-2"},
+           "sets_b": {"type": "integer", "description": "Sets team_b has won, 0-2"},
+           "points_a": {"type": "integer", "description": "team_a's points in the set in progress"},
+           "points_b": {"type": "integer", "description": "team_b's points in the set in progress"},
+           "serving": {"type": "string", "enum": ["team_a", "team_b"],
+                       "description": "Who serves next: the team that won the last rally; team_a if unknown"}},
+          ["team_a", "season_a", "team_b", "sets_a", "sets_b", "points_a", "points_b"]),
     _tool("team_profile",
           "A team-season's rank, record, rating and its 12 rally-step numbers (serving, passing, first attack, "
           "defending the first attack, scramble offense and defense), counted and opponent-adjusted, next to league "

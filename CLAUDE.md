@@ -13,6 +13,7 @@ Public site: https://m3tang.github.io/volleyball-sim/ · Repo: github.com/m3tang
 - `rallytools/` model-as-tools: `core.py` (reads web/data.json, mirrors the site's JS math), `sql.py` (guarded read-only DuckDB), `server.py` (MCP server, mcp 2.x `MCPServer`; `--check` calls every tool)
 - `rallytools/grounding.py` checks every number in an answer against tool results; `rallytools/registry.py` name→tool for the agent and evals
 - `evals/` golden set (`golden.py` generates `golden.jsonl`/`golden.md` from core + SQL; never hand-edit), `grade.py`, `answerers.py` (oracle/null/... harness checks), `run.py` (runner; paid answerers gated by `--approve-harness`, which is the user's to pass)
+- `evals/logs.py` pulls the API's question log (`pull`) into gitignored `evals/logs/` and writes `inbox.md` (`triage`); promote cases into `evals/logged.py` (expected values read from the named tool call)
 - `rallyagent/` agent (`agent.py`: research loop, optional writer, grounding rewrite; default config Haiku 5.5), `api.py` public Starlette API with rate/budget/Turnstile guards, `pricing.py`. API key: env, else macOS Keychain item `vb-sim-agent-api-key`
 - `serve/` public API container (`Dockerfile`, builds from repo root) and `deploy_cloudrun.sh`; `pipeline/public_db.py` makes `serve/vb_public.duckdb` (14 MB, `rally_summary` replaces rallies; `RALLY_DB` points the SQL tool at it)
 - `tools/checks/` page checks (Node + puppeteer-core + jsdom; `npm install` there once)

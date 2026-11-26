@@ -28,7 +28,8 @@ def _deuce(p_srv, p_rcv):
     return (b1 * a22 - a12 * b2) / det, (a11 * b2 - a21 * b1) / det
 
 
-def set_win_prob(p_srv, p_rcv, target=25, a_serves_first=True):
+def set_win_prob(p_srv, p_rcv, target=25, a_serves_first=True, start=(0, 0)):
+    """P(A wins the set). start=(a, b) is the score to start from, with a_serves_first saying who serves next."""
     p_srv = np.asarray(p_srv, dtype=float)
     p_rcv = np.asarray(p_rcv, dtype=float)
     t = target
@@ -43,8 +44,11 @@ def set_win_prob(p_srv, p_rcv, target=25, a_serves_first=True):
             return one
         if b >= t and b - a >= 2:
             return zero
-        if a == b == t - 1:
-            return tie_a if a_serving else tie_b
+        if a >= t - 1 and b >= t - 1:              # deuce: only the lead (-1, 0, +1) and the server matter
+            p = p_srv if a_serving else p_rcv
+            if a == b:
+                return tie_a if a_serving else tie_b
+            return p + (1 - p) * tie_b if a > b else p * tie_a
         return V[(a, b, a_serving)]
 
     for a in range(t - 1, -1, -1):
@@ -54,7 +58,10 @@ def set_win_prob(p_srv, p_rcv, target=25, a_serves_first=True):
             for a_serving in (True, False):
                 p = p_srv if a_serving else p_rcv
                 V[(a, b, a_serving)] = p * val(a + 1, b, True) + (1 - p) * val(a, b + 1, False)
-    return val(0, 0, a_serves_first)
+    a0, b0 = start
+    if (a0 >= t or b0 >= t) and abs(a0 - b0) >= 2:
+        raise ValueError(f"{a0}-{b0} is a finished set")
+    return val(a0, b0, a_serves_first)
 
 
 def match_win_prob(p_srv, p_rcv, form_sd=0.0, n_nodes=21):

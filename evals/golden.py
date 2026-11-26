@@ -86,12 +86,12 @@ class Gen:
         self.cases = []
         self.con = duckdb.connect(str(DB), read_only=True)
 
-    def add(self, category, question, numbers=(), facts=(), tools=(), ref="", tags=(), refuse=False):
+    def add(self, category, question, numbers=(), facts=(), tools=(), ref="", tags=(), refuse=False, history=None):
         n = sum(c["category"] == category for c in self.cases) + 1
         self.cases.append({"id": f"{category}-{n:03d}", "category": category, "tags": [category, *tags],
                            "question": question,
                            "expect": {"numbers": list(numbers), "facts": list(facts), "refuse": refuse},
-                           "tools": list(tools), "ref": ref})
+                           "tools": list(tools), "ref": ref, **({"history": history} if history else {})})
 
     def top(self, season, n):
         return [t["n"] for t in C.data()["seasons"][str(season)]["teams"][:n]]
@@ -340,10 +340,80 @@ class Gen:
         for q, why in qs:
             self.add("out_of_scope", q, tools=[], ref="not in the data", tags=[why], refuse=True)
 
+    def live_odds(self, n=6):
+        """Odds from a score in progress. Questions say who serves, so the answer is determined."""
+        rng = random.Random(SEED + 1)   # own stream, so earlier categories don't change
+        ordinal = ["first", "second", "third", "fourth", "fifth"]
+        states = [(1, 2, 20, 23, "b"), (2, 2, 10, 12, "a"), (2, 0, 15, 15, "a"), (0, 1, 24, 22, "a"),
+                  (1, 1, 0, 0, "a"), (2, 1, 23, 24, "b")]
+        for sa_, sb_, pa, pb, srv in states[:n]:
+            a, b = rng.sample(self.top(2025, 30), 2)
+            A, B = fan(a), fan(b)
+            sets = f"leads {B} {sa_}-{sb_} in sets" if sa_ > sb_ else f"trails {B} {sa_}-{sb_} in sets" if sa_ < sb_ \
+                else f"is tied with {B} {sa_}-{sb_} in sets"
+            set_no = ordinal[sa_ + sb_]
+            pts = f"is up {pa}-{pb}" if pa > pb else f"is down {pa}-{pb}" if pa < pb else f"is tied {pa}-{pb}"
+            q = (f"{A} {sets} and {pts} in the {set_no} set, with {A if srv == 'a' else B} serving. "
+                 f"What are {A}'s chances of winning the match from here?")
+            if pa == pb == 0:
+                q = (f"{A} {sets}, and {A if srv == 'a' else B} is about to serve to start the {set_no} set. "
+                     f"What are {A}'s chances of winning the match from here?")
+            args = {"team_a": a, "season_a": 2025, "team_b": b, "season_b": 2025, "venue": "neutral",
+                    "sets_a": sa_, "sets_b": sb_, "points_a": pa, "points_b": pb, "serving": "team_" + srv}
+            r = C.live_win_probability(**args)
+            self.add("live_odds", q, [prob(f"P({a} wins from {sa_}-{sb_}, {pa}-{pb})", r["p_team_a_wins"])],
+                     tools=[{"tool": "live_win_probability", "teams": [[a, 2025], [b, 2025]], "home": None, "args": args}],
+                     ref=f"live_win_probability({args})", tags=["2025", f"set {sa_ + sb_ + 1}"])
+
+    def logged(self):
+        """Real questions from the public chat (evals/logged.py), with answers read from the tool result."""
+        from evals.logged import LOGGED
+        for e in LOGGED:
+            name, args = e["call"]
+            result = C_call(name, args)
+            nums = []
+            for scale, label, path in e.get("numbers", []):
+                v = result
+                for k in path.split("."):
+                    v = v[int(k)] if isinstance(v, list) else v[k]
+                nums.append({"prob": prob, "count": count, "decimal": dec}[scale](label, v))
+            facts = [fact(label, *spellings) for label, spellings in e.get("facts", [])]
+            history = [m for qa in e.get("history", []) for m in ({"role": "user", "content": qa[0]},
+                                                                   {"role": "assistant", "content": qa[1]})]
+            self.add("logged", e["question"], nums, facts, [] if e.get("refuse") else [spec_from_call(name, args)],
+                     ref=f"{name}({args})", tags=["logged", e["asked"]] + (["follow-up"] if history else []),
+                     refuse=e.get("refuse", False), history=history or None)
+
+
+def C_call(name, args):
+    from rallytools.registry import call
+    r = call(name, args)
+    if r["error"]:
+        raise ValueError(f"logged case {name}({args}): {r['error']}")
+    return r["result"]
+
+
+def spec_from_call(name, args):
+    """The grader's tool-choice spec for a call (see evals/grade.py sufficient)."""
+    if name in ("win_probability", "live_win_probability"):
+        sa = args["season_a"]
+        sb = args.get("season_b") or sa
+        v = args.get("venue", "neutral")
+        home = None if v == "neutral" else args["team_a"] if v == "team_a_home" else args["team_b"]
+        spec = {"tool": name, "teams": [[args["team_a"], sa], [args["team_b"], sb]], "home": home}
+        return {**spec, "args": args} if name == "live_win_probability" else spec
+    if name in ("team_profile", "advancement_odds"):
+        return {"tool": name, "team": args["team"], "season": args["season"]}
+    if name in ("season_rankings", "bracket_forecast", "tournament_matches"):
+        return {"tool": name, "season": args["season"]}
+    if name == "explain_upset":
+        return {"tool": name, "season": args["season"], "teams": [args["team_a"], args["team_b"]]}
+    return {"tool": name}
+
 
 def generate():
     g = Gen()
-    g.match_odds(); g.dream(); g.team_profile(); g.rankings(); g.brackets(); g.upsets(); g.sql_stats(); g.out_of_scope()
+    g.match_odds(); g.dream(); g.team_profile(); g.rankings(); g.brackets(); g.upsets(); g.sql_stats(); g.out_of_scope(); g.live_odds(); g.logged()
     ids = [c["id"] for c in g.cases]
     assert len(ids) == len(set(ids))
     qs = [c["question"].lower() for c in g.cases]

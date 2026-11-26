@@ -10,6 +10,9 @@ from . import sql as Q
 TOOLS = {
     "win_probability": lambda team_a, season_a, team_b, season_b=None, venue="neutral":
         C.win_probability(team_a, season_a, team_b, season_b, venue),
+    "live_win_probability": lambda team_a, season_a, team_b, season_b=None, venue="neutral", sets_a=0, sets_b=0,
+                                   points_a=0, points_b=0, serving="team_a":
+        C.live_win_probability(team_a, season_a, team_b, season_b, venue, sets_a, sets_b, points_a, points_b, serving),
     "team_profile": lambda team, season: C.team_profile(team, season),
     "season_rankings": lambda season, top=25: C.season_rankings(season, top),
     "bracket_forecast": lambda season, top=10: C.bracket_forecast(season, top),

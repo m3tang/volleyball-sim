@@ -14,7 +14,8 @@ matches.
 - **Brackets:** every NCAA tournament from 2021 to 2025, predicted using only matches played
   before the first round, with each team's odds of reaching every round.
 - **Match simulator:** pick any two teams from any season and venue. Win probability, likely final
-  scores, and the part of the game that decides it.
+  scores, the part of the game that decides it, and live odds from any score: tap + for each rally
+  and the odds update, set by set.
 - **Findings:** what separates elite teams, how much home court is worth, whether momentum
   is real, and how often the best team wins the title.
 - **Under the hood:** the data, the twelve numbers the model learns per team, a step-by-step
@@ -102,13 +103,13 @@ which the site build reads).
    matches, and a comparison against a simpler model that rates each team with a single
    serving and receiving strength. The two predict equally well; the step-by-step model is
    used because it can explain *why* a team is favored.
-5. **Ask the model.** The chat on every page is Claude Haiku 5.5 with the model as ten read-only
-   tools: match odds, team profiles, rankings, bracket odds, tournament results, upset
+5. **Ask the model.** The chat on every page is Claude Haiku 5.5 with the model as eleven read-only
+   tools: match odds, odds from a score in progress, team profiles, rankings, bracket odds, tournament results, upset
    breakdowns, and SQL over the box scores. The tools do the math, so the chat's odds are the
    simulator's odds. Every number in an answer must match a tool result at the precision it's
    written; if one doesn't, Claude gets one rewrite, and then the answer is replaced with
    "couldn't answer reliably". Follow-ups keep the conversation as context, but each answer looks
-   its numbers up again. It was tested on a 150-question golden set with computed answers,
+   its numbers up again. It was tested on a 160-question golden set with computed answers,
    including 15 questions it should decline; Haiku got 59 of the 60 run so far right, at about
    $0.001 a question. See [the MCP server](#ask-the-model-from-claude-mcp-server),
    [the evals](#evals-is-the-agent-right-and-are-its-numbers-real) and
@@ -153,7 +154,7 @@ open web/index.html
 
 ## Ask the model from Claude (MCP server)
 
-`rallytools/server.py` exposes the model as ten read-only tools over the
+`rallytools/server.py` exposes the model as eleven read-only tools over the
 [Model Context Protocol](https://modelcontextprotocol.io), so Claude Code, Claude Desktop or any
 MCP client can answer questions like "Could 2025 Nebraska have beaten 2023 Texas?" with the
 model's own numbers.
@@ -161,6 +162,7 @@ model's own numbers.
 | tool | what it returns |
 |---|---|
 | `win_probability` | exact match odds for any two team-seasons and venue, set and final-score odds, rally-step rates |
+| `live_win_probability` | match odds from a score in progress (sets, points, who serves), before-match odds, and the odds after either team wins the next rally |
 | `team_profile` | rank, record, rating and the twelve rally-step numbers, counted and opponent-adjusted |
 | `season_rankings` | end-of-season rankings |
 | `bracket_forecast`, `advancement_odds` | pre-tournament title and round-by-round odds, bracket score |
@@ -188,9 +190,10 @@ Check it without a client: `.venv/bin/python -m rallytools.server --check`.
 ## Evals: is the agent right, and are its numbers real?
 
 `evals/` measures a question-answering agent built on these tools. Every expected answer is
-computed, never written by a model: 150 questions across match odds, cross-season matchups,
-team profiles, rankings, brackets, upset explanations, SQL stats, and 15 questions the data
-can't answer (injuries, 2026, betting), where the right answer is to decline. Review them in
+computed, never written by a model: 160 questions across match odds, cross-season matchups,
+odds from a score in progress, team profiles, rankings, brackets, upset explanations, SQL stats,
+15 questions the data can't answer (injuries, 2026, betting), where the right answer is to
+decline, and real questions from the site's chat (below). Review them in
 [`evals/golden.md`](evals/golden.md).
 
 | metric | what it checks |
@@ -207,8 +210,8 @@ five fake answerers through the full pipeline and fails unless each lands where 
 |---|---|---|---|
 | oracle (calls the right tool, states the answer) | 100% | 0% | 100% |
 | same text, no tool calls | 100% | 100% | 0% |
-| oracle with every number nudged | 12% (fact-only cases) | 84% | 100% |
-| declines everything | 10% (the out-of-scope cases) | 0% | 0% |
+| oracle with every number nudged | 11% (fact-only cases) | 84% | 100% |
+| declines everything | 9% (the out-of-scope cases) | 0% | 0% |
 | empty answer | 0% | – | 0% |
 
 The perturbed row is also the grounding checker's measured limit: 16% of plausible wrong numbers
@@ -220,6 +223,23 @@ so grounding is a backstop and correctness checks the numbers that matter agains
 .venv/bin/python -m evals.run --selftest          # harness and grader sanity check (free, runs in CI)
 .venv/bin/python -m evals.run --answerer <module:function> --variant baseline   # a real agent
 ```
+
+### Real questions become test cases
+
+The public API logs every question it answers (the IP is hashed). Every few weeks:
+
+```sh
+.venv/bin/python -m evals.logs pull      # copy the log from Cloud Logging to evals/logs/ (not committed)
+.venv/bin/python -m evals.logs triage    # evals/logs/inbox.md, worst first
+```
+
+The inbox lists answers that failed the number check, tool errors, declines (to confirm the data
+really can't answer them), follow-ups, and questions unlike anything in the golden set. Worth keeping
+ones go in [`evals/logged.py`](evals/logged.py) with the tool call that answers them; the expected
+numbers are read from that call when the golden set is generated, never typed in. The first pass
+found a real bug: after "Why did Texas A&M win the 2025 title?", the follow-up "Who was the best
+team of 2022?" got the Texas A&M answer again in 3 of 5 runs. It's now case `logged-004`, and
+marking the newest question in the conversation fixed it (5 of 5).
 
 ## The agent and its public API
 

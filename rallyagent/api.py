@@ -218,10 +218,12 @@ async def ask(request: Request):
     answer = r["answer"] if grounded and r["answer"] else NOT_RELIABLE
     tools = [{"name": c["name"], "args": c["args"]} for c in r["tool_calls"] if c["error"] is None]
     log.info(json.dumps({"event": "ask", "ip": hashlib.sha256(ip.encode()).hexdigest()[:12], "question": question,
-                         "history_turns": len(history),
+                         "history_turns": len(history), "history": history,
                          "answer": r["answer"], "shown": answer == r["answer"], "grounded": grounded,
                          "ungrounded": r.get("grounding", {}).get("ungrounded", []), "status": r["status"],
-                         "tools": tools, "cost_usd": cost, "latency_s": round(time.monotonic() - t0, 2)}))
+                         "tools": tools, "tool_errors": [{"name": c["name"], "args": c["args"], "error": c["error"]}
+                                                         for c in r["tool_calls"] if c["error"] is not None],
+                         "cost_usd": cost, "latency_s": round(time.monotonic() - t0, 2)}))
     return JSONResponse({"answer": answer, "grounded": grounded, "tools": tools})
 
 

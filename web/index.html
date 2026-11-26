@@ -243,6 +243,20 @@ table.paths tr.tot td { border-top: 2px solid var(--axis); font-weight: 700; }
 .winlabels .big { font-family: var(--display); font-weight: 800; font-size: 2.6rem; line-height: 1; }
 .winlabels div:last-child { text-align: right; }
 .why { font-size: 1.02rem; }
+.live .scoreboard { display: grid; grid-template-columns: minmax(0, 1fr) auto auto auto; gap: 8px 14px; align-items: center; max-width: 560px; }
+.sb-head, .sb-row { display: contents; }
+.sb-head span { font-family: var(--mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-2); text-align: center; }
+.sb-team { display: flex; align-items: center; gap: 8px; min-width: 0; font-weight: 600; hyphens: auto; }
+.stepper { display: inline-flex; align-items: center; border: 1px solid var(--axis); border-radius: 6px; overflow: hidden; background: var(--surface); }
+.stepper button { font: inherit; font-size: 1.1rem; width: 36px; height: 40px; border: 0; background: transparent; color: var(--ink); cursor: pointer; }
+.stepper button:hover:not(:disabled) { background: var(--court-soft); }
+.stepper button:disabled { color: var(--axis); cursor: default; }
+.stepper output { min-width: 2.2ch; text-align: center; font-family: var(--display); font-weight: 800; font-size: 1.7rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.serve { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; border: 1px dashed var(--axis); background: transparent; color: var(--axis); cursor: pointer; justify-self: center; }
+.serve[aria-pressed="true"] { border: 1px solid var(--court); background: var(--court); color: var(--surface); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (max-width: 420px) { .live .scoreboard { gap: 8px 6px; } .sb-team { font-size: 0.9rem; gap: 6px; } .stepper button { width: 26px; height: 36px; }
+  .stepper output { font-size: 1.45rem; } .serve { width: 34px; height: 34px; } }
 .why strong { color: var(--court); }
 .note { font-size: 0.85rem; color: var(--ink-2); border-left: 3px solid var(--gold); padding-left: 10px; }
 
@@ -530,6 +544,32 @@ footer { padding-bottom: 96px; }
         <div class="scroll"><table id="steps"></table></div>
       </div>
     </div>
+    <div class="panel live" id="live">
+      <h3>Odds from any score</h3>
+      <p class="small muted">Tap + for the team that wins each rally. The serve follows the rally winner, and a new set starts when one ends. Tap the ball to change who's serving.</p>
+      <div class="scoreboard" role="group" aria-label="Score">
+        <div class="sb-head"><span></span><span>Sets</span><span>Points</span><span>Serve</span></div>
+        <div class="sb-row">
+          <span class="sb-team"><span class="swatch" style="background:var(--s1)"></span><span id="lv-a-name"></span></span>
+          <div class="stepper"><button type="button" data-lv="as-" aria-label="Sets minus one">−</button><output id="lv-as">0</output><button type="button" data-lv="as+" aria-label="Sets plus one">+</button></div>
+          <div class="stepper"><button type="button" data-lv="ap-" aria-label="Points minus one">−</button><output id="lv-ap">0</output><button type="button" data-lv="ap+" aria-label="Points plus one">+</button></div>
+          <button class="serve" type="button" data-lv="aserve" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M11.1 7.1a16.55 16.55 0 0 1 10.9 4"/><path d="M12 12a12.6 12.6 0 0 1-8.7 5"/><path d="M16.8 13.6a16.55 16.55 0 0 1-9 7.5"/><path d="M20.7 17a12.8 12.8 0 0 0-8.7-5 13.3 13.3 0 0 1 0-10"/><path d="M6.3 3.8a16.55 16.55 0 0 0 1.9 11.5"/></svg><span class="sr">Serving</span></button>
+        </div>
+        <div class="sb-row">
+          <span class="sb-team"><span class="swatch" style="background:var(--s2)"></span><span id="lv-b-name"></span></span>
+          <div class="stepper"><button type="button" data-lv="bs-" aria-label="Sets minus one">−</button><output id="lv-bs">0</output><button type="button" data-lv="bs+" aria-label="Sets plus one">+</button></div>
+          <div class="stepper"><button type="button" data-lv="bp-" aria-label="Points minus one">−</button><output id="lv-bp">0</output><button type="button" data-lv="bp+" aria-label="Points plus one">+</button></div>
+          <button class="serve" type="button" data-lv="bserve" aria-pressed="false"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M11.1 7.1a16.55 16.55 0 0 1 10.9 4"/><path d="M12 12a12.6 12.6 0 0 1-8.7 5"/><path d="M16.8 13.6a16.55 16.55 0 0 1-9 7.5"/><path d="M20.7 17a12.8 12.8 0 0 0-8.7-5 13.3 13.3 0 0 1 0-10"/><path d="M6.3 3.8a16.55 16.55 0 0 0 1.9 11.5"/></svg><span class="sr">Serving</span></button>
+        </div>
+      </div>
+      <div class="winlabels" aria-live="polite">
+        <div><span class="small muted" id="lv-a-label"></span><span class="big" id="lv-a-odds"></span></div>
+        <div><span class="small muted" id="lv-b-label"></span><span class="big" id="lv-b-odds"></span></div>
+      </div>
+      <div class="winbar" id="lv-bar" aria-hidden="true"><div style="background:var(--s1)"></div><div style="background:var(--s2)"></div></div>
+      <p class="why" id="lv-why"></p>
+      <div><button class="btn slim" type="button" id="lv-reset">Back to 0-0</button></div>
+    </div>
   </section>
   </div>
   <div class="view" data-view="findings" hidden>
@@ -731,9 +771,9 @@ footer { padding-bottom: 96px; }
       <p>The volleyball button in the corner opens a chat with an AI assistant. It doesn't answer from memory. It looks things up with the same model and math that run this site, and every number it gives you gets checked before you see it.</p>
     </div>
     <ol class="chain">
-      <li><h3>It looks it up</h3><p>The assistant picks from ten tools: match odds for any two teams and seasons, team profiles, rankings, bracket odds, tournament results, what decided an upset, and read-only queries over the box scores. The tools do the math, so the odds match the simulator exactly.</p></li>
+      <li><h3>It looks it up</h3><p>The assistant picks from eleven tools: match odds for any two teams and seasons, odds from any score, team profiles, rankings, bracket odds, tournament results, what decided an upset, and read-only queries over the box scores. The tools do the math, so the odds match the simulator exactly.</p></li>
       <li><h3>Every number gets checked</h3><p>Each number in an answer has to match something a tool returned, at the precision it's written. If one doesn't, the assistant gets one chance to fix it. If it still can't, you get "couldn't answer reliably" instead. Every answer has a "Show the work" list of the lookups behind it.</p></li>
-      <li><h3>It was tested first</h3><p>The test set has 150 questions with answers computed from the model, not written by hand, including 15 it should turn down, like injuries or betting picks. On the 60 questions run so far it got 59 right, for about a tenth of a cent each.</p></li>
+      <li><h3>It was tested first</h3><p>The test set has 160 questions with answers computed from the model, not written by hand, including 15 it should turn down, like injuries or betting picks, and real questions people asked here. On the 60 questions run so far it got 59 right, for about a tenth of a cent each.</p></li>
     </ol>
     <div class="panel">
       <h3>What the chat can't do</h3>
@@ -786,7 +826,8 @@ const logit = p => Math.log(p) - Math.log1p(-p);
 const expit = z => 1 / (1 + Math.exp(-z));
 
 // Exact P(A wins a set). pSrv: P(A wins a rally when A serves); pRcv: when B serves.
-function setWin(pSrv, pRcv, target, aFirst) {
+// a0-b0 is the score to start from; aFirst says whether A serves next.
+function setWin(pSrv, pRcv, target, aFirst, a0 = 0, b0 = 0) {
   const t = target;
   // From a tie at t-1 or later: x = A serving, y = B serving.
   const a11 = 1 - (1 - pSrv) * pRcv, a12 = -pSrv * (1 - pSrv);
@@ -798,7 +839,10 @@ function setWin(pSrv, pRcv, target, aFirst) {
   const val = (a, b, s) => {
     if (a >= t && a - b >= 2) return 1;
     if (b >= t && b - a >= 2) return 0;
-    if (a === t - 1 && b === t - 1) return s ? tieA : tieB;
+    if (a >= t - 1 && b >= t - 1) {   // deuce: only the lead and the server matter
+      const p = s ? pSrv : pRcv;
+      return a === b ? (s ? tieA : tieB) : a > b ? p + (1 - p) * tieB : p * tieA;
+    }
     return V[at(a, b, s)];
   };
   for (let a = t - 1; a >= 0; a--) for (let b = t - 1; b >= 0; b--) {
@@ -808,7 +852,36 @@ function setWin(pSrv, pRcv, target, aFirst) {
       V[at(a, b, s)] = p * val(a + 1, b, 1) + (1 - p) * val(a, b + 1, 0);
     }
   }
-  return val(0, 0, aFirst ? 1 : 0);
+  return val(a0, b0, aFirst ? 1 : 0);
+}
+const setOver = (a, b, t) => (a >= t || b >= t) && Math.abs(a - b) >= 2;
+
+// P(A wins the match) from a score in progress, and after A or B wins the next rally. Like matchOutcomes it
+// averages over match-day form, but first weights each form level by how likely it makes the sets already played.
+function liveOdds(soA, soB, formSd, gh, setsA, setsB, ptsA, ptsB, aServing) {
+  const nodes = formSd > 0 ? gh.x.map((x, i) => [x, gh.w[i]]).filter(([, w]) => w > 1e-9) : [[0, 1]];
+  const out = { win: 0, set: 0, ifA: 0, ifB: 0 };
+  let wsum = 0;
+  for (const [x, w] of nodes) {
+    const pSrv = 1 - expit(logit(soB) - formSd * x), pRcv = expit(logit(soA) + formSd * x);
+    const s = 0.5 * (setWin(pSrv, pRcv, 25, true) + setWin(pSrv, pRcv, 25, false));
+    const f = 0.5 * (setWin(pSrv, pRcv, 15, true) + setWin(pSrv, pRcv, 15, false));
+    const M = (i, j) => i === 3 ? 1 : j === 3 ? 0 : (i + j === 4 ? f : s) * M(i + 1, j) + (1 - (i + j === 4 ? f : s)) * M(i, j + 1);
+    const at = (i, j, a, b, srv) => {
+      const t = i + j === 4 ? 15 : 25;
+      if (setOver(a, b, t)) return a > b ? M(i + 1, j) : M(i, j + 1);
+      const q = setWin(pSrv, pRcv, t, srv, a, b);
+      return q * M(i + 1, j) + (1 - q) * M(i, j + 1);
+    };
+    const pw = w * s ** setsA * (1 - s) ** setsB;
+    out.win += pw * at(setsA, setsB, ptsA, ptsB, aServing);
+    out.set += pw * setWin(pSrv, pRcv, setsA + setsB === 4 ? 15 : 25, aServing, ptsA, ptsB);
+    out.ifA += pw * at(setsA, setsB, ptsA + 1, ptsB, true);
+    out.ifB += pw * at(setsA, setsB, ptsA, ptsB + 1, false);
+    wsum += pw;
+  }
+  for (const k in out) out[k] /= wsum;
+  return out;
 }
 
 // Set and match outcome probabilities for A, from sideout rates soA (A receiving) and soB.
@@ -951,6 +1024,36 @@ function agentTools(D) {
     };
   }
 
+  function live_win_probability({ team_a, season_a, team_b, season_b, venue = "neutral", sets_a = 0, sets_b = 0, points_a = 0, points_b = 0, serving = "team_a" }) {
+    if (!["neutral", "team_a_home", "team_b_home"].includes(venue))
+      throw new ToolError(`venue must be one of neutral, team_a_home, team_b_home, got ${JSON.stringify(venue)}`);
+    if (!["team_a", "team_b"].includes(serving)) throw new ToolError(`serving must be team_a or team_b, got ${JSON.stringify(serving)}`);
+    [sets_a, sets_b, points_a, points_b] = [sets_a, sets_b, points_a, points_b].map(v => Math.trunc(Number(v)));
+    if (!(sets_a >= 0 && sets_a <= 2 && sets_b >= 0 && sets_b <= 2)) throw new ToolError("sets_a and sets_b must be 0, 1 or 2; at 3 the match is over");
+    const target = sets_a + sets_b === 4 ? 15 : 25;
+    if (!(points_a >= 0 && points_b >= 0 && points_a <= 60 && points_b <= 60)) throw new ToolError("points must be between 0 and 60");
+    if (setOver(points_a, points_b, target))
+      throw new ToolError(`${points_a}-${points_b} is a finished set (sets go to ${target}, win by 2); count it in sets_a or sets_b and give the score of the set in progress`);
+    const sa = season(season_a), sb = season(season_b ?? season_a);
+    const A = resolve(team_a, sa), B = resolve(team_b, sb);
+    if (A === B) throw new ToolError("team_a and team_b are the same team and season");
+    const home = { neutral: 0, team_a_home: 1, team_b_home: -1 }[venue], ctx = ctxFor(sa, sb);
+    const ra = sideout(A, B, home, ctx), rb = sideout(B, A, -home, ctx);
+    const o = liveOdds(ra.p, rb.p, D.form_sd, D.gh, sets_a, sets_b, points_a, points_b, serving === "team_a");
+    const pre = matchOutcomes(ra.p, rb.p, D.form_sd, D.gh).win;
+    return {
+      team_a: { name: A.n, season: sa }, team_b: { name: B.n, season: sb }, venue,
+      score: { sets: `${sets_a}-${sets_b}`, current_set: `${points_a}-${points_b}`, set_number: sets_a + sets_b + 1,
+        set_to: target, serving: serving === "team_a" ? A.n : B.n },
+      p_team_a_wins: r4(o.win), p_team_b_wins: r4(1 - o.win),
+      display: { [A.n]: oddsText(o.win), [B.n]: oddsText(1 - o.win) },
+      p_team_a_wins_current_set: r4(o.set),
+      before_the_match: { p_team_a_wins: r4(pre), p_team_b_wins: r4(1 - pre) },
+      next_rally: { [`if ${A.n} wins it`]: r4(o.ifA), [`if ${B.n} wins it`]: r4(o.ifB), values_are: `P(${A.n} wins the match)` },
+      notes: "Exact calculation from this score. The model also learns from the sets already played: a team that has won more of them is probably having a good night. Points in the current set aren't used for that.",
+    };
+  }
+
   const PARAMS = [
     [0, "serve", "off", 0, "serving_aces", "Ace rate on its serves", 1],
     [1, "serve", "off", 1, "serving_errors", "Service error rate", -1],
@@ -1076,7 +1179,7 @@ function agentTools(D) {
         "betting lines", "full ratings for teams outside the top 64 before 2025"] };
   }
 
-  return { win_probability, team_profile, season_rankings, bracket_forecast, advancement_odds, tournament_matches, explain_upset, model_facts };
+  return { win_probability, live_win_probability, team_profile, season_rankings, bracket_forecast, advancement_odds, tournament_matches, explain_upset, model_facts };
 }
 
 // Tool definitions for Claude, matching rallyagent/tools.py (minus the SQL tools, which need the database).
@@ -1088,6 +1191,13 @@ const AGENT_TOOL_SPECS = [
     { team_a: T_TEAM, season_a: T_SEASON, team_b: T_TEAM, season_b: { type: "integer", description: "team_b's season if different from season_a" },
       venue: { type: "string", enum: ["neutral", "team_a_home", "team_b_home"], description: "Where the match is played; neutral unless the question says whose gym" } },
     ["team_a", "season_a", "team_b"]],
+  ["live_win_probability", "Odds that team_a wins the match from a score in progress: sets won, points in the current set and who serves next. Also returns the odds before the match and after either team wins the next rally. Call for 'X leads 2-1', 'down 20-23 in the fourth', 'what are the odds from here' questions.",
+    { team_a: T_TEAM, season_a: T_SEASON, team_b: T_TEAM, season_b: { type: "integer", description: "team_b's season if different from season_a" },
+      venue: { type: "string", enum: ["neutral", "team_a_home", "team_b_home"], description: "Where the match is played; neutral unless the question says whose gym" },
+      sets_a: { type: "integer", description: "Sets team_a has won, 0-2" }, sets_b: { type: "integer", description: "Sets team_b has won, 0-2" },
+      points_a: { type: "integer", description: "team_a's points in the set in progress" }, points_b: { type: "integer", description: "team_b's points in the set in progress" },
+      serving: { type: "string", enum: ["team_a", "team_b"], description: "Who serves next: the team that won the last rally; team_a if unknown" } },
+    ["team_a", "season_a", "team_b", "sets_a", "sets_b", "points_a", "points_b"]],
   ["team_profile", "A team-season's rank, record, rating and its 12 rally-step numbers (serving, passing, first attack, defending the first attack, scramble offense and defense), counted and opponent-adjusted, next to league averages. Call for questions about how good a team was, its record, or a specific strength or weakness.",
     { team: T_TEAM, season: T_SEASON }, ["team", "season"]],
   ["season_rankings", "End-of-season model rankings by rating. Call for 'best team', 'top N', or 'where did X rank'. 2020-2024 publish only the top 64 teams.",
@@ -1109,11 +1219,12 @@ const ASK_RULES = `You answer questions about NCAA Division I women's volleyball
 
 Choosing tools:
 - Match odds, "who wins", "could X beat Y", most likely score, sweeps: win_probability. Teams may be from different seasons. Venue is neutral unless the question says whose gym.
+- Odds from a score in progress ("Texas leads 2-1", "down 20-23 in the fourth"): live_win_probability. If the question doesn't say who serves, use the team that just scored, or team_a, and say so.
 - How good a team was, its record, rank, a strength or weakness: team_profile (season_rankings for top-N lists).
 - NCAA tournament: bracket_forecast (whole field, the model's pick, bracket score), advancement_odds (one team's round-by-round odds), tournament_matches (results, upsets), explain_upset (why one tournament match went the way it did).
 - If a team is named without a season, pick the season the question implies ("could Nebraska have beaten 2023 Texas" most likely means the 2023 teams; "how good is Nebraska" means 2025) and say which season you used.
 - Call independent tools in parallel. Stop calling tools once you have what the question needs.
-- In a conversation, earlier messages are context only. Every number in an answer must come from a tool call made for that answer, so call the tools again when you reuse an earlier number. Resolve follow-ups like "and at home?" from the earlier messages.
+- In a conversation, answer only the newest question (marked "Newest question"). Earlier questions were already answered: don't research or answer them again. Use earlier messages only to work out what the newest question refers to, like "and at home?" or "what about their odds?". Every number in your answer must come from a tool call made for this answer, so look up any earlier number again before you repeat it.
 
 What this can't answer: box-score stats such as kills, aces, digs or hitting percentage (say those need the Rally Odds site's version of Ask the model), injuries, lineups, coaches, recruiting, betting lines, attendance, TV ratings, anything before 2020 or after 2025, future seasons, men's, beach, or non-Division I volleyball. For these, say plainly that the data doesn't cover it and what it does cover; don't estimate.
 
@@ -1513,6 +1624,75 @@ function ctxFor(sa, sb) {
 }
 function label(side) { return state[side].n + (state.a.s !== state.b.s ? " " + state[side].s : ""); }
 
+// ---------- Odds from any score ----------
+const live = { sa: 0, sb: 0, pa: 0, pb: 0, srv: "a" };
+let liveTeams = null;   // { la, lb, ra, rb } from drawMatchup
+const liveTarget = () => live.sa + live.sb === 4 ? 15 : 25;
+const liveOver = () => live.sa === 3 || live.sb === 3;
+function liveRally(side) {
+  if (liveOver()) return;
+  live["p" + side]++; live.srv = side;
+  if (setOver(live.pa, live.pb, liveTarget())) {
+    live[live.pa > live.pb ? "sa" : "sb"]++;
+    live.last = `${Math.max(live.pa, live.pb)}-${Math.min(live.pa, live.pb)}`;
+    live.pa = live.pb = 0;
+  } else live.last = null;
+}
+document.getElementById("live").addEventListener("click", e => {
+  const b = e.target.closest("[data-lv]");
+  if (!b) return;
+  const [, side, kind, op] = b.dataset.lv.match(/^([ab])(s|p|serve)([+-]?)$/);
+  if (kind === "serve") live.srv = side;
+  else if (kind === "p" && op === "+") liveRally(side);
+  else if (kind === "p") live["p" + side] = Math.max(0, live["p" + side] - 1);
+  else {
+    const k = "s" + side, other = side === "a" ? "sb" : "sa";
+    live[k] = op === "+" ? Math.min(3, live[k] + 1) : Math.max(0, live[k] - 1);
+    if (live[other] === 3 && live[k] === 3) live[k] = 2;
+    if (setOver(live.pa, live.pb, liveTarget())) live.pa = live.pb = 0;   // e.g. 20-18 is over once it's the 15-point 5th set
+    live.last = null;
+  }
+  drawLive();
+});
+$("lv-reset").addEventListener("click", () => { Object.assign(live, { sa: 0, sb: 0, pa: 0, pb: 0, srv: "a", last: null }); drawLive(); });
+
+function drawLive() {
+  if (!liveTeams) return;
+  const { la, lb, ra, rb, pre } = liveTeams, over = liveOver();
+  for (const k of ["sa", "sb", "pa", "pb"]) $("lv-" + k[1] + k[0]).textContent = live[k];
+  $("lv-a-name").textContent = la; $("lv-b-name").textContent = lb;
+  $("lv-a-label").textContent = la; $("lv-b-label").textContent = lb;
+  document.querySelectorAll("#live [data-lv]").forEach(b => {
+    const [, side, kind, op] = b.dataset.lv.match(/^([ab])(s|p|serve)([+-]?)$/), name = side === "a" ? la : lb;
+    if (kind === "serve") {
+      b.setAttribute("aria-pressed", String(live.srv === side && !over));
+      b.setAttribute("aria-label", `${name} serving`); b.disabled = over;
+      return;
+    }
+    b.setAttribute("aria-label", `${name} ${kind === "s" ? "sets" : "points"} ${op === "+" ? "plus" : "minus"} one`);
+    const v = live[kind + side];
+    b.disabled = op === "-" ? v === 0 : kind === "p" ? over : v === 3 || (side === "a" ? live.sb : live.sa) === 3;
+  });
+  let p, msg;
+  if (over) {
+    p = live.sa === 3 ? 1 : 0;
+    msg = `<strong>${esc(p ? la : lb)}</strong> wins the match ${Math.max(live.sa, live.sb)}-${Math.min(live.sa, live.sb)}. Before the first serve the model gave ${esc(p ? la : lb)} ${oddsText(p ? pre : 1 - pre)}.`;
+  } else {
+    const o = liveOdds(ra.p, rb.p, D.form_sd, D.gh, live.sa, live.sb, live.pa, live.pb, live.srv === "a");
+    p = o.win;
+    const swing = Math.round(100 * (o.ifA - o.ifB)), setNo = live.sa + live.sb + 1;
+    const ended = live.last ? `That set ended ${live.last}. ` : "";
+    msg = live.sa + live.sb + live.pa + live.pb === 0
+      ? `At the first serve, <strong>${esc(la)}</strong> has ${oddsText(p)} with ${esc(live.srv === "a" ? la : lb)} serving. Before the match, averaged over who serves first, it was ${oddsText(pre)}.`
+      : `${ended}Set ${setNo}${setNo === 5 ? ", to 15" : ""}. Before the match, ${esc(la)} had ${oddsText(pre)}. If ${esc(la)} wins the next rally: ${oddsText(o.ifA)}. If ${esc(lb)} wins it: ${oddsText(o.ifB)}.`
+        + (swing >= 10 ? ` That rally swings the match by ${swing} points.` : "");
+  }
+  $("lv-a-odds").textContent = oddsText(p); $("lv-b-odds").textContent = oddsText(1 - p);
+  const bars = $("lv-bar").children;
+  bars[0].style.width = (100 * p) + "%"; bars[1].style.width = (100 * (1 - p)) + "%";
+  $("lv-why").innerHTML = msg;
+}
+
 function drawMatchup() {
   const A = D.seasons[state.a.s].teams.find(t => t.n === state.a.n);
   const B = D.seasons[state.b.s].teams.find(t => t.n === state.b.n);
@@ -1520,6 +1700,7 @@ function drawMatchup() {
   const ra = sideout(A, B, state.home, ctx), rb = sideout(B, A, -state.home, ctx);
   const o = matchOutcomes(ra.p, rb.p, D.form_sd, D.gh);
   const la = label("a"), lb = label("b");
+  liveTeams = { la, lb, ra, rb, pre: o.win }; drawLive();
   document.querySelectorAll("#venue button").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.v === state.home)));
   $("venue").children[0].textContent = state.a.n + " at home";
   $("venue").children[2].textContent = state.b.n + " at home";
@@ -1831,7 +2012,7 @@ $("skip").addEventListener("click", () => $("main").focus());
   const MAX_HISTORY = 6;   // earlier messages sent with a follow-up (the API's cap)
   const tools = agentTools(D);
   const NOT_RELIABLE = "Sorry, that one couldn't be answered reliably from the model's numbers. Try asking about match odds, a team's season, or an NCAA tournament from 2020 to 2025.";
-  const LABEL = { win_probability: "Match odds", team_profile: "Team profile", season_rankings: "Season rankings",
+  const LABEL = { win_probability: "Match odds", live_win_probability: "Odds from a score", team_profile: "Team profile", season_rankings: "Season rankings",
     bracket_forecast: "Bracket forecast", advancement_odds: "Tournament odds", tournament_matches: "Tournament results",
     explain_upset: "Match breakdown", model_facts: "What the data covers", query_stats: "Box-score query", sql_schema: "Box-score tables" };
   const CLAUDE_ERRORS = { not_granted: "The assistant isn't allowed to answer here. Allow it from this artifact's menu, then ask again.",
@@ -1854,7 +2035,12 @@ $("skip").addEventListener("click", () => $("main").focus());
   // Suggestions follow the page: the matchup on the simulator, the selected match on the bracket.
   function suggestions() {
     const v = location.hash.slice(1), out = [];
-    if (v === "matchups") out.push(`Who wins ${state.a.s} ${state.a.n} vs ${state.b.s} ${state.b.n}, and why?`);
+    if (v === "matchups") {
+      out.push(`Who wins ${state.a.s} ${state.a.n} vs ${state.b.s} ${state.b.n}, and why?`);
+      const live0 = live.sa + live.sb + live.pa + live.pb === 0 || live.sa === 3 || live.sb === 3;
+      out.push(live0 ? `If ${state.a.n} trails ${state.b.n} 1-2 and 20-23 in the fourth, what are the odds?`
+        : `${state.a.n} vs ${state.b.n}: sets ${live.sa}-${live.sb}, ${live.pa}-${live.pb} in set ${live.sa + live.sb + 1}, ${live.srv === "a" ? state.a.n : state.b.n} serving. What are the odds now?`);
+    }
     if (v === "bracket" && selected != null && NODES[selected]) {
       const n = NODES[selected];
       out.push(`How did ${n.w} beat ${other(n, n.w)} in the ${year} tournament?`, `Who did the model pick to win in ${year}?`);
@@ -1922,7 +2108,7 @@ $("skip").addEventListener("click", () => $("main").focus());
         try { rec.result = tools[name](input); return rec.result; }
         catch (e) { rec.error = e.message; throw e; }
       } }));
-    const input = [{ role: "user", content: ASK_RULES }, ...history, { role: "user", content: question }];
+    const input = [{ role: "user", content: ASK_RULES }, ...history, { role: "user", content: history.length ? `Newest question: ${question}` : question }];
     const { text } = await sample(input, { tools: toolDefs, modelTier: "quick", signal: ctl.signal, onText: ({ text }) => bot.show(text) });
     let answer = text, g = groundCheck(answer, calls, question);
     if (g.ungrounded.length) {

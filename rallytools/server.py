@@ -21,6 +21,7 @@ from . import sql as Q
 INSTRUCTIONS = """\
 Tools for NCAA Division I women's volleyball, 2020-2025, from a rally-by-rally model (Rally Odds).
 - Match odds between any two team-seasons (cross-season "dream matchups" too): win_probability.
+- Odds from a score in progress (sets, points, who serves): live_win_probability.
 - A team's strengths: team_profile. Rankings: season_rankings.
 - NCAA tournaments 2021-2025: bracket_forecast, advancement_odds, tournament_matches, explain_upset.
 - Anything else in the data (box scores, players, set scores, rallies): sql_schema, then query_stats.
@@ -58,6 +59,22 @@ def win_probability(
     probabilities and each team's rally-step rates when receiving serve. Uses end-of-season ratings.
     Teams can be from different seasons (a hypothetical matchup)."""
     return C.win_probability(team_a, season_a, team_b, season_b, venue)
+
+
+@tool
+def live_win_probability(
+    team_a: Team, season_a: Season, team_b: Team,
+    season_b: Annotated[Optional[int], Field(ge=2020, le=2025, description="team_b's season; defaults to season_a")] = None,
+    venue: Literal["neutral", "team_a_home", "team_b_home"] = "neutral",
+    sets_a: Annotated[int, Field(ge=0, le=2, description="Sets team_a has won")] = 0,
+    sets_b: Annotated[int, Field(ge=0, le=2, description="Sets team_b has won")] = 0,
+    points_a: Annotated[int, Field(ge=0, le=60, description="team_a's points in the set in progress")] = 0,
+    points_b: Annotated[int, Field(ge=0, le=60, description="team_b's points in the set in progress")] = 0,
+    serving: Literal["team_a", "team_b"] = "team_a",
+) -> dict:
+    """Probability that team_a wins the match from a score in progress (sets won, points in the current set,
+    who serves next), with the odds before the match and after each team wins the next rally."""
+    return C.live_win_probability(team_a, season_a, team_b, season_b, venue, sets_a, sets_b, points_a, points_b, serving)
 
 
 @tool
@@ -136,6 +153,7 @@ def _check():
 
     calls = [
         ("win_probability", {"team_a": "Nebraska", "season_a": 2025, "team_b": "Texas", "season_b": 2023}),
+        ("live_win_probability", {"team_a": "Texas", "season_a": 2025, "team_b": "Nebraska", "sets_a": 1, "sets_b": 2, "points_a": 20, "points_b": 23, "serving": "team_b"}),
         ("team_profile", {"team": "Penn State", "season": 2024}),
         ("season_rankings", {"season": 2025, "top": 3}),
         ("bracket_forecast", {"season": 2025, "top": 3}),

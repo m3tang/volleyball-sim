@@ -90,6 +90,27 @@ def sufficient(spec, call):
             venue = a.get("venue", "neutral")
             home = None if venue == "neutral" else ta if venue == "team_a_home" else tb
             return home == (_resolve(spec["home"], spec["teams"][0][1]) if spec["home"] else None)
+        if t == "live_win_probability":
+            sa = int(a["season_a"])
+            sb = int(a.get("season_b") or sa)
+            ta, tb = _resolve(a["team_a"], sa), _resolve(a["team_b"], sb)
+            (na, ssa), (nb, ssb) = spec["teams"]
+            w = spec["args"]
+            same = (ta, sa) == (_resolve(na, ssa), ssa) and (tb, sb) == (_resolve(nb, ssb), ssb)
+            swap = (ta, sa) == (_resolve(nb, ssb), ssb) and (tb, sb) == (_resolve(na, ssa), ssa)
+            score = lambda x, y: [int(a.get(k, 0)) for k in (x + "_a", x + "_b")] == [int(w[k]) for k in (y + "_a", y + "_b")]
+            if same:
+                ok = score("sets", "sets") and score("points", "points") and a.get("serving", "team_a") == w["serving"]
+            elif swap:
+                flip = {"team_a": "team_b", "team_b": "team_a"}
+                ok = ([int(a.get("sets_b", 0)), int(a.get("sets_a", 0)), int(a.get("points_b", 0)), int(a.get("points_a", 0))]
+                      == [int(w["sets_a"]), int(w["sets_b"]), int(w["points_a"]), int(w["points_b"])]
+                      and flip[a.get("serving", "team_a")] == w["serving"])
+            else:
+                return False
+            venue = a.get("venue", "neutral")
+            home = None if venue == "neutral" else ta if venue == "team_a_home" else tb
+            return ok and home == (_resolve(spec["home"], ssa) if spec["home"] else None)
         if t in ("team_profile", "advancement_odds"):
             s = int(a["season"])
             return s == spec["season"] and _resolve(a["team"], s) == _resolve(spec["team"], s)

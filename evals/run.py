@@ -68,6 +68,7 @@ def trace(case, run):
     t = []
     if run.get("system"):
         t.append({"role": "system", "content": run["system"]})
+    t += case.get("history") or []
     t.append({"role": "user", "content": case["question"]})
     for c in run.get("tool_calls") or []:
         t.append({"role": "tool_call", "name": c["name"], "content": json.dumps(c.get("args") or {}, indent=2)})
