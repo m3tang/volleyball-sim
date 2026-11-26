@@ -130,6 +130,18 @@ def load(seasons, db=DB):
     return out
 
 
+def recency_weights(data, tables, cutoff, half_life):
+    """{table: weight per row}, 0.5 ** (age in days / half_life). None means no weighting."""
+    if half_life is None:
+        return None
+    cutoff = np.datetime64(cutoff, "D")
+    out = {}
+    for t in tables:
+        age = (cutoff - data[t]["date"].astype("datetime64[D]")).astype(float)
+        out[t] = 0.5 ** (np.clip(age, 0, None) / half_life)
+    return out
+
+
 class TeamIndex:
     """Maps team names to integer ids across seasons."""
 

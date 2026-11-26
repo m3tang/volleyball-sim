@@ -33,9 +33,11 @@ class SideoutModel:
         self.n, self.lam = n_teams, lam
         self.p = None
 
-    def fit(self, data, mask_by_table, idx, prior=None, warm=None):
+    def fit(self, data, mask_by_table, idx, prior=None, warm=None, weights=None):
         d, mask = data["sideout"], mask_by_table["sideout"]
         Y = np.stack([_np(d["k"][mask]), _np(d["n"][mask] - d["k"][mask])], axis=1)
+        if weights is not None:
+            Y = Y * weights["sideout"][mask][:, None]
         pr = prior.p if prior is not None else None
         self.p = F.fit(Y, idx(d["t"][mask]), idx(d["o"][mask]), d["home"][mask], self.n, self.lam,
                        pr.off if pr else None, pr.def_ if pr else None,
@@ -59,13 +61,16 @@ class TouchModel:
         self.n, self.lam = n_teams, lam
         self.parts = {}  # 'serve', 'fb', 'tr' -> Params
 
-    def fit(self, data, mask_by_table, idx, prior=None, warm=None):
+    def fit(self, data, mask_by_table, idx, prior=None, warm=None, weights=None):
+        """weights: optional {table: per-row weight}, e.g. to count recent matches more."""
         specs = {"serve": ("serve", ["ace", "serr", "inplay"]),
                  "fb": ("fb", ["win", "lose", "to_opp"]),
                  "tr": ("tr", ["win", "lose", "to_opp"])}
         for part, (table, cols) in specs.items():
             d, m = data[table], mask_by_table[table]
             Y = np.stack([_np(d[c][m]) for c in cols], axis=1)
+            if weights is not None:
+                Y = Y * weights[table][m][:, None]
             pr = prior.parts[part] if prior is not None else None
             self.parts[part] = F.fit(Y, idx(d["t"][m]), idx(d["o"][m]), d["home"][m], self.n, self.lam,
                                      pr.off if pr else None, pr.def_ if pr else None,

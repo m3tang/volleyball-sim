@@ -656,7 +656,7 @@ footer { border-top: 2px solid var(--line); padding-block: 24px 40px; font-size:
       <ul class="plain small twocol">
         <li>Injuries, lineup changes and transfers. A team missing its best hitter just looks like a team having a bad stretch.</li>
         <li>How good each touch was. A perfect pass and a shanked one count the same.</li>
-        <li>Late-season improvement. Three straight long-shot champions suggest teams change in December more than the model expects.</li>
+        <li>Hot streaks that last a whole tournament. Each match gets its own good or bad night, so a team that catches fire in December is underrated. Three straight champions started below 2%, which the model put at about 1 in 9,000.</li>
         <li>How teams from different years compare. Cross-season matchups assume the overall level of play stays about the same.</li>
       </ul>
     </div>
@@ -1267,7 +1267,7 @@ const oddsTxt = x => x < 0.1 ? (100 * x).toFixed(1) + "%" : pct(x);
   for (let i = rows.length - 1; i >= 0 && rows[i].champ.odds[5] < 0.02; i--) streak++;
   $("c-best").textContent = `${won} of ${rows.length}`;
   $("fav-text").textContent = `The pre-tournament favorite won just ${won} of the last ${rows.length} titles, about half as many as the odds suggested.` +
-    (streak >= 2 ? ` The last ${streak} champions all started with less than a 2% chance. That's more chaos than the model expects, which probably means teams change late in the season in ways the model doesn't catch.` : "");
+    (streak >= 2 ? ` The last ${streak} champions all started with less than a 2% chance. Match by match, the model's tournament odds hold up well, so this looks like teams getting hot and staying hot for the whole month, something the model treats as six separate coin flips.` : "");
   $("best").innerHTML = `<thead><tr><th>Year</th><th>Favorite</th><th>Title odds</th><th>Champion</th><th>Title odds</th><th>Odds rank</th></tr></thead><tbody>` +
     rows.slice().reverse().map(r => `<tr><td class="num">${r.y}</td><td>${esc(r.fav.n)}</td><td class="num">${oddsTxt(r.fav.odds[5])}</td>
       <td>${r.fav === r.champ ? `<span class="finish champ">${esc(r.champ.n)}</span>` : esc(r.champ.n)}</td>

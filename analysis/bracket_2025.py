@@ -23,7 +23,7 @@ POINTS = {1: 10, 2: 20, 3: 40, 4: 80, 5: 160, 6: 320}  # standard bracket scorin
 COLS = ["Rd 2", "Sweet 16", "Elite 8", "Final 4", "Final", "Champ"]
 
 
-def fit_pretournament(d, idx, cls, season_year=SEASON, start=TOURNEY[0]):
+def fit_pretournament(d, idx, cls, season_year=SEASON, start=TOURNEY[0], half_life=None):
     """Fit on the season's matches before the tournament, with last season as the prior."""
     lam, rho, _ = M.TUNED[cls.name]
     season = {t: d[t]["match_id"] // 100000 for t in TABLES}
@@ -32,7 +32,8 @@ def fit_pretournament(d, idx, cls, season_year=SEASON, start=TOURNEY[0]):
     prior = cls(len(idx), lam).fit(d, prev, idx).scaled(rho) if has_prev else None
     cutoff = np.datetime64(start)
     train = {t: (season[t] == season_year) & (d[t]["date"] < cutoff) for t in TABLES}
-    return cls(len(idx), lam).fit(d, train, idx, prior=prior)
+    return cls(len(idx), lam).fit(d, train, idx, prior=prior,
+                                  weights=D.recency_weights(d, TABLES, start, half_life))
 
 
 def make_win_prob(model, idx, form_sd):

@@ -29,7 +29,7 @@ def season_of(match_ids):
     return np.asarray(match_ids) // 100000
 
 
-def run_season(d, idx, cls, season, lam, rho, form_sd=0.0):
+def run_season(d, idx, cls, season, lam, rho, form_sd=0.0, half_life=None):
     """Weekly-refit predictions for one season. Returns per-match and per-rally results.
 
     Per match it keeps both teams' predicted sideout rates (so_home, so_away), so match
@@ -52,7 +52,8 @@ def run_season(d, idx, cls, season, lam, rho, form_sd=0.0):
         train = {t: in_season[t] & (d[t]["date"] < cutoff) for t in TABLES}
         if train["sideout"].any():
             model = cls(n, lam).fit(d, train, idx, prior=prior,
-                                    warm=model if model is not prior else None)
+                                    warm=model if model is not prior else None,
+                                    weights=D.recency_weights(d, TABLES, cutoff, half_life))
         # Matches this week.
         wk = m_mask & (mt["date"] >= cutoff) & (mt["date"] < cutoff + WEEK)
         if wk.any():
