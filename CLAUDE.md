@@ -10,6 +10,8 @@ Public site: https://m3tang.github.io/volleyball-sim/ · Repo: github.com/m3tang
 - `web/build_site.py` → `web/data.json`, `web/index.html` (standalone, data inline), `web/artifact.html` (loads data.json)
 - `web/template.html` holds all markup, CSS and JS. Edit this, never index.html/artifact.html.
 - `rallytools/` model-as-tools: `core.py` (reads web/data.json, mirrors the site's JS math), `sql.py` (guarded read-only DuckDB), `server.py` (MCP server, mcp 2.x `MCPServer`; `--check` calls every tool)
+- `rallytools/grounding.py` checks every number in an answer against tool results; `rallytools/registry.py` name→tool for the agent and evals
+- `evals/` golden set (`golden.py` generates `golden.jsonl`/`golden.md` from core + SQL; never hand-edit), `grade.py`, `answerers.py` (oracle/null/... harness checks), `run.py` (runner; paid answerers gated by `--approve-harness`, which is the user's to pass)
 - `tools/checks/` page checks (Node + puppeteer-core + jsdom; `npm install` there once)
 
 ## Commands
@@ -19,6 +21,8 @@ Public site: https://m3tang.github.io/volleyball-sim/ · Repo: github.com/m3tang
 .venv/bin/python -m web.build_site --page-only   # after template.html edits only (seconds)
 .venv/bin/python -m web.build_site               # full refit + data.json (~1–2 min); needed when data/models change
 .venv/bin/python -m rallytools.server --check      # MCP tools smoke test
+.venv/bin/python -m evals.run --selftest           # eval harness sanity check (free)
+.venv/bin/python -m evals.golden --check           # golden answers still match model/data
 .venv/bin/python -m analysis.xgb_baseline        # ~10 min, rewrites analysis/results/xgb_comparison.json
 ```
 Pipe long build/analysis output through `tail`; it is verbose.

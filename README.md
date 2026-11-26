@@ -108,7 +108,8 @@ pipeline/   download the data, build the DuckDB database, validate it
 vbsim/      the model: data loading, fitting, rally chain, match math, brackets
 analysis/   model comparison, overconfidence and momentum tests, bracket scoring
 web/        the site: template, build script, generated index.html and data.json
-rallytools/ the model as tools: match odds, team profiles, brackets, upset breakdowns, safe SQL; MCP server
+rallytools/ the model as tools: match odds, team profiles, brackets, upset breakdowns, safe SQL; MCP server; grounding checker
+evals/      golden questions with computed answers, grader, runner for the question-answering agent
 tests/      unit tests for the match math, fitting, bracket odds and the tools
 ```
 
@@ -168,6 +169,42 @@ so every call is instant and deterministic. The SQL tool needs `data/vb.duckdb`.
 ```
 
 Check it without a client: `.venv/bin/python -m rallytools.server --check`.
+
+## Evals: is the agent right, and are its numbers real?
+
+`evals/` measures a question-answering agent built on these tools. Every expected answer is
+computed, never written by a model: 150 questions across match odds, cross-season matchups,
+team profiles, rankings, brackets, upset explanations, SQL stats, and 15 questions the data
+can't answer (injuries, 2026, betting), where the right answer is to decline. Review them in
+[`evals/golden.md`](evals/golden.md).
+
+| metric | what it checks |
+|---|---|
+| correct | every expected number and fact is in the answer, at the precision written ("87%" passes for 0.873, "88%" fails) |
+| hallucination rate | share of numbers in answers that no tool call returned ([`rallytools/grounding.py`](rallytools/grounding.py)) |
+| tool choice | some call could produce the answer, with the right teams, seasons and venue (any valid route counts) |
+| refused | declined to answer; right on out-of-scope questions, wrong everywhere else |
+
+The grader is tested before it grades anything real. `python -m evals.run --selftest` pushes
+five fake answerers through the full pipeline and fails unless each lands where it must:
+
+| answerer | correct | hallucination rate | tool choice |
+|---|---|---|---|
+| oracle (calls the right tool, states the answer) | 100% | 0% | 100% |
+| same text, no tool calls | 100% | 100% | 0% |
+| oracle with every number nudged | 12% (fact-only cases) | 84% | 100% |
+| declines everything | 10% (the out-of-scope cases) | 0% | 0% |
+| empty answer | 0% | – | 0% |
+
+The perturbed row is also the grounding checker's measured limit: 16% of plausible wrong numbers
+happen to match some other value in a large tool result (a team profile carries dozens of rates),
+so grounding is a backstop and correctness checks the numbers that matter against their exact source.
+
+```sh
+.venv/bin/python -m evals.golden --check          # golden answers still match the model and data
+.venv/bin/python -m evals.run --selftest          # harness and grader sanity check (free, runs in CI)
+.venv/bin/python -m evals.run --answerer <module:function> --variant baseline   # a real agent
+```
 
 ## Working with the data
 

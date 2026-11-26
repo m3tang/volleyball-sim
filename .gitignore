@@ -3,3 +3,9 @@ data/
 __pycache__/
 *.duckdb
 node_modules/
+# eval runs: keep results.jsonl/_state.json, not bulk or derived output
+.claude/hillclimb/**/traces/
+.claude/hillclimb/**/report.html
+.claude/hillclimb/**/state.json
+.claude/hillclimb/**/trajectory/
+.claude/settings.local.json
