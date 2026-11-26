@@ -1,6 +1,20 @@
 <title>Rally Odds</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="A rally-by-rally model of NCAA Division I women's volleyball: predicted brackets, matchups across seasons, and a test of momentum.">
+<meta name="description" content="Every rally of NCAA Division I women's volleyball since 2020, turned into odds. Predicted brackets, a match simulator, and fan debates tested with data.">
+<link rel="canonical" href="https://m3tang.github.io/volleyball-sim/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23111a2b'/%3E%3Ccircle cx='16' cy='16' r='9.5' fill='none' stroke='%23f2b630' stroke-width='2.5'/%3E%3Cpath d='M16 6.5c-2 4-2 15 0 19M7 13c5 1 13 1 18 0' fill='none' stroke='%237ea6ff' stroke-width='2'/%3E%3C/svg%3E">
+<meta name="theme-color" content="#0d131f">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Rally Odds">
+<meta property="og:description" content="Every rally of NCAA Division I women's volleyball since 2020, turned into odds. Predicted brackets, a match simulator, and fan debates tested with data.">
+<meta property="og:url" content="https://m3tang.github.io/volleyball-sim/">
+<meta property="og:image" content="https://m3tang.github.io/volleyball-sim/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Rally Odds">
+<meta name="twitter:description" content="Every rally of NCAA Division I women's volleyball since 2020, turned into odds. Predicted brackets, a match simulator, and fan debates tested with data.">
+<meta name="twitter:image" content="https://m3tang.github.io/volleyball-sim/og.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;800&family=IBM+Plex+Mono:wght@400;500&family=Public+Sans:ital,wght@0,400;0,600;0,700;1,400&display=swap">
@@ -79,6 +93,11 @@ a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible
 @media (max-width: 760px) { .chain { grid-template-columns: minmax(0, 1fr); } }
 .chain li { background: var(--surface); border: 1px solid var(--line); border-top: 3px solid var(--court); border-radius: 6px; padding: 16px 18px; display: grid; gap: 6px; align-content: start; }
 .chain p { font-size: 0.92rem; color: var(--ink-2); }
+
+/* Skip link: hidden until focused with the keyboard */
+.skip { position: absolute; left: max(16px, env(safe-area-inset-left, 0px)); top: calc(8px + env(safe-area-inset-top, 0px)); transform: translateY(-200%); z-index: 30; font: inherit; font-weight: 600; background: var(--gold); color: #111a2b; border: 0; border-radius: 4px; padding: 8px 12px; cursor: pointer; }
+.skip:focus-visible { transform: none; }
+main:focus { outline: none; }
 
 /* Header */
 .top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 24px; padding-block: 20px 0; }
@@ -178,6 +197,7 @@ tr.champ-row td:first-child { font-weight: 700; }
 .bk .prob { font-family: var(--mono); font-size: 12px; }
 .bk .mark { fill: var(--court); }
 .bk .rnd { fill: var(--ink-2); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; }
+.bk .up-tag { fill: var(--gold); font-size: 10px; font-weight: 700; letter-spacing: 0.08em; }
 .bk .champ-name { fill: var(--gold); font-family: var(--display); font-weight: 800; font-size: 22px; }
 /* Worked example: outcome tree and paths */
 .tree { display: grid; gap: 10px; }
@@ -311,6 +331,7 @@ footer { border-top: 2px solid var(--line); padding-block: 24px 40px; font-size:
 </style>
 
 <div class="wrap">
+  <button class="skip" type="button" id="skip">Skip to content</button>
   <header class="top">
     <a class="mark" href="#home">RALLY <span>ODDS</span></a>
     <nav aria-label="Pages" id="nav">
@@ -318,7 +339,8 @@ footer { border-top: 2px solid var(--line); padding-block: 24px 40px; font-size:
       <a href="#findings">Findings</a><a href="#model">Under the hood</a>
     </nav>
   </header>
-  <main>
+  <main id="main" tabindex="-1">
+  <noscript><p class="loaderr">This site needs JavaScript to calculate its odds and draw its charts.</p></noscript>
   <div class="view" data-view="home">
   <div class="hero">
     <div class="eyebrow">NCAA Division I women's volleyball · <span id="h-seasons"></span></div>
@@ -462,7 +484,8 @@ footer { border-top: 2px solid var(--line); padding-block: 24px 40px; font-size:
     </div>
     <div class="cols">
       <div class="panel">
-        <h3>The next rally compared with the team's usual sideout rate (percentage points)</h3>
+        <h3>After a timeout, the next rally goes about the same as usual</h3>
+        <p class="small muted">Change from the team's usual sideout rate, in percentage points.</p>
         <div class="legend" id="to-legend"></div>
         <div id="to-chart"></div>
         <details><summary>Show the numbers</summary><div class="scroll"><table id="to-table"></table></div></details>
@@ -482,7 +505,8 @@ footer { border-top: 2px solid var(--line); padding-block: 24px 40px; font-size:
     </div>
     <div class="cols">
       <div class="panel">
-        <h3>How often the receiving team wins the rally after the server scores k in a row</h3>
+        <h3>Real runs look almost exactly like a momentum-free replay</h3>
+        <p class="small muted">How often the receiving team wins the rally after the server scores several in a row.</p>
         <div class="legend" id="mo-legend"></div>
         <div id="mo-chart"></div>
         <details><summary>Show the numbers</summary><div class="scroll"><table id="mo-table"></table></div></details>
@@ -508,7 +532,7 @@ footer { border-top: 2px solid var(--line); padding-block: 24px 40px; font-size:
     </div>
     <div class="mini" id="srv-tiles"></div>
     <div class="panel">
-      <h3>Where elite teams build their edge</h3>
+      <h3>Elite teams win after the pass, not on the serve</h3>
       <div class="vs wide" id="elite"></div>
       <p class="small muted">This compares each season's top 10 teams against an average opponent from <span id="el-seasons"></span>. A tough serve that lands in play still helps, and that shows up under stopping the opponent's first attack.</p>
     </div>
@@ -533,7 +557,7 @@ footer { border-top: 2px solid var(--line); padding-block: 24px 40px; font-size:
     <div class="cols">
       <div class="mini one"><div><span class="big" id="home-match"></span><span class="small muted">chance the home team beats an equal opponent</span></div></div>
       <div class="panel">
-        <h3>Where the home edge comes from</h3>
+        <h3>Most of the home edge comes from hitting</h3>
         <div class="vs wide" id="home-steps"></div>
       </div>
     </div>
@@ -608,7 +632,8 @@ footer { border-top: 2px solid var(--line); padding-block: 24px 40px; font-size:
     </ol>
     <div class="cols">
       <div class="panel">
-        <h3>Predicted vs. actual win rates in 2025</h3>
+        <h3>The model's odds line up with real results</h3>
+        <p class="small muted">Predicted vs. actual win rates for 2025 matches.</p>
         <div id="cal-chart"></div>
         <details><summary>Show the numbers</summary><div class="scroll"><table id="cal-table"></table></div></details>
       </div>
@@ -618,13 +643,22 @@ footer { border-top: 2px solid var(--line); padding-block: 24px 40px; font-size:
         <p class="small muted">When the dots sit on the diagonal, the odds matched what actually happened.</p>
       </div>
     </div>
-    <p class="small muted">The data comes from the ncaavolleyballr project by Jeffrey R. Stevens (MIT license), which collects it from stats.ncaa.org.</p>
+    <div class="panel">
+      <h3>What the model doesn't know</h3>
+      <ul class="plain small twocol">
+        <li>Injuries, lineup changes and transfers. A team missing its best hitter just looks like a team having a bad stretch.</li>
+        <li>How good each touch was. A perfect pass and a shanked one count the same.</li>
+        <li>Late-season improvement. Three straight long-shot champions suggest teams change in December more than the model expects.</li>
+        <li>How teams from different years compare. Cross-season matchups assume the overall level of play stays about the same.</li>
+      </ul>
+    </div>
   </section>
   </div>
   </main>
   <footer>
-    <div>Rally Odds · built <span id="f-built"></span></div>
-    <div>Every number on this page is computed from the model described above.</div>
+    <div><strong>Rally Odds</strong> · Data through the 2025 season · Last built <span id="f-built"></span></div>
+    <div>Play-by-play from stats.ncaa.org via the <a href="https://jeffreyrstevens.github.io/ncaavolleyballr/">ncaavolleyballr</a> project by Jeffrey R. Stevens (MIT license).</div>
+    <div>The code, data pipeline and model are on <a href="https://github.com/m3tang/volleyball-sim">GitHub</a>.</div>
   </footer>
 </div>
 <div id="tip" hidden></div>
@@ -717,6 +751,12 @@ function start(D) {
 const $ = id => document.getElementById(id);
 const pct = (x, d = 0) => (100 * x).toFixed(d) + "%";
 const fmtInt = n => n.toLocaleString("en-US");
+// Long-shot odds read better as "about 1 in N" (Silver: easier to grasp than a percentage).
+const oneIn = p => {
+  if (p <= 0 || p >= 0.5) return "";
+  const n = 1 / p, nice = n < 10 ? Math.round(n) : n < 100 ? Math.round(n / 5) * 5 : n < 1000 ? Math.round(n / 50) * 50 : Math.round(n / 500) * 500;
+  return `about 1 in ${fmtInt(nice)}`;
+};
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const ROUND = { 1: "Round 1", 2: "Round 2", 3: "Regional semifinal", 4: "Regional final", 5: "National semifinal", 6: "Final" };
 const FINISH = ["Lost round 1", "Lost round 2", "Lost regional semi", "Lost regional final", "Lost national semi", "Runner-up", "Champion"];
@@ -748,7 +788,7 @@ const T = D.totals, BR = D.bracket;
 $("h-seasons").textContent = T.seasons.replace("-", "–");
 $("h-rallies").textContent = (T.rallies / 1e6).toFixed(2) + " million";
 $("h-called").textContent = Math.round(BR.acc.model * BR.acc.games);
-{ const ch = BR.teams.find(t => t.wins === 6).odds[5]; $("h-champ").textContent = ch < 0.1 ? (100 * ch).toFixed(1) + "%" : pct(ch); }
+{ const ch = BR.teams.find(t => t.wins === 6).odds[5]; $("h-champ").textContent = (ch < 0.1 ? (100 * ch).toFixed(1) + "%" : pct(ch)) + " (" + oneIn(ch) + ")"; }
 $("b-matches").textContent = fmtInt(T.matches);
 $("b-season-acc").textContent = pct(D.calibration.accuracy);
 $("b-tourney").textContent = Math.round(BR.acc.model * BR.acc.games) + "/" + BR.acc.games;
@@ -839,7 +879,7 @@ function regionLabel(rf, i) { return rf.host ? `${rf.host} regional` : `Region $
 function contains(n, target) { return n === target || n.k.some(k => typeof k === "object" && contains(k, target)); }
 
 function drawTree(top, minRound, extraChampion) {
-  const colW = 200, gap = 34, boxH = 50, slot = extraChampion ? 140 : 66, padT = 30;
+  const colW = 200, gap = 34, boxH = 50, slot = extraChampion ? 140 : 70, padT = 34;
   const rounds = top.r - minRound + 1, cols = rounds + (extraChampion ? 1 : 0);
   const W = cols * colW + (cols - 1) * gap + 4;
   let leaves = 0;
@@ -867,8 +907,9 @@ function drawTree(top, minRound, extraChampion) {
   const short = t => t.length > 21 ? t.slice(0, 20) + "…" : t;
   for (const [n, p] of pos) {
     const up = chanceOf(n, n.w) < 0.5, top0 = p.y - boxH / 2;
-    svg += `<g class="game${selected === n.id ? " sel" : ""}" data-id="${n.id}" tabindex="0" role="button" aria-label="${esc(n.a)} vs ${esc(n.b)}" data-tip="${esc(tipFor(n))}">`;
+    svg += `<g class="game${selected === n.id ? " sel" : ""}" data-id="${n.id}" tabindex="0" role="button" aria-label="${esc(n.a)} vs ${esc(n.b)}, ${esc(n.w)} won${up ? ", an upset" : ""}" data-tip="${esc(tipFor(n))}">`;
     svg += `<rect class="box${up ? " upset" : ""}" x="${p.x}" y="${top0}" width="${colW}" height="${boxH}" rx="4"/>`;
+    if (up) svg += `<text class="up-tag" x="${p.x + colW - 2}" y="${top0 - 4}" text-anchor="end">UPSET</text>`;
     svg += `<line class="sep" x1="${p.x}" x2="${p.x + colW}" y1="${p.y}" y2="${p.y}"/>`;
     [[n.a, n.pa, top0 + 17], [n.b, 1 - n.pa, top0 + boxH - 8]].forEach(([t, pr, ty]) => {
       const won = t === n.w;
@@ -914,6 +955,7 @@ function drawBreakdown(n) {
     $("bd").innerHTML = html + `<p class="muted">No play-by-play was recorded for this match, so there is no breakdown.</p>`;
     return;
   }
+  if (up) html += `<p>Going in, ${esc(W)} had a ${pct(pW)} chance, ${oneIn(pW)}.</p>`;
   html += `<h3>${up ? "How the upset happened" : "What decided the match"}</h3>`;
   html += r.length ? `<ul class="bd-reasons">${r.slice(0, 4).map(x => `<li><span class="pts">${ptsLabel(x.pts)}</span><span>${esc(x.text)}</span></li>`).join("")}</ul>
     <p class="small muted">Points are how many extra points ${esc(W)} got out of each part of the game compared with what the model expected, based on how many chances each team had.</p>`
@@ -1280,7 +1322,7 @@ const signedPts = v => `${signedNum(v)} percentage points`;
   ];
   $("to-legend").innerHTML = legendHtml(series);
   lineChart($("to-chart"), cats, series, { min: -0.04, max: 0.04, ticks: [-0.04, -0.02, 0, 0.02, 0.04], zero: true,
-    fmt: v => (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(100 * v).toFixed(0), fmtTip: signedPts, label: "Next-rally sideout vs usual, with and without a timeout",
+    fmt: v => (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(100 * v).toFixed(0), fmtTip: signedPts, label: "Line chart: with or without a timeout, the next rally goes about the same as the team's usual sideout rate at every run length.",
     xLabel: "Points in a row by the serving team", tipTitle: c => `After ${c} in a row` });
   $("to-table").innerHTML = `<thead><tr><th>In a row</th><th>No timeout: rallies</th><th>Won</th><th>Usual</th><th>Timeout: rallies</th><th>Won</th><th>Usual</th></tr></thead><tbody>` +
     TO.bins.map((b, i) => `<tr><td>${cats[i]}</td><td class="num">${fmtInt(b.none.n)}</td><td class="num">${pct(b.none.sideout, 1)}</td><td class="num">${pct(b.none.expected, 1)}</td><td class="num">${fmtInt(b.timeout.n)}</td><td class="num">${pct(b.timeout.sideout, 1)}</td><td class="num">${pct(b.timeout.expected, 1)}</td></tr>`).join("") + "</tbody>";
@@ -1328,6 +1370,9 @@ $("d-rallies").textContent = (T.rallies / 1e6).toFixed(2) + "M";
 $("a-season").value = state.a.s; $("b-season").value = state.b.s;
 fillTeams("a"); fillTeams("b"); drawMatchup();
 
+// Skip link: move keyboard focus to the main content without changing the view
+$("skip").addEventListener("click", () => $("main").focus());
+
 // ---------- Views ----------
 const VIEWS = ["home", "bracket", "matchups", "findings", "model"];
 function route() {
@@ -1354,7 +1399,7 @@ $("mo-legend").innerHTML = series.map(s => `<span><i style="background:${s.color
   const W = 520, H = 300, L = 44, R = 92, Tp = 14, Bt = 36;
   const ys = [0.49, 0.59], ks = MO.k.map(k => k === 6 ? "6+" : String(k));
   const x = i => L + (W - L - R) * i / (ks.length - 1), y = v => Tp + (H - Tp - Bt) * (1 - (v - ys[0]) / (ys[1] - ys[0]));
-  let s = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Receiving team's rally win rate by the server's current run length">`;
+  let s = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Line chart: as the serving team's run gets longer, the receiving team wins slightly less often, and a replay with no momentum but good and bad nights tracks the real line almost exactly.">`;
   for (let v = 0.50; v <= 0.5801; v += 0.02) s += `<line class="gridl" x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}"/><text x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${pct(v)}</text>`;
   ks.forEach((k, i) => { s += `<text x="${x(i)}" y="${H - Bt + 18}" text-anchor="middle">${k}</text>`; });
   s += `<text x="${(L + W - R) / 2}" y="${H - 4}" text-anchor="middle">Points in a row by the serving team</text>`;
@@ -1383,7 +1428,7 @@ $("mo-legend").innerHTML = series.map(s => `<span><i style="background:${s.color
 (function () {
   const C = D.calibration, W = 420, H = 380, L = 46, R = 16, Tp = 12, Bt = 46;
   const x = v => L + (W - L - R) * v, y = v => Tp + (H - Tp - Bt) * (1 - v);
-  let s = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Calibration: predicted versus actual win rate">`;
+  let s = `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Calibration chart: in every band of predicted win probability, the actual win rate is close to the prediction, so the dots sit near the diagonal.">`;
   for (const v of [0, 0.25, 0.5, 0.75, 1]) {
     s += `<line class="gridl" x1="${x(0)}" x2="${x(1)}" y1="${y(v)}" y2="${y(v)}"/><line class="gridl" x1="${x(v)}" x2="${x(v)}" y1="${y(0)}" y2="${y(1)}"/>`;
     s += `<text x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${pct(v)}</text><text x="${x(v)}" y="${H - Bt + 18}" text-anchor="middle">${pct(v)}</text>`;
