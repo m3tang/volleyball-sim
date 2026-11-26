@@ -336,9 +336,9 @@ footer { border-top: 2px solid var(--line); padding-block: 24px 40px; font-size:
 
 /* Ask the model: a chat pinned to every page */
 .fab { position: fixed; z-index: 24; right: calc(max(16px, env(safe-area-inset-right, 0px)) + 4px); bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
-  display: inline-flex; align-items: center; gap: 8px; font: inherit; font-weight: 600; font-size: 0.95rem; cursor: pointer;
-  background: var(--court); color: var(--surface); border: 0; border-radius: 999px; padding: 12px 18px 12px 14px; box-shadow: 0 6px 20px rgb(0 0 0 / 0.22); }
-.fab svg { width: 20px; height: 20px; flex: none; }
+  display: grid; place-items: center; width: 56px; height: 56px; padding: 0; cursor: pointer;
+  background: var(--court); color: var(--surface); border: 0; border-radius: 50%; box-shadow: 0 6px 20px rgb(0 0 0 / 0.22); }
+.fab svg { width: 30px; height: 30px; }
 .fab:hover { filter: brightness(1.08); }
 .fab[aria-expanded="true"] { display: none; }
 .chat { position: fixed; z-index: 25; right: calc(max(16px, env(safe-area-inset-right, 0px)) + 4px); bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
@@ -379,7 +379,9 @@ footer { border-top: 2px solid var(--line); padding-block: 24px 40px; font-size:
 .chat-form { display: flex; gap: 8px; align-items: flex-end; }
 .chat-form textarea { flex: 1; min-width: 0; font: inherit; font-size: 0.95rem; color: var(--ink); background: var(--bg); border: 1px solid var(--axis);
   border-radius: 8px; padding: 9px 11px; resize: none; max-height: 8.5em; line-height: 1.4; }
-.chat-form textarea:focus-visible { outline: 3px solid var(--gold); outline-offset: 1px; }
+.chat-form textarea:focus-visible { outline: 2px solid var(--court); outline-offset: 1px; }
+.fab:focus-visible { outline: 2px solid var(--court); outline-offset: 3px; }
+.chat button:focus-visible { outline: 2px solid var(--court); outline-offset: 2px; }
 .btn.primary { background: var(--court); border-color: var(--court); color: var(--surface); font-weight: 600; }
 .btn.primary:hover { filter: brightness(1.08); }
 .btn:disabled { opacity: 0.55; cursor: default; }
@@ -395,7 +397,7 @@ footer { padding-bottom: 96px; }
   <header class="top">
     <a class="mark" href="#home">RALLY <span>ODDS</span></a>
     <nav aria-label="Pages" id="nav">
-      <a href="#home">Home</a><a href="#bracket">Brackets</a><a href="#matchups">Match simulator</a><a href="#ask" id="nav-ask">Ask the model</a>
+      <a href="#home">Home</a><a href="#bracket">Brackets</a><a href="#matchups">Match simulator</a>
       <a href="#findings">Findings</a><a href="#model">Under the hood</a>
     </nav>
   </header>
@@ -626,7 +628,7 @@ footer { padding-bottom: 96px; }
   <div class="view" data-view="model" hidden>
   <section>
     <div class="intro">
-      <div class="eyebrow">Under the hood · Step 1 of 4</div>
+      <div class="eyebrow">Under the hood · Step 1 of 5</div>
       <h2>It all starts with every touch of every match</h2>
       <p>The raw data is the official NCAA play-by-play from <span id="m-seasons"></span>. Every serve, pass, set, attack, dig and block is logged along with the player and the score.</p>
     </div>
@@ -652,7 +654,7 @@ footer { padding-bottom: 96px; }
 
   <section>
     <div class="intro">
-      <div class="eyebrow">Step 2 of 4</div>
+      <div class="eyebrow">Step 2 of 5</div>
       <h2>Every team gets twelve numbers</h2>
       <p>Each part of a rally gets two numbers: serving, passing, the first attack after the pass, stopping the other team's first attack, and the long rallies on both offense and defense. Here's how one of Kentucky's twelve gets made.</p>
     </div>
@@ -666,7 +668,7 @@ footer { padding-bottom: 96px; }
 
   <section>
     <div class="intro">
-      <div class="eyebrow">Step 3 of 4</div>
+      <div class="eyebrow">Step 3 of 5</div>
       <h2>Turning two teams into a win probability</h2>
       <p>Nothing gets simulated here. The model adds up the probability of every possible rally and final score exactly. This uses the matchup from the <a href="#matchups">Match simulator</a>.</p>
     </div>
@@ -681,7 +683,7 @@ footer { padding-bottom: 96px; }
 
   <section>
     <div class="intro">
-      <div class="eyebrow">Step 4 of 4</div>
+      <div class="eyebrow">Step 4 of 5</div>
       <h2>Every prediction was made before the match</h2>
       <p>None of the predictions on this site used results from the matches they were predicting.</p>
     </div>
@@ -719,6 +721,27 @@ footer { padding-bottom: 96px; }
       </ul>
     </div>
   </section>
+  <section>
+    <div class="intro">
+      <div class="eyebrow">Step 5 of 5</div>
+      <h2>Ask the model, and check its work</h2>
+      <p>The volleyball button in the corner opens a chat with Claude Haiku 5.5. It doesn't answer from memory. It looks things up with the same model and math that run this site, and every number it gives you gets checked before you see it.</p>
+    </div>
+    <ol class="chain">
+      <li><h3>It looks it up</h3><p>Claude picks from ten tools: match odds for any two teams and seasons, team profiles, rankings, bracket odds, tournament results, what decided an upset, and read-only queries over the box scores. The tools do the math, so the odds match the simulator exactly.</p></li>
+      <li><h3>Every number gets checked</h3><p>Each number in an answer has to match something a tool returned, at the precision it's written. If one doesn't, Claude gets one chance to fix it. If it still can't, you get "couldn't answer reliably" instead. Every answer has a "Show the work" list of the lookups behind it.</p></li>
+      <li><h3>It was tested first</h3><p>The test set has 150 questions with answers computed from the model, not written by hand, including 15 it should turn down, like injuries or betting picks. On the 60 questions run so far it got 59 right, for about a tenth of a cent each.</p></li>
+    </ol>
+    <div class="panel">
+      <h3>What the chat can't do</h3>
+      <ul class="plain small twocol">
+        <li>Know anything the model doesn't. Injuries, rosters, 2026 and betting lines are all out of scope, so it says so instead of guessing.</li>
+        <li>Remember numbers between questions. Follow-ups like "and at home?" work, but every number in a new answer gets looked up again.</li>
+        <li>Catch every wrong word. The check confirms each number came from a tool, but it can't tell if a sentence pins the right number on the wrong team.</li>
+        <li>Answer unlimited questions. To keep costs down, each visitor gets 10 questions an hour and the whole site has a daily budget.</li>
+      </ul>
+    </div>
+  </section>
   </div>
   </main>
   <footer>
@@ -727,15 +750,16 @@ footer { padding-bottom: 96px; }
     <div>The code, data pipeline and model are on <a href="https://github.com/m3tang/volleyball-sim">GitHub</a>.</div>
   </footer>
 </div>
-<button class="fab" type="button" id="chat-fab" aria-expanded="false" aria-controls="chat">
-  <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 3c-2.5 4-2.5 14 0 18M4 9.5c5 1.5 11 1.5 16 0M4.5 15c5-1 10-1 15 0"/></svg>
-  Ask the model
+<button class="fab" type="button" id="chat-fab" aria-expanded="false" aria-controls="chat" aria-label="Ask the model" title="Ask the model">
+  <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M11.1 7.1a16.55 16.55 0 0 1 10.9 4"/><path d="M12 12a12.6 12.6 0 0 1-8.7 5"/><path d="M16.8 13.6a16.55 16.55 0 0 1-9 7.5"/><path d="M20.7 17a12.8 12.8 0 0 0-8.7-5 13.3 13.3 0 0 1 0-10"/><path d="M6.3 3.8a16.55 16.55 0 0 0 1.9 11.5"/></svg>
 </button>
 <div class="chat" id="chat" role="dialog" aria-label="Ask the model" hidden>
   <div class="chat-head">
     <h2>Ask the model</h2>
     <div class="tools">
-      <button class="btn slim" type="button" id="chat-new">New chat</button>
+      <button class="icon-btn" type="button" id="chat-new" aria-label="New chat" title="New chat">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
       <button class="icon-btn" type="button" id="chat-close" aria-label="Close">
         <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg>
       </button>
@@ -1970,7 +1994,6 @@ $("skip").addEventListener("click", () => $("main").focus());
   $("chat-close").addEventListener("click", closeChat);
   panel.addEventListener("keydown", e => { if (e.key === "Escape") closeChat(); });
   $("chat-new").addEventListener("click", () => { ctl?.abort(); turns = []; renderEmpty(); q.focus(); });
-  $("nav-ask").addEventListener("click", e => { e.preventDefault(); openChat(); });
   if (location.hash === "#ask") openChat();
 }
 

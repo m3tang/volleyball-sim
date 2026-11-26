@@ -19,6 +19,8 @@ matches.
   is real, and how often the best team wins the title.
 - **Under the hood:** the data, the twelve numbers the model learns per team, a step-by-step
   calculation of one rally, and how the model was tested.
+- **Ask the model:** a chat, pinned to every page, that answers questions with the model's own
+  numbers and shows the lookups behind each answer.
 
 ![Matchup simulator](docs/images/matchups.jpg)
 
@@ -100,6 +102,17 @@ which the site build reads).
    matches, and a comparison against a simpler model that rates each team with a single
    serving and receiving strength. The two predict equally well; the step-by-step model is
    used because it can explain *why* a team is favored.
+5. **Ask the model.** The chat on every page is Claude Haiku 5.5 with the model as ten read-only
+   tools: match odds, team profiles, rankings, bracket odds, tournament results, upset
+   breakdowns, and SQL over the box scores. The tools do the math, so the chat's odds are the
+   simulator's odds. Every number in an answer must match a tool result at the precision it's
+   written; if one doesn't, Claude gets one rewrite, and then the answer is replaced with
+   "couldn't answer reliably". Follow-ups keep the conversation as context, but each answer looks
+   its numbers up again. It was tested on a 150-question golden set with computed answers,
+   including 15 questions it should decline; Haiku got 59 of the 60 run so far right, at about
+   $0.001 a question. See [the MCP server](#ask-the-model-from-claude-mcp-server),
+   [the evals](#evals-is-the-agent-right-and-are-its-numbers-real) and
+   [the agent and its API](#the-agent-and-its-public-api) below.
 
 ## Repository layout
 
