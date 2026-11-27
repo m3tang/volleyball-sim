@@ -2,7 +2,6 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="description" content="Odds for NCAA Division I women's volleyball from every rally since 2020, with tournament brackets, a match simulator and fan debates tested against the data.">
 <link rel="canonical" href="https://m3tang.github.io/volleyball-sim/">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='0.5' y='0.5' width='31' height='31' rx='8' fill='%23111a2b' stroke='%232a3953'/%3E%3Cpath d='M24.5 6.5 7.5 25.5' stroke='%238db1ff' stroke-width='3' stroke-linecap='round'/%3E%3Ccircle cx='10.5' cy='10.5' r='6.2' fill='%23f2b630'/%3E%3Cpath d='M10.5 10.5C9 8.6 9.2 6 10.9 4.3M10.5 10.5c2.4-.4 4.6.7 5.9 2.6M10.5 10.5c-.9 2.3-3 3.8-5.3 4' fill='none' stroke='%23111a2b' stroke-width='1.25' stroke-linecap='round'/%3E%3Cpath d='M7.6 5.3c-.6 2.4.2 4.6 1.6 6.1M16.5 9.4c-2.2-1-4.6-.7-6.2.7M8.7 16.4c1.3-1.8 3.4-2.6 5.6-2.4' fill='none' stroke='%23111a2b' stroke-width='1' stroke-linecap='round' opacity='.55'/%3E%3Ccircle cx='22' cy='22' r='4.3' fill='none' stroke='%238db1ff' stroke-width='2.6'/%3E%3C/svg%3E">
 <meta name="theme-color" content="#f6f7f9" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0a0f1b" media="(prefers-color-scheme: dark)">
 <meta property="og:type" content="website">
@@ -168,7 +167,6 @@ main:focus:not(:focus-visible) { outline: none; }
 .top { position: sticky; top: 0; z-index: 22; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0 24px; min-height: var(--nav);
   background: var(--bg); box-shadow: 0 0 0 100vmax var(--bg), 0 1px 0 100vmax var(--line); clip-path: inset(0 -100vmax -1px); }
 .mark { display: inline-flex; align-items: center; gap: 10px; font-family: var(--display); font-weight: 600; font-size: 1.15rem; letter-spacing: -0.03em; color: var(--ink); text-decoration: none; }
-.mark svg { width: 26px; height: 26px; flex: none; }
 .mark b { color: var(--court); font-weight: inherit; }
 .top nav { display: flex; flex-wrap: wrap; gap: 4px 28px; font-size: 0.92rem; }
 .top nav a { position: relative; color: var(--ink-2); text-decoration: none; padding-block: 6px; transition: color 120ms var(--ease); }
@@ -618,7 +616,7 @@ ul.plain { margin: 0; padding-left: 1.1rem; display: grid; gap: 6px; color: var(
 <div class="wrap">
   <button class="skip" type="button" id="skip">Skip to content</button>
   <header class="top">
-    <a class="mark" href="#home" aria-label="Rally Odds home"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="0.5" y="0.5" width="31" height="31" rx="8" fill="#111a2b" stroke="#2a3953"/><path d="M24.5 6.5 7.5 25.5" stroke="#8db1ff" stroke-width="3" stroke-linecap="round"/><circle cx="10.5" cy="10.5" r="6.2" fill="#f2b630"/><path d="M10.5 10.5C9 8.6 9.2 6 10.9 4.3M10.5 10.5c2.4-.4 4.6.7 5.9 2.6M10.5 10.5c-.9 2.3-3 3.8-5.3 4" fill="none" stroke="#111a2b" stroke-width="1.25" stroke-linecap="round"/><path d="M7.6 5.3c-.6 2.4.2 4.6 1.6 6.1M16.5 9.4c-2.2-1-4.6-.7-6.2.7M8.7 16.4c1.3-1.8 3.4-2.6 5.6-2.4" fill="none" stroke="#111a2b" stroke-width="1" stroke-linecap="round" opacity=".55"/><circle cx="22" cy="22" r="4.3" fill="none" stroke="#8db1ff" stroke-width="2.6"/></svg><span>Rally <b>Odds</b></span></a>
+    <a class="mark" href="#home" aria-label="Rally Odds home"><span>Rally <b>Odds</b></span></a>
     <button class="menu-btn" type="button" id="menu-btn" aria-expanded="false" aria-controls="nav" aria-label="Menu">
       <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path class="i-open" d="M4 7h16M4 12h16M4 17h16"/><path class="i-close" d="M6 6l12 12M18 6L6 18"/></svg>
     </button>
