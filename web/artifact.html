@@ -1,20 +1,20 @@
 <title>Rally Odds</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="Every rally of NCAA Division I women's volleyball since 2020, turned into odds. Predicted brackets, a match simulator, and fan debates tested with data.">
+<meta name="description" content="Odds for NCAA Division I women's volleyball from every rally since 2020, with tournament brackets, a match simulator and fan debates tested against the data.">
 <link rel="canonical" href="https://m3tang.github.io/volleyball-sim/">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23111a2b'/%3E%3Ccircle cx='16' cy='16' r='9.5' fill='none' stroke='%23f2b630' stroke-width='2.5'/%3E%3Cpath d='M16 6.5c-2 4-2 15 0 19M7 13c5 1 13 1 18 0' fill='none' stroke='%237ea6ff' stroke-width='2'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='0.5' y='0.5' width='31' height='31' rx='8' fill='%23111a2b' stroke='%232a3953'/%3E%3Cpath d='M24.5 6.5 7.5 25.5' stroke='%238db1ff' stroke-width='3' stroke-linecap='round'/%3E%3Ccircle cx='10.5' cy='10.5' r='6.2' fill='%23f2b630'/%3E%3Cpath d='M10.5 10.5C9 8.6 9.2 6 10.9 4.3M10.5 10.5c2.4-.4 4.6.7 5.9 2.6M10.5 10.5c-.9 2.3-3 3.8-5.3 4' fill='none' stroke='%23111a2b' stroke-width='1.25' stroke-linecap='round'/%3E%3Cpath d='M7.6 5.3c-.6 2.4.2 4.6 1.6 6.1M16.5 9.4c-2.2-1-4.6-.7-6.2.7M8.7 16.4c1.3-1.8 3.4-2.6 5.6-2.4' fill='none' stroke='%23111a2b' stroke-width='1' stroke-linecap='round' opacity='.55'/%3E%3Ccircle cx='22' cy='22' r='4.3' fill='none' stroke='%238db1ff' stroke-width='2.6'/%3E%3C/svg%3E">
 <meta name="theme-color" content="#f6f7f9" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0a0f1b" media="(prefers-color-scheme: dark)">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Rally Odds">
-<meta property="og:description" content="Every rally of NCAA Division I women's volleyball since 2020, turned into odds. Predicted brackets, a match simulator, and fan debates tested with data.">
+<meta property="og:description" content="Odds for NCAA Division I women's volleyball from every rally since 2020, with tournament brackets, a match simulator and fan debates tested against the data.">
 <meta property="og:url" content="https://m3tang.github.io/volleyball-sim/">
 <meta property="og:image" content="https://m3tang.github.io/volleyball-sim/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Rally Odds">
-<meta name="twitter:description" content="Every rally of NCAA Division I women's volleyball since 2020, turned into odds. Predicted brackets, a match simulator, and fan debates tested with data.">
+<meta name="twitter:description" content="Odds for NCAA Division I women's volleyball from every rally since 2020, with tournament brackets, a match simulator and fan debates tested against the data.">
 <meta name="twitter:image" content="https://m3tang.github.io/volleyball-sim/og.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -134,6 +134,30 @@ a:focus-visible, button:focus-visible, select:focus-visible, input:focus-visible
 @media (max-width: 860px) { .chain { grid-template-columns: minmax(0, 1fr); } }
 .chain li { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 24px 26px; display: grid; gap: 8px; align-content: start; }
 .chain p { font-size: 0.95rem; color: var(--ink-2); }
+/* Flow diagrams (How it works): steps left to right with arrows; stacked on a phone */
+.chainflow { --n: 3; list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); gap: 44px; }
+.chainflow > li { position: relative; display: grid; gap: 10px; align-content: start; padding: 18px 20px 16px; background: var(--bg); border: 1px solid var(--line); border-radius: var(--r-md); min-width: 0; }
+.chainflow > li + li::before { content: ""; position: absolute; left: -36px; top: 26px; width: 28px; height: 14px; background: var(--axis);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 14'%3E%3Cpath d='M0 7h24M18 1.5 25 7l-7 5.5' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+          mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 28 14'%3E%3Cpath d='M0 7h24M18 1.5 25 7l-7 5.5' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat; }
+.flow-k { font-family: var(--mono); font-size: 0.74rem; color: var(--ink-2); letter-spacing: 0.02em; }
+.chainflow strong { font-weight: 600; font-size: 1.05rem; line-height: 1.25; display: flex; align-items: center; gap: 8px; }
+.chainflow strong svg { width: 18px; height: 18px; flex: none; color: var(--court); }
+.chainflow p { font-size: 0.9rem; color: var(--ink-2); }
+.chainflow ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; font-size: 0.9rem; color: var(--ink-2); }
+.chainflow ul li { display: grid; grid-template-columns: 10px 1fr; gap: 9px; align-items: baseline; }
+.pt { width: 9px; height: 9px; border-radius: 50%; transform: translateY(-1px); }
+.pt-end { background: var(--gold); }
+.pt-go { border: 1.5px solid var(--court); }
+.pt-no { background: var(--s2); }
+.flow-foot { border-top: 1px dashed var(--line); padding-top: 10px; font-size: 0.82rem; color: var(--ink-2); }
+.flow-key { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 0.82rem; color: var(--ink-2); }
+.flow-key span { display: inline-flex; align-items: center; gap: 7px; }
+.chainflow-ask { --n: 4; }
+@media (max-width: 1023px) { .chainflow-ask { --n: 1; } }
+@media (max-width: 760px) { .chainflow { --n: 1; } }
+@media (max-width: 1023px) { .chainflow-ask { gap: 34px; } .chainflow-ask > li + li::before { left: 26px; top: -26px; transform: rotate(90deg); width: 22px; } }
+@media (max-width: 760px) { .chainflow { gap: 34px; } .chainflow > li + li::before { left: 26px; top: -26px; transform: rotate(90deg); width: 22px; } }
 
 /* Skip link: hidden until focused with the keyboard */
 .skip { position: fixed; left: max(16px, env(safe-area-inset-left, 0px)); top: calc(12px + env(safe-area-inset-top, 0px)); transform: translateY(-200%); z-index: 40; font: inherit; font-weight: 500; background: var(--ink); color: var(--bg); border: 0; border-radius: 999px; padding: 10px 16px; cursor: pointer; }
@@ -594,7 +618,7 @@ ul.plain { margin: 0; padding-left: 1.1rem; display: grid; gap: 6px; color: var(
 <div class="wrap">
   <button class="skip" type="button" id="skip">Skip to content</button>
   <header class="top">
-    <a class="mark" href="#home" aria-label="Rally Odds home"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="currentColor"/><circle cx="16" cy="16" r="9" fill="none" stroke="var(--bg)" stroke-width="2.2"/><path d="M16 7c-2 4-2 14 0 18M7.4 13c5 1.2 12.2 1.2 17.2 0" fill="none" stroke="#f2b630" stroke-width="2"/></svg><span>Rally <b>Odds</b></span></a>
+    <a class="mark" href="#home" aria-label="Rally Odds home"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="0.5" y="0.5" width="31" height="31" rx="8" fill="#111a2b" stroke="#2a3953"/><path d="M24.5 6.5 7.5 25.5" stroke="#8db1ff" stroke-width="3" stroke-linecap="round"/><circle cx="10.5" cy="10.5" r="6.2" fill="#f2b630"/><path d="M10.5 10.5C9 8.6 9.2 6 10.9 4.3M10.5 10.5c2.4-.4 4.6.7 5.9 2.6M10.5 10.5c-.9 2.3-3 3.8-5.3 4" fill="none" stroke="#111a2b" stroke-width="1.25" stroke-linecap="round"/><path d="M7.6 5.3c-.6 2.4.2 4.6 1.6 6.1M16.5 9.4c-2.2-1-4.6-.7-6.2.7M8.7 16.4c1.3-1.8 3.4-2.6 5.6-2.4" fill="none" stroke="#111a2b" stroke-width="1" stroke-linecap="round" opacity=".55"/><circle cx="22" cy="22" r="4.3" fill="none" stroke="#8db1ff" stroke-width="2.6"/></svg><span>Rally <b>Odds</b></span></a>
     <button class="menu-btn" type="button" id="menu-btn" aria-expanded="false" aria-controls="nav" aria-label="Menu">
       <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path class="i-open" d="M4 7h16M4 12h16M4 17h16"/><path class="i-close" d="M6 6l12 12M18 6L6 18"/></svg>
     </button>
@@ -610,7 +634,7 @@ ul.plain { margin: 0; padding-left: 1.1rem; display: grid; gap: 6px; color: var(
     <div class="hero__c">
       <span class="pill-note">NCAA Division I women's volleyball · <span id="h-seasons"></span></span>
       <h1 id="hero-h">What <em id="h-rallies"></em> rallies say about college volleyball</h1>
-      <p class="lede">The model learned from every serve, pass, set and swing in Division I since 2020. Before the 2025 NCAA tournament started, the model picked <span id="h-called"></span> of the 63 matches correctly.</p>
+      <p class="lede">The rally model learned from every serve, pass, set and swing in Division I women's volleyball since 2020. Before the 2025 NCAA tournament started, the model picked <span id="h-called"></span> of the 63 matches correctly.</p>
       <div class="btn-row">
         <a class="btn primary" href="#bracket">See the 2025 bracket</a>
         <a class="btn" href="#matchups">Simulate a match</a>
@@ -636,7 +660,7 @@ ul.plain { margin: 0; padding-left: 1.1rem; display: grid; gap: 6px; color: var(
       <div class="intro">
         <div class="eyebrow">Four ways in</div>
         <h2 id="band-h">One rally model behind every bracket, matchup and debate</h2>
-        <p>Every page on this site runs on the same twelve numbers per team, refit week by week and checked against what actually happened.</p>
+        <p>Every page on this site runs on the same twelve numbers per team, refit every week and checked against the results.</p>
       </div>
       <div class="board" role="list">
         <div role="listitem"><span class="big" id="b-matches"></span><span class="lbl">matches with every touch recorded</span></div>
@@ -660,13 +684,13 @@ ul.plain { margin: 0; padding-left: 1.1rem; display: grid; gap: 6px; color: var(
         <a class="card" href="#findings">
           <span class="eyebrow">Findings</span>
           <span class="big" id="c-best"></span>
-          <span>titles won by the pre-tournament favorite. There's more on timeouts, momentum and serving.</span>
+          <span>titles won by the pre-tournament favorite. The other debates cover timeouts, momentum, serving and home court.</span>
           <span class="go">Read the findings</span>
         </a>
         <a class="card" href="#model">
           <span class="eyebrow">How it works</span>
           <span class="big" id="c-acc"></span>
-          <span>of 2025 matches picked a week ahead. Here's how the odds get made.</span>
+          <span>of 2025 matches picked a week ahead. Five steps take the raw play-by-play to the odds.</span>
           <span class="go">See how it works</span>
         </a>
       </div>
@@ -695,7 +719,7 @@ ul.plain { margin: 0; padding-left: 1.1rem; display: grid; gap: 6px; color: var(
     </div>
     <div class="panel">
       <div class="bk-head">
-        <h3>How the bracket actually played out</h3>
+        <h3>How the bracket played out</h3>
         <div class="seg" role="group" aria-label="Part of the bracket" id="reg-tabs"></div>
       </div>
       <p class="small muted">Each box shows the model's odds going into that match, and the <span class="gold-key">gold</span> ones are upsets. Tap any match to see what decided it.</p>
@@ -820,7 +844,7 @@ ul.plain { margin: 0; padding-left: 1.1rem; display: grid; gap: 6px; color: var(
     <div class="intro">
       <div class="eyebrow">Fan debate</div>
       <h2>Is momentum real? <span class="verdict">Mostly no</span></h2>
-      <p>Runs definitely happen. The surprise is that replaying every set with no momentum at all produces almost the same runs.</p>
+      <p>Runs happen, but a replay of every set with no momentum at all produces almost the same runs.</p>
     </div>
     <div class="cols">
       <div class="panel">
@@ -895,7 +919,7 @@ ul.plain { margin: 0; padding-left: 1.1rem; display: grid; gap: 6px; color: var(
       <div><span class="big">99.94%</span><span class="small muted">of rebuilt results match the official box score</span></div>
     </div>
     <div class="panel">
-      <h3>Here's one real rally from the 2025 final</h3>
+      <h3>One rally from the 2025 final, touch by touch</h3>
       <p class="small muted" id="sample-cap"></p>
       <div class="rally" id="sample-rally"></div>
       <p class="small muted">Each card is one possession, and a new possession starts every time the ball goes over the net.</p>
@@ -904,7 +928,7 @@ ul.plain { margin: 0; padding-left: 1.1rem; display: grid; gap: 6px; color: var(
         <h3>What needed cleaning up and what's missing</h3>
         <ul class="plain small twocol">
           <li>Rallies are rebuilt from changes in the score. The raw data also credits errors to the wrong team, and about 1,700 matches in the 2025 files show up twice, so both of those get fixed.</li>
-          <li>The data doesn't record how good each touch was, where the ball went, block touches that stay in play, or lineups. That means the model only sees teams, not individual players.</li>
+          <li>The data doesn't record how good each touch was, where the ball went, block touches that stay in play, or lineups. So the model rates teams, and individual players never enter the numbers.</li>
         </ul>
     </div>
   </section>
@@ -913,7 +937,22 @@ ul.plain { margin: 0; padding-left: 1.1rem; display: grid; gap: 6px; color: var(
     <div class="intro">
       <div class="eyebrow">Step 2 of 5</div>
       <h2>Every team gets twelve numbers</h2>
-      <p>Each part of a rally gets two numbers: serving, passing, the first attack after the pass, stopping the other team's first attack, and the long rallies on both offense and defense. Here's how one of Kentucky's twelve gets made.</p>
+      <p>Each part of a rally gets two numbers: serving, passing, the first attack after the pass, stopping the other team's first attack, and the scramble after a dig, each on offense and defense. This is how one of Kentucky's twelve gets made.</p>
+    </div>
+    <div class="panel">
+      <h3>Every rally runs through the same three steps</h3>
+      <ol class="chainflow" aria-label="The rally chain. The serve ends in an ace, a missed serve, or a ball in play. Then the receiving team's first attack after the pass scores, loses the point, or gets dug. After a dig the scramble repeats until someone scores. Each step uses four of a team's twelve numbers.">
+        <li><span class="flow-k">Numbers 1 to 4</span><strong>The serve</strong>
+          <ul><li><i class="pt pt-end"></i>Ace: serving team's point</li><li><i class="pt pt-end"></i>Missed serve: receiving team's point</li><li><i class="pt pt-go"></i>In play: the other team passes</li></ul>
+          <div class="flow-foot">Serving, and passing against the serve</div></li>
+        <li><span class="flow-k">Numbers 5 to 8</span><strong>The first attack after the pass</strong>
+          <ul><li><i class="pt pt-end"></i>Kill: receiving team's point</li><li><i class="pt pt-end"></i>Error or blocked: serving team's point</li><li><i class="pt pt-go"></i>Dug: on to the scramble</li></ul>
+          <div class="flow-foot">Attacking off the pass, and defending against it</div></li>
+        <li><span class="flow-k">Numbers 9 to 12</span><strong>The scramble <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v4.5h-4.5"/></svg></strong>
+          <ul><li><i class="pt pt-end"></i>Kill: attacking team's point</li><li><i class="pt pt-end"></i>Error or blocked: the other team's point</li><li><i class="pt pt-go"></i>Dug again: the scramble repeats</li></ul>
+          <div class="flow-foot">Scoring after a dig, and stopping the other team after one</div></li>
+      </ol>
+      <div class="flow-key" aria-hidden="true"><span><i class="pt pt-end"></i>Rally ends</span><span><i class="pt pt-go"></i>Ball stays in play</span></div>
     </div>
     <ol class="howcount" id="how-count"></ol>
     <div class="panel">
@@ -947,7 +986,7 @@ ul.plain { margin: 0; padding-left: 1.1rem; display: grid; gap: 6px; color: var(
     <ol class="chain">
       <li><h3>Week by week</h3><p>During 2025 the model was refit every week and asked to predict the next week's matches. The settings were tuned on 2024, so 2025 is a clean test.</p></li>
       <li><h3>Brackets</h3><p>Each tournament from 2021 to 2025 was predicted using only matches from before the first round.</p></li>
-      <li><h3>Honest odds</h3><p>A 70% favorite should win about 70% of the time, and the chart below checks whether that holds up.</p></li>
+      <li><h3>Odds that match results</h3><p>A 70% favorite should win about 70% of the time, and the chart below checks whether that holds up.</p></li>
     </ol>
     <div class="cols">
       <div class="panel">
@@ -959,7 +998,7 @@ ul.plain { margin: 0; padding-left: 1.1rem; display: grid; gap: 6px; color: var(
       <div class="panel">
         <h3>2025 matches picked correctly</h3>
         <div class="vs" id="acc-vs"></div>
-        <p class="small muted">When the dots sit on the diagonal, the odds matched what actually happened.</p>
+        <p class="small muted">When the dots sit on the diagonal, the odds matched the results.</p>
       </div>
     </div>
     <div class="panel" id="xgb-panel" hidden>
@@ -971,7 +1010,7 @@ ul.plain { margin: 0; padding-left: 1.1rem; display: grid; gap: 6px; color: var(
     <div class="panel">
       <h3>What the model doesn't know</h3>
       <ul class="plain small twocol">
-        <li>Injuries, lineup changes and transfers. A team missing its best hitter just looks like a team having a bad stretch.</li>
+        <li>Injuries, lineup changes and transfers. A team missing its best hitter looks like a team having a bad stretch.</li>
         <li>How good each touch was. A perfect pass and a shanked one count the same.</li>
         <li>Hot streaks that last a whole tournament. Each match gets its own good or bad night, so a team that catches fire in December is underrated. Three straight champions started below 2%, which the model put at about 1 in 9,000.</li>
         <li>How teams from different years compare. Cross-season matchups assume the overall level of play stays about the same.</li>
@@ -982,12 +1021,22 @@ ul.plain { margin: 0; padding-left: 1.1rem; display: grid; gap: 6px; color: var(
     <div class="intro">
       <div class="eyebrow">Step 5 of 5</div>
       <h2>Ask the model, and check its work</h2>
-      <p>The volleyball button in the corner opens a chat with an AI assistant. It doesn't answer from memory. It looks things up with the same model and math that run this site, and every number it gives you gets checked before you see it.</p>
+      <p>The volleyball button in the corner opens a chat with an AI assistant that looks up every answer with the same model and math that run this site, and every number it gives you gets checked before you see it.</p>
+    </div>
+    <div class="panel">
+      <h3>What happens between your question and the answer</h3>
+      <ol class="chainflow chainflow-ask" aria-label="How the chat answers. Your question goes to the assistant, which runs the model through eleven tools and drafts an answer. Every number in the draft is checked against the tool results. If they all match, you get the answer with Show the work. If not, the assistant gets one rewrite, and if a number still doesn't match you get couldn't answer reliably.">
+        <li><span class="flow-k">1</span><strong>You ask</strong><p>Any team, matchup, score or tournament from the data.</p></li>
+        <li><span class="flow-k">2</span><strong>The tools run the model</strong><p>Eleven read-only tools return odds, profiles, brackets and box-score queries.</p></li>
+        <li><span class="flow-k">3</span><strong>The assistant drafts</strong><p>The answer is written from the tool results only.</p></li>
+        <li><span class="flow-k">4</span><strong>Every number is checked</strong>
+          <ul><li><i class="pt pt-end"></i>All match: the answer, with Show the work</li><li><i class="pt pt-no"></i>One doesn't: one rewrite, then "couldn't answer reliably"</li></ul></li>
+      </ol>
     </div>
     <ol class="chain">
       <li><h3>It looks it up</h3><p>The assistant picks from eleven tools: match odds for any two teams and seasons, odds from any score, team profiles, rankings, bracket odds, tournament results, what decided an upset, and read-only queries over the box scores. The tools do the math, so the odds match the simulator exactly.</p></li>
       <li><h3>Every number gets checked</h3><p>Each number in an answer has to match something a tool returned, at the precision it's written. If one doesn't, the assistant gets one chance to fix it. If it still can't, you get "couldn't answer reliably" instead. Every answer has a "Show the work" list of the lookups behind it.</p></li>
-      <li><h3>It was tested first</h3><p>The test set has 160 questions with answers computed from the model, not written by hand, including 15 it should turn down, like injuries or betting picks, and real questions people asked here. On the 60 questions run so far it got 59 right, for about a tenth of a cent each.</p></li>
+      <li><h3>It was tested first</h3><p>The test set has 160 questions with answers computed from the model and the data, including 15 it should turn down, like injuries or betting picks, and real questions people asked here. On the 60 questions run so far it got 59 right, for about a tenth of a cent each.</p></li>
     </ol>
     <div class="panel">
       <h3>What the chat can't do</h3>
@@ -1646,14 +1695,14 @@ function reasons(n) {
     const O = other(n, T), won = T === W;
     const push = (pts, text) => out.push({ pts, text });
     push((A(T, 3) - E(T, 3)) * N(T, 3) * s, won
-      ? `${T} put away ${pct(A(T, 3))} of its first-ball attacks when the model expected ${pct(E(T, 3))}.`
-      : `${T} only put away ${pct(A(T, 3))} of its first-ball attacks when the model expected ${pct(E(T, 3))}.`);
+      ? `${T} put away ${pct(A(T, 3))} of its first attacks after the pass when the model expected ${pct(E(T, 3))}.`
+      : `${T} only put away ${pct(A(T, 3))} of its first attacks after the pass when the model expected ${pct(E(T, 3))}.`);
     push(-(A(T, 4) - E(T, 4)) * N(T, 4) * s, won
-      ? `${T} hardly ever gave away points on first-ball swings. Only ${pct(A(T, 4))} ended in an error or got blocked, compared with ${pct(E(T, 4))} expected.`
-      : `${pct(A(T, 4))} of ${T}'s first-ball swings ended in an error or got blocked, compared with ${pct(E(T, 4))} expected. ${O} scored ${x.blk[O]} points off blocks.`);
+      ? `${T} hardly ever gave away points on its first attack. Only ${pct(A(T, 4))} ended in an error or got blocked, compared with ${pct(E(T, 4))} expected.`
+      : `${pct(A(T, 4))} of ${T}'s first attacks ended in an error or got blocked, compared with ${pct(E(T, 4))} expected. ${O} scored ${x.blk[O]} points off blocks.`);
     push((A(T, 5) - E(T, 5)) * N(T, 5) * s, won
-      ? `${T} won the long rallies and scored on ${pct(A(T, 5))} of its chances after a dig when the model expected ${pct(E(T, 5))}.`
-      : `${T} struggled in the long rallies and scored on just ${pct(A(T, 5))} of its chances after a dig, compared with ${pct(E(T, 5))} expected.`);
+      ? `${T} won the scramble and scored on ${pct(A(T, 5))} of its chances after a dig when the model expected ${pct(E(T, 5))}.`
+      : `${T} struggled in the scramble and scored on just ${pct(A(T, 5))} of its chances after a dig, compared with ${pct(E(T, 5))} expected.`);
     push(-(A(T, 1) - E(T, 1)) * N(T, 1) * s, won
       ? `${T} passed well and only got aced on ${pct(A(T, 1))} of ${O}'s serves, compared with ${pct(E(T, 1))} expected.`
       : `${O} served tough and aced ${T} on ${pct(A(T, 1))} of its serves, compared with ${pct(E(T, 1))} expected.`);
@@ -2013,9 +2062,9 @@ function drawMatchup() {
   const favA = o.win >= 0.5, fav = favA ? la : lb, dog = favA ? lb : la;
   const rf = favA ? ra : rb, rd = favA ? rb : ra;
   const reasons = [
-    ["puts away more first-ball attacks", r => r.fb[0], 1],
-    ["wins more of the long rallies", r => r.tr[0], 1],
-    ["makes fewer first-ball errors", r => r.fb[1], -1],
+    ["puts away more first attacks", r => r.fb[0], 1],
+    ["wins more of the scramble", r => r.tr[0], 1],
+    ["makes fewer errors on the first attack", r => r.fb[1], -1],
     ["gives up fewer aces", r => r.srv[0], -1],
   ].map(([txt, f, g]) => ({ txt, f, gap: (f(rf) - f(rd)) * g })).sort((x, y) => y.gap - x.gap);
   const top = reasons[0], odds = Math.max(o.win, 1 - o.win);
@@ -2106,7 +2155,7 @@ function drawParams(team, season) {
     const tougher = adj5 > raw.rate[4];
     $("how-count").innerHTML = `
       <li><span class="eyebrow">1 · Count</span><span class="big">${pct(raw.rate[4], 1)}</span>
-        <p>${esc(team.n)} put away ${pct(raw.rate[4], 1)} of its ${fmtInt(raw.n[2])} first-ball attacks in ${season}.</p></li>
+        <p>${esc(team.n)} put away ${pct(raw.rate[4], 1)} of its ${fmtInt(raw.n[2])} first attacks after the pass in ${season}.</p></li>
       <li><span class="eyebrow">2 · Adjust for opponents</span><span class="big">${pct(adj5, 1)}</span>
         <p>Its opponents defended ${tougher ? "better" : "worse"} than average, so against an average team that works out to ${pct(adj5, 1)}.</p></li>
       <li><span class="eyebrow">3 · Store</span><span class="big">${team.p[4] >= 0 ? "+" : "−"}${Math.abs(team.p[4]).toFixed(3)}</span>
@@ -2147,7 +2196,7 @@ const oddsTxt = x => x < 0.1 ? (100 * x).toFixed(1) + "%" : pct(x);
   for (let i = rows.length - 1; i >= 0 && rows[i].champ.odds[5] < 0.02; i--) streak++;
   $("c-best").textContent = `${won} of ${rows.length}`;
   $("fav-text").textContent = `The pre-tournament favorite won just ${won} of the last ${rows.length} titles, about half as many as the odds suggested.` +
-    (streak >= 2 ? ` The last ${streak} champions all started with less than a 2% chance. Match by match, the model's tournament odds hold up well, so this looks like teams getting hot and staying hot for the whole month, something the model treats as six separate coin flips.` : "");
+    (streak >= 2 ? ` The last ${streak} champions all started with less than a 2% chance. Match by match, the model's tournament odds hold up well, so this looks like teams getting hot and staying hot for the whole month, and the model can't see that, because it gives each of the six matches its own good or bad night.` : "");
   $("best").innerHTML = `<thead><tr><th>Year</th><th>Favorite</th><th>Title odds</th><th>Champion</th><th>Title odds</th><th>Odds rank</th></tr></thead><tbody>` +
     rows.slice().reverse().map(r => `<tr><td class="num">${r.y}</td><td>${esc(r.fav.n)}</td><td class="num">${oddsTxt(r.fav.odds[5])}</td>
       <td>${r.fav === r.champ ? `<span class="finish champ">${esc(r.champ.n)}</span>` : esc(r.champ.n)}</td>
@@ -2163,7 +2212,7 @@ $("home-match").textContent = pct(F.home.home_match);
 vsBars($("home-steps"), F.home.steps.map(s => ({ label: s.label, v: s.share, color: "var(--s1)" })), Math.max(...F.home.steps.map(s => s.share)), v => pct(v));
 (function () {
   const attack = F.home.steps.filter(s => !s.label.startsWith("Serving")).reduce((a, s) => a + s.share, 0);
-  $("home-text").textContent = `Home teams win about ${(100 * F.home.rally_edge).toFixed(1)} more rallies out of every 100. That doesn't sound like much, but it turns an even match into a ${Math.round(100 * F.home.home_match)}/${Math.round(100 * (1 - F.home.home_match))} edge for the home team. Most of it (${pct(attack)}) comes from hitting rather than serving.`;
+  $("home-text").textContent = `Home teams win about ${(100 * F.home.rally_edge).toFixed(1)} more rallies out of every 100, which is enough to turn an even match into a ${Math.round(100 * F.home.home_match)}/${Math.round(100 * (1 - F.home.home_match))} edge for the home team. Hitting accounts for ${pct(attack)} of that edge, through the first attack and the scramble.`;
 })();
 $("sets-table").innerHTML = `<thead><tr><th>Situation</th><th>Matches</th><th>Actually happened</th><th>Expected</th></tr></thead><tbody>
   <tr><td>Team down 0-2 comes back to win</td><td class="num">${fmtInt(F.sets.down02)}</td><td class="num">${pct(F.sets.comeback, 1)}</td><td class="num">${pct(F.sets.comeback_exp, 1)}</td></tr>
@@ -2271,12 +2320,12 @@ $("skip").addEventListener("click", () => $("main").focus());
   const AGENT_API = "https://rally-agent-eu35voqj3q-uc.a.run.app";
   const MAX_HISTORY = 6;   // earlier messages sent with a follow-up (the API's cap)
   const tools = agentTools(D);
-  const NOT_RELIABLE = "Sorry, that one couldn't be answered reliably from the model's numbers. Try asking about match odds, a team's season, or an NCAA tournament from 2020 to 2025.";
+  const NOT_RELIABLE = "Sorry, that one couldn't be answered reliably from the model's numbers. Try asking about match odds, a team's season from 2020 to 2025, or an NCAA tournament from 2021 to 2025.";
   const LABEL = { win_probability: "Match odds", live_win_probability: "Odds from a score", team_profile: "Team profile", season_rankings: "Season rankings",
     bracket_forecast: "Bracket forecast", advancement_odds: "Tournament odds", tournament_matches: "Tournament results",
     explain_upset: "Match breakdown", model_facts: "What the data covers", query_stats: "Box-score query", sql_schema: "Box-score tables" };
   const CLAUDE_ERRORS = { not_granted: "The assistant isn't allowed to answer here. Allow it from this artifact's menu, then ask again.",
-    sampling_disabled: "The assistant isn't available on this account.", rate_limited: "You've reached your usage limit for now. Try again later.",
+    sampling_disabled: "The assistant isn't available on this account.", rate_limited: "Your Claude account has hit its usage limit for now. Try again in a little while.",
     tools_unavailable: "This app can't run the model's tools. Open it in a web browser instead.",
     refused: "The assistant declined that question. Try asking it another way.", session_expired: "Sign in again, then ask.",
     empty_completion: "No answer came back. Try a simpler question.", prompt_too_large: "This chat is too long. Start a new chat and ask again." };
@@ -2312,7 +2361,7 @@ $("skip").addEventListener("click", () => $("main").focus());
   function renderEmpty() {
     const box = document.createElement("div"), p = document.createElement("p"), chips = document.createElement("div");
     box.className = "chat-empty"; chips.className = "chips";
-    p.textContent = "Ask about any Division I team, matchup or NCAA tournament from 2020 to 2025. Answers come from the same model as the rest of this site, and every number is checked against the model before you see it. Follow-up questions work too.";
+    p.textContent = "Ask about any Division I team or matchup from 2020 to 2025, or any NCAA tournament from 2021 to 2025. Answers come from the same model as the rest of this site, and every number is checked against the model before you see it. Follow-up questions work too.";
     for (const ex of suggestions()) {
       const b = document.createElement("button");
       b.type = "button"; b.className = "chip"; b.textContent = ex;
